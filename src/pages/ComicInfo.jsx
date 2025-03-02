@@ -34,12 +34,58 @@ const ComicInfo = () => {
       setLoading(true);
       try {
         const comicApi = new Comic(slug);
-        const info = await comicApi.info();
+        let info = await comicApi.info();
         
-        if (!info || !info.title) {
-          setError("Comic information not found");
-        } else {
+        // Check if we have valid info with at least some basic fields
+        if (!info || (!info.title && !info.cover)) {
+          // Try again with series() method as fallback
+          try {
+            info = await comicApi.series();
+          } catch (seriesErr) {
+            console.error("Error fetching comic series:", seriesErr);
+          }
+          
+          // If still no valid info
+          if (!info || (!info.title && !info.cover)) {
+            // Create a minimal object from slug
+            const titleFromSlug = slug.replace(/-/g, ' ')
+                                      .split(' ')
+                                      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                                      .join(' ');
+            
+            // Check localStorage for any saved info about this comic
+            const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+            const favorite = favorites.find(fav => fav.slug === slug);
+            
+            if (favorite) {
+              info = {
+                title: favorite.title || titleFromSlug,
+                cover: favorite.cover || 'https://via.placeholder.com/400x600?text=No+Image',
+                type: favorite.type || 'Unknown',
+                status: favorite.status || 'Unknown',
+                score: favorite.score || 'N/A',
+                synopsis: 'No synopsis available.',
+                chapters: []
+              };
+            } else {
+              setError("Comic information not found");
+            }
+          }
+        }
+        
+        if (info && (info.title || info.cover)) {
+          // Ensure all required fields have at least fallback values
+          info.title = info.title || 'Unknown Title';
+          info.cover = info.cover || 'https://via.placeholder.com/400x600?text=No+Image';
+          info.type = info.type || 'Unknown';
+          info.status = info.status || 'Unknown';
+          info.score = info.score || 'N/A';
+          info.chapters = info.chapters || [];
+          info.genre = info.genre || [];
+          info.synopsis = info.synopsis || 'No synopsis available.';
+          
           setComic(info);
+          
           // Check if comic is in favorites
           const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
           setIsFavorite(favorites.some(fav => fav.slug === slug));
