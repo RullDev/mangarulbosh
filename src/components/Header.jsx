@@ -22,20 +22,19 @@ const Header = ({ searchTerm, setSearchTerm }) => {
     }
     
     // We're already on the home page, scroll to the section
-    const element = document.getElementById(id);
-    if (element) {
-      const headerOffset = 80; // Adjust this value based on your header height
-      const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-      
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
-      });
-    }
-    
-    // Close mobile menu
-    setMobileMenuOpen(false);
+    setTimeout(() => {
+      const element = document.getElementById(id);
+      if (element) {
+        const headerOffset = 80; // Adjust this value based on your header height
+        const elementPosition = element.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+        
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: 'smooth'
+        });
+      }
+    }, 100); // Small delay to ensure elements are rendered
   };
   
   // Check if there's a hash in the URL or state when component mounts or when location changes
@@ -294,7 +293,10 @@ const Header = ({ searchTerm, setSearchTerm }) => {
                   whileTap={{ scale: 0.98 }}
                 >
                   <button 
-                    onClick={() => scrollToSection('popular')}
+                    onClick={() => {
+                      scrollToSection('popular');
+                      setMobileMenuOpen(false);
+                    }}
                     className="font-medium text-gray-700 dark:text-gray-200 hover:text-primary dark:hover:text-primary-light transition-colors flex items-center gap-2 py-2 w-full text-left"
                   >
                     <FaFire className="text-orange-500" /> 
@@ -307,7 +309,10 @@ const Header = ({ searchTerm, setSearchTerm }) => {
                   whileTap={{ scale: 0.98 }}
                 >
                   <button 
-                    onClick={() => scrollToSection('latest')}
+                    onClick={() => {
+                      scrollToSection('latest');
+                      setMobileMenuOpen(false);
+                    }}
                     className="font-medium text-gray-700 dark:text-gray-200 hover:text-primary dark:hover:text-primary-light transition-colors flex items-center gap-2 py-2 w-full text-left"
                   >
                     <FaClock className="text-blue-500" /> 
@@ -320,7 +325,10 @@ const Header = ({ searchTerm, setSearchTerm }) => {
                   whileTap={{ scale: 0.98 }}
                 >
                   <button 
-                    onClick={() => scrollToSection('series')}
+                    onClick={() => {
+                      scrollToSection('series');
+                      setMobileMenuOpen(false);
+                    }}
                     className="font-medium text-gray-700 dark:text-gray-200 hover:text-primary dark:hover:text-primary-light transition-colors flex items-center gap-2 py-2 w-full text-left"
                   >
                     <FaBookOpen className="text-green-500" /> 
