@@ -1,73 +1,50 @@
-
-import React from 'react';
-import { motion } from 'framer-motion';
-import { FaGithub, FaTwitter, FaInstagram, FaBookOpen } from 'react-icons/fa';
+import React, { useEffect, useState } from 'react';
+import { FaMoon, FaSun } from 'react-icons/fa';
 
 const Footer = () => {
+  const [darkMode, setDarkMode] = useState(false);
+
+  useEffect(() => {
+    // Check if user has a preference
+    const isDark = localStorage.getItem('darkMode') === 'true';
+    setDarkMode(isDark);
+
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, []);
+
+  const toggleDarkMode = () => {
+    const newMode = !darkMode;
+    setDarkMode(newMode);
+    localStorage.setItem('darkMode', newMode.toString());
+
+    if (newMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  };
+
   return (
-    <footer className="bg-dark text-white py-8 mt-12">
-      <div className="container-custom">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="grid grid-cols-1 md:grid-cols-4 gap-8"
-        >
-          <div>
-            <div className="flex items-center gap-2 mb-4">
-              <FaBookOpen className="text-primary text-2xl" />
-              <span className="text-xl font-bold">ComicVerse</span>
-            </div>
-            <p className="text-gray-300">
-              Your ultimate destination for reading manga, manhwa, and comics online for free.
-            </p>
-          </div>
-          
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
-            <ul className="space-y-2">
-              <li><a href="/" className="text-gray-300 hover:text-primary transition-colors">Home</a></li>
-              <li><a href="/?type=manga" className="text-gray-300 hover:text-primary transition-colors">Manga</a></li>
-              <li><a href="/?type=manhwa" className="text-gray-300 hover:text-primary transition-colors">Manhwa</a></li>
-              <li><a href="/?type=manhua" className="text-gray-300 hover:text-primary transition-colors">Manhua</a></li>
-            </ul>
-          </div>
-          
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Categories</h3>
-            <ul className="space-y-2">
-              <li><a href="/?genre=action" className="text-gray-300 hover:text-primary transition-colors">Action</a></li>
-              <li><a href="/?genre=adventure" className="text-gray-300 hover:text-primary transition-colors">Adventure</a></li>
-              <li><a href="/?genre=romance" className="text-gray-300 hover:text-primary transition-colors">Romance</a></li>
-              <li><a href="/?genre=fantasy" className="text-gray-300 hover:text-primary transition-colors">Fantasy</a></li>
-            </ul>
-          </div>
-          
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Connect With Us</h3>
-            <div className="flex space-x-4">
-              <a href="#" className="text-gray-300 hover:text-primary transition-colors">
-                <FaGithub size={24} />
-              </a>
-              <a href="#" className="text-gray-300 hover:text-primary transition-colors">
-                <FaTwitter size={24} />
-              </a>
-              <a href="#" className="text-gray-300 hover:text-primary transition-colors">
-                <FaInstagram size={24} />
-              </a>
-            </div>
-          </div>
-        </motion.div>
-        
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5, duration: 0.5 }}
-          className="border-t border-gray-700 mt-8 pt-6 text-center text-gray-400"
-        >
-          <p>&copy; {new Date().getFullYear()} ComicVerse. All rights reserved.</p>
-          <p className="mt-2 text-sm">This is a demo project for educational purposes only.</p>
-        </motion.div>
+    <footer className="footer">
+      <div className="container-custom flex justify-between items-center">
+        <div>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            © {new Date().getFullYear()} Comic Reader. All rights reserved.
+          </p>
+        </div>
+        <div className="flex items-center space-x-4">
+          <button
+            onClick={toggleDarkMode}
+            className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
+            aria-label="Toggle dark mode"
+          >
+            {darkMode ? <FaSun className="h-5 w-5" /> : <FaMoon className="h-5 w-5" />}
+          </button>
+        </div>
       </div>
     </footer>
   );

@@ -149,3 +149,202 @@ const ReadingPage = () => {
 };
 
 export default ReadingPage;
+import React, { useState, useEffect } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { FaArrowLeft, FaHome } from 'react-icons/fa';
+import Comic from '../api/comicApi';
+import LoadingSpinner from '../components/LoadingSpinner';
+
+const ReadingPage = () => {
+  const { slug } = useParams();
+  const [images, setImages] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [comicTitle, setComicTitle] = useState('');
+
+  useEffect(() => {
+    const fetchComicPages = async () => {
+      setLoading(true);
+      setError(null);
+      
+      try {
+        // Extract comic title from slug if possible
+        const titleMatch = slug.match(/(.+?)(?:-chapter|\-ch)/i);
+        if (titleMatch && titleMatch[1]) {
+          setComicTitle(titleMatch[1].replace(/-/g, ' ').trim());
+        }
+        
+        const comicApi = new Comic(slug);
+        const pagesData = await comicApi.read();
+        
+        if (pagesData.length === 0) {
+          setError('No pages found for this chapter.');
+        } else {
+          setImages(pagesData);
+          setCurrentPage(0);
+        }
+      } catch (err) {
+        console.error('Error fetching comic pages:', err);
+        setError('Failed to load comic pages.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (slug) {
+      fetchComicPages();
+      // Scroll to top when loading a new chapter
+      window.scrollTo(0, 0);
+    }
+  }, [slug]);
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'ArrowRight' && currentPage < images.length - 1) {
+        setCurrentPage(curr => curr + 1);
+      } else if (e.key === 'ArrowLeft' && currentPage > 0) {
+        setCurrentPage(curr => curr - 1);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentPage, images.length]);
+
+  if (loading) return <LoadingSpinner />;
+
+  if (error) {
+    return (
+      <div className="container-custom py-12 text-center">
+        <p className="text-xl text-red-600 dark:text-red-400 mb-4">{error}</p>
+        <Link to="/" className="btn btn-primary">
+          Return to Home
+        </Link>
+      </div>
+    );
+  }
+
+  // Handle empty array without error
+  if (images.length === 0) {
+    return (
+      <div className="container-custom py-12 text-center">
+        <p className="text-xl text-gray-600 dark:text-gray-400 mb-4">No images available for this chapter.</p>
+        <Link to="/" className="btn btn-primary">
+          Return to Home
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-gray-900 min-h-screen">
+      <div className="container-custom py-4">
+        <div className="flex justify-between items-center mb-4">
+          <Link to="/" className="flex items-center text-white hover:text-primary-light transition-colors">
+            <FaHome className="mr-2" /> Home
+          </Link>
+          
+          <div className="text-center">
+            <h1 className="text-white font-bold">{comicTitle}</h1>
+            <p className="text-gray-400 text-sm">
+              Chapter {slug.match(/chapter-(\d+)|ch-(\d+)/i)?.[1] || '?'}
+            </p>
+          </div>
+          
+          <div className="text-white">
+            Page {currentPage + 1}/{images.length}
+          </div>
+        </div>
+        
+        <div className="flex justify-center mb-6">
+          <div className="flex gap-2">
+            <button
+              onClick={() => setCurrentPage(0)}
+              disabled={currentPage === 0}
+              className="btn bg-gray-800 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              First
+            </button>
+            <button
+              onClick={() => setCurrentPage(curr => curr - 1)}
+              disabled={currentPage === 0}
+              className="btn bg-gray-800 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Previous
+            </button>
+            <button
+              onClick={() => setCurrentPage(curr => curr + 1)}
+              disabled={currentPage === images.length - 1}
+              className="btn bg-gray-800 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next
+            </button>
+            <button
+              onClick={() => setCurrentPage(images.length - 1)}
+              disabled={currentPage === images.length - 1}
+              className="btn bg-gray-800 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Last
+            </button>
+          </div>
+        </div>
+        
+        <motion.div
+          key={currentPage}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+          className="flex justify-center"
+        >
+          <img
+            src={images[currentPage]?.url}
+            alt={`Page ${currentPage + 1}`}
+            className="max-w-full max-h-[80vh] object-contain"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = 'https://via.placeholder.com/800x1200?text=Image+Not+Available';
+            }}
+          />
+        </motion.div>
+        
+        <div className="flex justify-center mt-6">
+          <div className="flex gap-2">
+            <button
+              onClick={() => setCurrentPage(0)}
+              disabled={currentPage === 0}
+              className="btn bg-gray-800 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              First
+            </button>
+            <button
+              onClick={() => setCurrentPage(curr => curr - 1)}
+              disabled={currentPage === 0}
+              className="btn bg-gray-800 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Previous
+            </button>
+            <button
+              onClick={() => setCurrentPage(curr => curr + 1)}
+              disabled={currentPage === images.length - 1}
+              className="btn bg-gray-800 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next
+            </button>
+            <button
+              onClick={() => setCurrentPage(images.length - 1)}
+              disabled={currentPage === images.length - 1}
+              className="btn bg-gray-800 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Last
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ReadingPage;

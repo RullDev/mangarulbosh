@@ -2,9 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FaStar, FaBookOpen, FaCalendarAlt, FaUser, FaInfoCircle, FaList } from 'react-icons/fa';
-import LoadingSpinner from '../components/LoadingSpinner';
+import { FaStar, FaBook, FaCalendarAlt, FaUser, FaTag } from 'react-icons/fa';
 import Comic from '../api/comicApi';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const ComicInfo = () => {
   const { slug } = useParams();
@@ -15,143 +15,174 @@ const ComicInfo = () => {
   useEffect(() => {
     const fetchComicInfo = async () => {
       setLoading(true);
+      setError(null);
+      
       try {
         const comicApi = new Comic(slug);
-        const result = await comicApi.series();
-        setComic(result);
+        const comicData = await comicApi.info();
+        
+        if (Object.keys(comicData).length === 0) {
+          setError('Comic information not found.');
+        } else {
+          setComic(comicData);
+        }
       } catch (err) {
         console.error('Error fetching comic info:', err);
-        setError('Failed to load comic information. Please try again later.');
+        setError('Failed to load comic information.');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchComicInfo();
+    if (slug) {
+      fetchComicInfo();
+    }
   }, [slug]);
 
   if (loading) return <LoadingSpinner />;
-  if (error) return <div className="container-custom py-10 text-center text-red-500">{error}</div>;
-  if (!comic) return <div className="container-custom py-10 text-center">Comic not found</div>;
+
+  if (error) {
+    return (
+      <div className="container-custom py-12 text-center">
+        <p className="text-xl text-red-600 dark:text-red-400 mb-4">{error}</p>
+        <Link to="/" className="btn btn-primary">
+          Return to Home
+        </Link>
+      </div>
+    );
+  }
+
+  if (!comic) return null;
 
   return (
     <div className="container-custom py-8">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="bg-white rounded-lg shadow-lg overflow-hidden"
+        transition={{ duration: 0.5 }}
       >
-        {/* Comic header */}
-        <div className="bg-dark text-white p-4">
-          <h1 className="text-2xl font-bold">{comic.title}</h1>
-        </div>
-
-        {/* Comic info section */}
-        <div className="md:flex p-6">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="md:w-1/3 flex-shrink-0"
-          >
-            <div className="relative rounded-lg overflow-hidden shadow-md mb-4">
-              <img 
-                src={comic.cover} 
-                alt={comic.title} 
-                className="w-full h-auto"
-              />
-              {comic.score && (
-                <div className="absolute top-2 right-2 bg-yellow-500 text-white px-3 py-1 rounded-full text-sm font-bold flex items-center">
-                  <FaStar className="mr-1" /> {comic.score}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+          <div className="md:flex">
+            <div className="md:w-1/3 p-6">
+              <motion.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.2 }}
+                className="relative aspect-[2/3] mx-auto"
+              >
+                <img
+                  src={comic.cover}
+                  alt={comic.title}
+                  className="w-full h-full object-cover rounded-lg shadow-md"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = 'https://via.placeholder.com/400x600?text=No+Image';
+                  }}
+                />
+                <div className="absolute top-2 right-2 bg-primary text-white px-2 py-1 rounded-lg font-bold flex items-center">
+                  <FaStar className="mr-1 text-yellow-300" />
+                  {comic.score}
                 </div>
-              )}
+              </motion.div>
             </div>
-            <div className="bg-gray-100 p-4 rounded-lg">
-              <div className="flex items-center mb-2">
-                <FaInfoCircle className="text-primary mr-2" />
-                <span className="font-semibold">Status:</span>
-                <span className="ml-2">{comic.status}</span>
-              </div>
-              <div className="flex items-center mb-2">
-                <FaBookOpen className="text-primary mr-2" />
-                <span className="font-semibold">Type:</span>
-                <span className="ml-2">{comic.type}</span>
-              </div>
-              <div className="flex items-center mb-2">
-                <FaCalendarAlt className="text-primary mr-2" />
-                <span className="font-semibold">Released:</span>
-                <span className="ml-2">{comic.released}</span>
-              </div>
-              <div className="flex items-center mb-2">
-                <FaUser className="text-primary mr-2" />
-                <span className="font-semibold">Author:</span>
-                <span className="ml-2">{comic.author}</span>
-              </div>
-              <div className="flex items-center mb-2">
-                <FaList className="text-primary mr-2" />
-                <span className="font-semibold">Total Chapters:</span>
-                <span className="ml-2">{comic.total_chapter}</span>
-              </div>
-              <div className="mt-4">
-                <span className="font-semibold">Genres:</span>
-                <div className="flex flex-wrap gap-2 mt-2">
+            
+            <div className="md:w-2/3 p-6">
+              <motion.h1
+                initial={{ y: -20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.1 }}
+                className="text-3xl font-bold text-gray-900 dark:text-white mb-4"
+              >
+                {comic.title}
+              </motion.h1>
+              
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3 }}
+                className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6"
+              >
+                <div className="flex items-center">
+                  <FaUser className="text-primary mr-2" />
+                  <span className="text-gray-700 dark:text-gray-300 font-medium">Author:</span>
+                  <span className="ml-2 text-gray-900 dark:text-white">{comic.author || 'Unknown'}</span>
+                </div>
+                
+                <div className="flex items-center">
+                  <FaTag className="text-primary mr-2" />
+                  <span className="text-gray-700 dark:text-gray-300 font-medium">Status:</span>
+                  <span className="ml-2 text-gray-900 dark:text-white">{comic.status}</span>
+                </div>
+                
+                <div className="flex items-center">
+                  <FaBook className="text-primary mr-2" />
+                  <span className="text-gray-700 dark:text-gray-300 font-medium">Type:</span>
+                  <span className="ml-2 text-gray-900 dark:text-white">{comic.type}</span>
+                </div>
+                
+                <div className="flex items-center">
+                  <FaCalendarAlt className="text-primary mr-2" />
+                  <span className="text-gray-700 dark:text-gray-300 font-medium">Released:</span>
+                  <span className="ml-2 text-gray-900 dark:text-white">{comic.released}</span>
+                </div>
+              </motion.div>
+              
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+              >
+                <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-2">Genres</h3>
+                <div className="flex flex-wrap gap-2 mb-6">
                   {comic.genre && comic.genre.map((genre, index) => (
-                    <span 
-                      key={index} 
-                      className="bg-primary text-white px-2 py-1 text-xs rounded-full"
+                    <span
+                      key={index}
+                      className="bg-secondary-light dark:bg-secondary-dark text-white px-3 py-1 rounded-full text-sm"
                     >
                       {genre.name}
                     </span>
                   ))}
                 </div>
-              </div>
+              </motion.div>
+              
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                className="mb-6"
+              >
+                <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-2">Synopsis</h3>
+                <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                  {comic.synopsis || 'No synopsis available.'}
+                </p>
+              </motion.div>
             </div>
-          </motion.div>
-
+          </div>
+          
           <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="md:w-2/3 md:pl-6 mt-6 md:mt-0"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            className="p-6 border-t border-gray-200 dark:border-gray-700"
           >
-            <div className="mb-6">
-              <h2 className="text-xl font-bold mb-3 flex items-center">
-                <FaInfoCircle className="mr-2 text-primary" /> Synopsis
-              </h2>
-              <p className="text-gray-700">{comic.synopsis}</p>
-            </div>
-
-            <div>
-              <h2 className="text-xl font-bold mb-3 flex items-center">
-                <FaList className="mr-2 text-primary" /> Chapters
-              </h2>
-              <div className="bg-gray-100 rounded-lg">
-                {comic.chapters && comic.chapters.length > 0 ? (
-                  <div className="divide-y divide-gray-200">
-                    {comic.chapters.map((chapter, index) => (
-                      <motion.div
-                        key={index}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: index * 0.03 }}
-                        whileHover={{ backgroundColor: '#f3f4f6' }}
-                        className="p-3"
-                      >
-                        <Link 
-                          to={`/read/${chapter.slug}`}
-                          className="flex justify-between items-center"
-                        >
-                          <span className="font-medium text-primary hover:text-secondary">
-                            {chapter.title}
-                          </span>
-                          <span className="text-sm text-gray-500">{chapter.released}</span>
-                        </Link>
-                      </motion.div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="p-4 text-center text-gray-500">No chapters available</div>
-                )}
+            <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">Chapters</h3>
+            
+            {comic.chapters && comic.chapters.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {comic.chapters.map((chapter, index) => (
+                  <Link
+                    key={index}
+                    to={`/read/${chapter.slug}`}
+                    className="bg-gray-100 dark:bg-gray-700 hover:bg-primary-light hover:text-white dark:hover:bg-primary-dark rounded-lg p-4 transition-colors duration-300"
+                  >
+                    <div className="font-medium">{chapter.title}</div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">{chapter.released}</div>
+                  </Link>
+                ))}
               </div>
-            </div>
+            ) : (
+              <p className="text-gray-600 dark:text-gray-400">No chapters available.</p>
+            )}
           </motion.div>
         </div>
       </motion.div>

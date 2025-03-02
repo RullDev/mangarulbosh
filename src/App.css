@@ -14,12 +14,15 @@
 }
 
 body {
-  background-color: #f8f8f8;
-  color: #333;
+  @apply bg-background-light text-text-light transition-colors duration-300;
+}
+
+.dark body {
+  @apply bg-background-dark text-text-dark;
 }
 
 .comic-card {
-  @apply bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl transform hover:-translate-y-1;
+  @apply bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl transform hover:-translate-y-1;
 }
 
 .btn {
@@ -27,13 +30,21 @@ body {
 }
 
 .btn-primary {
-  @apply bg-primary text-white hover:bg-purple-700;
+  @apply bg-primary text-white hover:bg-primary-dark;
 }
 
 .btn-secondary {
-  @apply bg-secondary text-white hover:bg-indigo-700;
+  @apply bg-secondary text-white hover:bg-secondary-dark;
 }
 
 .container-custom {
   @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+}
+
+.footer {
+  @apply py-6 bg-gray-100 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 transition-colors duration-300;
+}
+
+.category-pill {
+  @apply inline-block px-3 py-1 rounded-full text-sm font-medium bg-primary-light dark:bg-primary-dark text-white m-1;
 }

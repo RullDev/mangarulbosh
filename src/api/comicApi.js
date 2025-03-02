@@ -10,6 +10,12 @@ class Comic {
     constructor(text) {
         this.text = text;
         this.baseUrl = 'https://komikcast02.com';
+        // Use a CORS proxy to avoid CORS issues
+        this.corsProxy = 'https://corsproxy.io/?';
+    }
+    
+    getProxiedUrl(url) {
+        return `${this.corsProxy}${encodeURIComponent(url)}`;
     }
     
     /**
@@ -20,8 +26,8 @@ class Comic {
         try {
             const { data } = await axios({
                 method: 'GET',
-                url: this.baseUrl,
-                params: { 's': this.text }
+                url: this.getProxiedUrl(`${this.baseUrl}/?s=${encodeURIComponent(this.text)}`),
+                timeout: 10000,
             });
             const $ = load(data);
             let result = [];
@@ -32,8 +38,8 @@ class Comic {
                     let v = _$(b);
                     obj.title = v.find('h3').text().trim()
                 })
-                obj.slug = $(b).find('a').attr('href').replace(this.baseUrl + '/komik/', '')
-                obj.cover = $(b).find('img').attr('src');
+                obj.slug = $(b).find('a').attr('href')?.replace(this.baseUrl + '/komik/', '') || '';
+                obj.cover = $(b).find('img').attr('src') || '';
                 obj.status = $(b).find('.status').text().trim();
                 obj.type = $(b).find('.type').text().trim();
                 obj.score = $(b).find('.numscore').text().trim();
@@ -41,8 +47,9 @@ class Comic {
             });
             return result;
         } catch (e) {
-            console.log(e);
-            throw e;
+            console.log('Search error:', e);
+            // Return empty array instead of throwing
+            return [];
         }
     }
     
@@ -54,7 +61,8 @@ class Comic {
         try {
             const { data } = await axios({
                 method: 'GET',
-                url: this.baseUrl + '/komik/' + this.text,
+                url: this.getProxiedUrl(`${this.baseUrl}/komik/${this.text}`),
+                timeout: 10000,
             });
             const $ = load(data);
             let result = {};
@@ -78,7 +86,7 @@ class Comic {
                     result.total_chapter = v.find('.komik_info-content-info:contains("Total Chapter:")').text().replace('Total Chapter:\n', '');
                     result.updated = v.find('.komik_info-content-update time').text();
                 })
-                result.cover = $(b).find('.komik_info-cover-image img').attr('src');
+                result.cover = $(b).find('.komik_info-cover-image img').attr('src') || '';
                 result.score = $(b).find('.data-rating strong').text().replace('Rating ', '');
                 result.synopsis = $(b).find('.komik_info-description-sinopsis p').text().trim();
                 let chapter = [];
@@ -87,7 +95,7 @@ class Comic {
                     v.find('.komik_info-chapters-item').each((a, b) => {
                         chapter.push({
                             title: $(b).find('.chapter-link-item').text().replace('\n', ' '),
-                            slug: $(b).find('.chapter-link-item').attr('href').replace(this.baseUrl + '/chapter/', ''),
+                            slug: $(b).find('.chapter-link-item').attr('href')?.replace(this.baseUrl + '/chapter/', '') || '',
                             released: $(b).find('.chapter-link-time').text().trim()
                         })
                     })
@@ -96,8 +104,8 @@ class Comic {
             })
             return result;
         } catch (e) {
-            console.log(e);
-            throw e;
+            console.log('Series error:', e);
+            return {};
         }
     }
     
@@ -109,19 +117,20 @@ class Comic {
         try {
             const { data } = await axios({
                 method: 'GET',
-                url: this.baseUrl + '/chapter/' + this.text,
+                url: this.getProxiedUrl(`${this.baseUrl}/chapter/${this.text}`),
+                timeout: 10000,
             });
             const $ = load(data);
             let result = [];
             $(".main-reading-area img").each((a, b) => {
                 let obj = {}
-                obj.url = $(b).attr('src');
+                obj.url = $(b).attr('src') || '';
                 result.push(obj);
             })
             return result;
         } catch (e) {
-            console.log(e);
-            throw e;
+            console.log('Read error:', e);
+            return [];
         }
     }
     
@@ -129,7 +138,8 @@ class Comic {
         try {
             const { data } = await axios({
                 method: 'GET',
-                url: this.baseUrl + '/type/' + this.text,
+                url: this.getProxiedUrl(`${this.baseUrl}/type/${this.text}`),
+                timeout: 10000,
             });
             const $ = load(data);
             let result = [];
@@ -140,8 +150,8 @@ class Comic {
                     let v = _$(b);
                     obj.title = v.find('h3').text().trim();
                 });
-                obj.slug = $(b).find('a').attr('href').replace(this.baseUrl + '/komik/', '');
-                obj.cover = $(b).find('img').attr('src');
+                obj.slug = $(b).find('a').attr('href')?.replace(this.baseUrl + '/komik/', '') || '';
+                obj.cover = $(b).find('img').attr('src') || '';
                 obj.status = $(b).find('.status').text().trim();
                 obj.type = $(b).find('.type').text().trim();
                 obj.score = $(b).find('.numscore').text().trim();
@@ -149,8 +159,8 @@ class Comic {
             });
             return result;
         } catch (e) {
-            console.log(e);
-            throw e;
+            console.log('Type error:', e);
+            return [];
         }
     }
 
@@ -158,7 +168,8 @@ class Comic {
         try {
             const { data } = await axios({
                 method: 'GET',
-                url: this.baseUrl + '/komik/' + this.text,
+                url: this.getProxiedUrl(`${this.baseUrl}/komik/${this.text}`),
+                timeout: 10000,
             });
             const $ = load(data);
             let result = {};
@@ -182,7 +193,7 @@ class Comic {
                     result.total_chapter = v.find('.komik_info-content-info:contains("Total Chapter:")').text().replace('Total Chapter:\n', '');
                     result.updated = v.find('.komik_info-content-update time').text();
                 });
-                result.cover = $(b).find('.komik_info-cover-image img').attr('src');
+                result.cover = $(b).find('.komik_info-cover-image img').attr('src') || '';
                 result.score = $(b).find('.data-rating strong').text().replace('Rating ', '');
                 result.synopsis = $(b).find('.komik_info-description-sinopsis p').text().trim();
                 let chapter = [];
@@ -191,7 +202,7 @@ class Comic {
                     v.find('.komik_info-chapters-item').each((a, b) => {
                         chapter.push({
                             title: $(b).find('.chapter-link-item').text().replace('\n', ' '),
-                            slug: $(b).find('.chapter-link-item').attr('href').replace(this.baseUrl + '/chapter/', ''),
+                            slug: $(b).find('.chapter-link-item').attr('href')?.replace(this.baseUrl + '/chapter/', '') || '',
                             released: $(b).find('.chapter-link-time').text().trim()
                         });
                     });
@@ -200,8 +211,8 @@ class Comic {
             });
             return result;
         } catch (e) {
-            console.log(e);
-            throw e;
+            console.log('Info error:', e);
+            return {};
         }
     }
     
@@ -209,7 +220,8 @@ class Comic {
         try {
             const { data } = await axios({
                 method: 'GET',
-                url: this.baseUrl + '/daftar-komik/page/' + this.text + '/?orderby=update',
+                url: this.getProxiedUrl(`${this.baseUrl}/daftar-komik/page/${this.text || 1}/?orderby=update`),
+                timeout: 10000,
             });
             const $ = load(data);
             let result = [];
@@ -217,10 +229,10 @@ class Comic {
             $(".list-update_item").each((index, element) => {
                 const link = $(element).find("a").attr("href");
                 const slug = link ? link.replace(this.baseUrl + '/komik/', '') : '';
-                const title = $(element).find(".title").text().trim();
+                const title = $(element).find(".title").text().trim() || $(element).find("h3").text().trim();
                 const type = $(element).find(".type").text().trim();
                 const chapter = $(element).find(".chapter").text().trim();
-                const image = $(element).find(".list-update_item-image img").attr("src");
+                const image = $(element).find(".list-update_item-image img").attr("src") || $(element).find("img").attr("src") || '';
                 const status = $(element).find(".status").text().trim();
                 const score = $(element).find(".numscore").text().trim();
                 
@@ -234,11 +246,45 @@ class Comic {
                     score: score
                 });
             });
+            
             return result;
         } catch (e) {
-            console.log(e);
-            throw e;
+            console.log('Latest error:', e);
+            return [];
         }
+    }
+
+    // Fallback method using mock data if all fetches fail
+    getMockData() {
+        return [
+            {
+                title: "One Piece",
+                type: "Manga",
+                chapter: "Chapter 1091",
+                slug: "one-piece",
+                cover: "https://cdn.myanimelist.net/images/manga/3/259528.jpg",
+                status: "Ongoing",
+                score: "9.8"
+            },
+            {
+                title: "Jujutsu Kaisen",
+                type: "Manga",
+                chapter: "Chapter 265",
+                slug: "jujutsu-kaisen",
+                cover: "https://cdn.myanimelist.net/images/manga/3/214566.jpg",
+                status: "Ongoing",
+                score: "9.4"
+            },
+            {
+                title: "Demon Slayer",
+                type: "Manga",
+                chapter: "Chapter 205",
+                slug: "kimetsu-no-yaiba",
+                cover: "https://cdn.myanimelist.net/images/manga/3/179023.jpg",
+                status: "Completed",
+                score: "9.3"
+            }
+        ];
     }
 }
 
