@@ -4,6 +4,145 @@
 @tailwind utilities;
 
 :root {
+  --primary: #3b82f6;
+  --primary-light: #60a5fa;
+  --primary-dark: #2563eb;
+  --secondary: #f97316;
+  --secondary-light: #fb923c;
+  --secondary-dark: #ea580c;
+}
+
+/* Custom container width */
+.container-custom {
+  @apply mx-auto px-4 max-w-7xl;
+}
+
+/* Button styles */
+.btn {
+  @apply px-4 py-2 rounded-lg font-medium transition-colors duration-300;
+}
+
+.btn-primary {
+  @apply bg-primary text-white hover:bg-primary-dark;
+}
+
+.btn-secondary {
+  @apply bg-secondary text-white hover:bg-secondary-dark;
+}
+
+/* Category pill styles */
+.category-pill {
+  @apply px-4 py-2 rounded-full font-medium transition-all duration-300 text-white hover:shadow-md cursor-pointer;
+}
+
+/* Hide scrollbar for clean UI in horizontal reader */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Comic card hover effects */
+.comic-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.comic-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Line clamp for text truncation */
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Dark mode improvements */
+.dark body {
+  @apply bg-gray-900;
+}
+
+/* Custom styles for reading page */
+.reading-page img {
+  @apply mx-auto max-w-full;
+}
+
+/* Theme color classes */
+.text-primary {
+  color: var(--primary);
+}
+
+.text-primary-light {
+  color: var(--primary-light);
+}
+
+.bg-primary {
+  background-color: var(--primary);
+}
+
+.bg-primary-light {
+  background-color: var(--primary-light);
+}
+
+.bg-primary-dark {
+  background-color: var(--primary-dark);
+}
+
+.bg-secondary {
+  background-color: var(--secondary);
+}
+
+.bg-secondary-light {
+  background-color: var(--secondary-light);
+}
+
+.bg-secondary-dark {
+  background-color: var(--secondary-dark);
+}
+
+/* Animation classes */
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.5s ease-in-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+:root {
   font-family: 'Inter', sans-serif;
 }
 

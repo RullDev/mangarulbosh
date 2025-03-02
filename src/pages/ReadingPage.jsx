@@ -1,331 +1,277 @@
-
-import React, { useState, useEffect, useRef } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaHome, FaArrowLeft, FaArrowRight, FaCog, FaTimes, FaList } from 'react-icons/fa';
+import { FaArrowLeft, FaArrowRight, FaHome, FaCog, FaTimesCircle } from 'react-icons/fa';
 import Comic from '../api/comicApi';
 import LoadingSpinner from '../components/LoadingSpinner';
 
 const ReadingPage = () => {
-  const { slug } = useParams();
-  const [chapter, setChapter] = useState(null);
+  const { chapterSlug } = useParams();
+  const navigate = useNavigate();
+  const [chapterImages, setChapterImages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [zoomLevel, setZoomLevel] = useState(100);
-  const [showSettings, setShowSettings] = useState(false);
-  const [showChapters, setShowChapters] = useState(false);
-  const [autoScroll, setAutoScroll] = useState(false);
-  const [scrollSpeed, setScrollSpeed] = useState(1);
-  const scrollInterval = useRef(null);
-  const containerRef = useRef(null);
-  const navigate = useNavigate();
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [readingMode, setReadingMode] = useState(() => localStorage.getItem('readingMode') || 'vertical');
+  const [imageQuality, setImageQuality] = useState(() => localStorage.getItem('imageQuality') || 'high');
 
   useEffect(() => {
-    const fetchChapter = async () => {
+    const fetchChapterImages = async () => {
       setLoading(true);
-      setError(null);
-      
       try {
-        const comicApi = new Comic();
-        const chapterData = await comicApi.read(slug);
-        
-        if (!chapterData || !chapterData.pages || chapterData.pages.length === 0) {
-          setError('Chapter not found or has no pages.');
+        const comic = new Comic(chapterSlug);
+        const images = await comic.read();
+
+        if (!images || images.length === 0) {
+          setError("No images found for this chapter");
         } else {
-          setChapter(chapterData);
+          setChapterImages(images);
         }
       } catch (err) {
-        console.error('Error fetching chapter:', err);
-        setError('Failed to load chapter.');
+        console.error("Error fetching chapter:", err);
+        setError("Failed to load chapter. Please try again later.");
       } finally {
         setLoading(false);
       }
     };
 
-    if (slug) {
-      fetchChapter();
-    }
+    fetchChapterImages();
+  }, [chapterSlug]);
 
-    // Cleanup any auto-scroll
-    return () => {
-      if (scrollInterval.current) {
-        clearInterval(scrollInterval.current);
+  // Extract chapter info from slug
+  const getChapterInfo = () => {
+    try {
+      // Example format: manga-title-chapter-12
+      const parts = chapterSlug.split('-');
+      const chapterIndex = parts.findIndex(part => part === 'chapter');
+
+      if (chapterIndex !== -1 && chapterIndex < parts.length - 1) {
+        const chapterNum = parts[chapterIndex + 1];
+
+        // Reconstruct the manga title
+        const title = parts.slice(0, chapterIndex).join(' ');
+
+        return {
+          title: title.charAt(0).toUpperCase() + title.slice(1),
+          chapter: chapterNum
+        };
       }
-    };
-  }, [slug]);
 
-  useEffect(() => {
-    // Handle auto-scroll
-    if (autoScroll && containerRef.current) {
-      scrollInterval.current = setInterval(() => {
-        containerRef.current.scrollTop += scrollSpeed;
-      }, 20);
-    } else if (scrollInterval.current) {
-      clearInterval(scrollInterval.current);
+      return { title: 'Comic', chapter: 'Unknown' };
+    } catch (e) {
+      return { title: 'Comic', chapter: 'Unknown' };
     }
+  };
 
-    return () => {
-      if (scrollInterval.current) {
-        clearInterval(scrollInterval.current);
+  const { title, chapter } = getChapterInfo();
+
+  // Navigation between chapters
+  const navigateToChapter = (offset) => {
+    try {
+      const currentChapter = parseInt(chapter);
+      if (isNaN(currentChapter)) return;
+
+      const newChapter = currentChapter + offset;
+      if (newChapter <= 0) return;
+
+      // Reconstruct the new chapter slug
+      const parts = chapterSlug.split('-');
+      const chapterIndex = parts.findIndex(part => part === 'chapter');
+
+      if (chapterIndex !== -1 && chapterIndex < parts.length - 1) {
+        parts[chapterIndex + 1] = newChapter.toString();
+        const newSlug = parts.join('-');
+        navigate(`/read/${newSlug}`);
       }
-    };
-  }, [autoScroll, scrollSpeed]);
-
-  const handleZoomChange = (newZoom) => {
-    setZoomLevel(Math.max(50, Math.min(200, newZoom)));
-  };
-
-  const navigateToChapter = (targetSlug) => {
-    if (targetSlug) {
-      navigate(`/read/${targetSlug}`);
-      setShowChapters(false);
+    } catch (e) {
+      console.error("Navigation error:", e);
     }
   };
 
-  const toggleAutoScroll = () => {
-    setAutoScroll(!autoScroll);
+  const handleReadingModeChange = (mode) => {
+    setReadingMode(mode);
+    localStorage.setItem('readingMode', mode);
   };
 
-  if (loading) return <LoadingSpinner />;
-
-  if (error) {
-    return (
-      <div className="container-custom py-12 text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <p className="text-xl text-red-600 dark:text-red-400 mb-4">{error}</p>
-          <Link to="/" className="btn btn-primary inline-flex items-center">
-            <FaHome className="mr-2" /> Return to Home
-          </Link>
-        </motion.div>
-      </div>
-    );
-  }
-
-  if (!chapter) return null;
+  const handleImageQualityChange = (quality) => {
+    setImageQuality(quality);
+    localStorage.setItem('imageQuality', quality);
+  };
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 pb-20">
-      {/* Top Navigation Bar */}
-      <div className="sticky top-0 z-10 bg-white dark:bg-gray-800 shadow-md p-3 flex justify-between items-center">
-        <div className="flex items-center space-x-4">
-          <Link to="/" className="p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
-            <FaHome />
-          </Link>
-          
-          {chapter.comic && (
-            <Link to={`/comic/${chapter.comic.slug}`} className="font-medium text-gray-800 dark:text-gray-200 hover:text-primary">
-              {chapter.comic.title}
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 pb-16">
+      {/* Fixed Header */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-gray-800 shadow-md">
+        <div className="container-custom py-2 flex justify-between items-center">
+          <div className="flex items-center">
+            <Link to="/" className="mr-4 text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary-light">
+              <FaHome size={20} />
             </Link>
-          )}
-        </div>
-        
-        <h1 className="text-lg font-bold text-center text-gray-900 dark:text-white">
-          {chapter.title}
-        </h1>
-        
-        <div className="flex items-center space-x-3">
-          <motion.button
-            whileTap={{ scale: 0.95 }}
-            className="p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
-            onClick={() => setShowChapters(!showChapters)}
-          >
-            <FaList />
-          </motion.button>
-          
-          <motion.button
-            whileTap={{ scale: 0.95 }}
-            className="p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
-            onClick={() => setShowSettings(!showSettings)}
-          >
-            <FaCog />
-          </motion.button>
-        </div>
-      </div>
-      
-      {/* Chapter Content */}
-      <div 
-        ref={containerRef}
-        className="container mx-auto px-4 py-6 relative"
-        style={{ paddingBottom: '100px' }}
-      >
-        <div className="max-w-3xl mx-auto" style={{ width: `${zoomLevel}%` }}>
-          {chapter.pages && chapter.pages.map((page, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: index * 0.05 }}
-              className="mb-4"
+            <h1 className="text-lg font-bold text-gray-800 dark:text-gray-200 truncate">
+              {title} - Chapter {chapter}
+            </h1>
+          </div>
+
+          <div className="flex items-center space-x-3">
+            <button 
+              onClick={() => navigateToChapter(-1)}
+              className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+              aria-label="Previous chapter"
             >
-              <img
-                src={page}
-                alt={`Page ${index + 1}`}
-                className="w-full rounded-lg shadow-lg"
-                loading="lazy"
-                onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.src = 'https://via.placeholder.com/800x1200?text=Image+Not+Available';
-                }}
-              />
-            </motion.div>
-          ))}
+              <FaArrowLeft />
+            </button>
+
+            <button 
+              onClick={() => setSettingsOpen(!settingsOpen)}
+              className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+              aria-label="Settings"
+            >
+              <FaCog />
+            </button>
+
+            <button 
+              onClick={() => navigateToChapter(1)}
+              className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600" 
+              aria-label="Next chapter"
+            >
+              <FaArrowRight />
+            </button>
+          </div>
         </div>
       </div>
-      
-      {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-3 flex justify-between items-center z-10">
-        <motion.button
-          whileTap={{ scale: 0.95 }}
-          className={`btn ${chapter.prev ? 'btn-primary' : 'btn-secondary opacity-50'}`}
-          onClick={() => chapter.prev && navigateToChapter(chapter.prev.slug)}
-          disabled={!chapter.prev}
-        >
-          <FaArrowLeft className="mr-2" /> Previous
-        </motion.button>
-        
-        <div className="text-center">
-          <span className="text-sm font-medium dark:text-gray-300">
-            {chapter.current && chapter.current.number}
-          </span>
-        </div>
-        
-        <motion.button
-          whileTap={{ scale: 0.95 }}
-          className={`btn ${chapter.next ? 'btn-primary' : 'btn-secondary opacity-50'}`}
-          onClick={() => chapter.next && navigateToChapter(chapter.next.slug)}
-          disabled={!chapter.next}
-        >
-          Next <FaArrowRight className="ml-2" />
-        </motion.button>
-      </div>
-      
+
       {/* Settings Panel */}
       <AnimatePresence>
-        {showSettings && (
-          <motion.div
-            initial={{ opacity: 0, x: 300 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 300 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="fixed top-0 right-0 bottom-0 w-72 bg-white dark:bg-gray-800 shadow-xl z-20 p-4"
+        {settingsOpen && (
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed top-16 right-4 z-50 bg-white dark:bg-gray-800 shadow-lg rounded-lg p-4 w-72"
           >
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg font-bold dark:text-white">Reading Settings</h2>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="font-bold text-gray-800 dark:text-white">Reading Settings</h3>
               <button 
-                onClick={() => setShowSettings(false)}
-                className="p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
+                onClick={() => setSettingsOpen(false)}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
               >
-                <FaTimes />
+                <FaTimesCircle />
               </button>
             </div>
-            
-            <div className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Zoom Level: {zoomLevel}%
-                </label>
-                <input
-                  type="range"
-                  min="50"
-                  max="200"
-                  value={zoomLevel}
-                  onChange={(e) => handleZoomChange(parseInt(e.target.value))}
-                  className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer"
-                />
-                <div className="flex justify-between mt-1">
-                  <span className="text-xs text-gray-500 dark:text-gray-400">50%</span>
-                  <span className="text-xs text-gray-500 dark:text-gray-400">200%</span>
-                </div>
-              </div>
-              
-              <div>
-                <label className="flex items-center space-x-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={autoScroll}
-                    onChange={toggleAutoScroll}
-                    className="form-checkbox rounded text-primary"
-                  />
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Auto-scroll
-                  </span>
-                </label>
-                
-                {autoScroll && (
-                  <div className="mt-3">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Scroll Speed
-                    </label>
-                    <input
-                      type="range"
-                      min="1"
-                      max="10"
-                      value={scrollSpeed}
-                      onChange={(e) => setScrollSpeed(parseInt(e.target.value))}
-                      className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer"
-                    />
-                    <div className="flex justify-between mt-1">
-                      <span className="text-xs text-gray-500 dark:text-gray-400">Slow</span>
-                      <span className="text-xs text-gray-500 dark:text-gray-400">Fast</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-      
-      {/* Chapters List Panel */}
-      <AnimatePresence>
-        {showChapters && chapter.comic && chapter.comic.chapters && (
-          <motion.div
-            initial={{ opacity: 0, x: -300 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -300 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="fixed top-0 left-0 bottom-0 w-72 bg-white dark:bg-gray-800 shadow-xl z-20 p-4 overflow-y-auto"
-          >
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg font-bold dark:text-white">Chapters</h2>
-              <button 
-                onClick={() => setShowChapters(false)}
-                className="p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
-              >
-                <FaTimes />
-              </button>
-            </div>
-            
-            <div className="space-y-2">
-              {chapter.comic.chapters.map((chap, index) => (
-                <motion.div
-                  key={index}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+
+            <div className="mb-4">
+              <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-2">Reading Mode</h4>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => handleReadingModeChange('vertical')}
+                  className={`py-2 px-3 rounded text-sm ${
+                    readingMode === 'vertical'
+                      ? 'bg-primary text-white'
+                      : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
+                  }`}
                 >
-                  <button
-                    onClick={() => navigateToChapter(chap.slug)}
-                    className={`w-full text-left p-3 rounded-lg transition-colors ${
-                      chap.slug === slug 
-                        ? 'bg-primary text-white' 
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600'
-                    }`}
-                  >
-                    <div className="font-medium">{chap.title}</div>
-                    {chap.released && (
-                      <div className="text-xs mt-1 opacity-80">{chap.released}</div>
-                    )}
-                  </button>
-                </motion.div>
-              ))}
+                  Vertical
+                </button>
+                <button
+                  onClick={() => handleReadingModeChange('horizontal')}
+                  className={`py-2 px-3 rounded text-sm ${
+                    readingMode === 'horizontal'
+                      ? 'bg-primary text-white'
+                      : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
+                  }`}
+                >
+                  Horizontal
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-2">Image Quality</h4>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => handleImageQualityChange('low')}
+                  className={`py-2 px-3 rounded text-sm ${
+                    imageQuality === 'low'
+                      ? 'bg-primary text-white'
+                      : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
+                  }`}
+                >
+                  Low
+                </button>
+                <button
+                  onClick={() => handleImageQualityChange('high')}
+                  className={`py-2 px-3 rounded text-sm ${
+                    imageQuality === 'high'
+                      ? 'bg-primary text-white'
+                      : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
+                  }`}
+                >
+                  High
+                </button>
+              </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
+
+      <div className="pt-16 pb-4">
+        {loading ? (
+          <LoadingSpinner />
+        ) : error ? (
+          <div className="text-center py-12">
+            <p className="text-red-500 text-xl mb-4">{error}</p>
+            <Link to="/" className="btn btn-primary">
+              Back to Home
+            </Link>
+          </div>
+        ) : (
+          <div className={`container-custom ${readingMode === 'vertical' ? 'space-y-4' : 'flex overflow-x-auto hide-scrollbar py-4'}`}>
+            {chapterImages.map((image, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className={`${readingMode === 'horizontal' ? 'flex-shrink-0 mx-2' : ''}`}
+              >
+                <img
+                  src={image.url}
+                  alt={`Page ${index + 1}`}
+                  className={`mx-auto ${imageQuality === 'low' ? 'w-auto max-w-full h-auto' : 'w-full max-w-3xl h-auto'} ${readingMode === 'horizontal' ? 'h-[80vh] w-auto' : ''}`}
+                  loading="lazy"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = 'https://via.placeholder.com/800x1200?text=Image+Not+Available';
+                  }}
+                />
+              </motion.div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Navigation Footer */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 shadow-md py-3">
+        <div className="container-custom flex justify-between items-center">
+          <button 
+            onClick={() => navigateToChapter(-1)}
+            className="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 flex items-center"
+          >
+            <FaArrowLeft className="mr-2" /> Previous
+          </button>
+
+          <span className="text-gray-600 dark:text-gray-400">
+            Chapter {chapter}
+          </span>
+
+          <button 
+            onClick={() => navigateToChapter(1)}
+            className="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 flex items-center"
+          >
+            Next <FaArrowRight className="ml-2" />
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

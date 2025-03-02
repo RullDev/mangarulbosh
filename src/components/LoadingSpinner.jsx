@@ -1,8 +1,8 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 
 const LoadingSpinner = () => {
+  // SVG animation properties
   const spinTransition = {
     repeat: Infinity,
     ease: "linear",
@@ -10,47 +10,35 @@ const LoadingSpinner = () => {
   };
 
   return (
-    <div className="flex flex-col justify-center items-center py-20">
-      <motion.svg
-        width="80"
-        height="80"
-        viewBox="0 0 80 80"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
+    <div className="flex justify-center items-center py-20">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.3 }}
+        className="text-center"
       >
-        <motion.circle
-          cx="40"
-          cy="40"
-          r="30"
-          stroke="#E5E7EB"
-          strokeWidth="6"
-          fill="transparent"
-        />
-        <motion.circle
-          cx="40"
-          cy="40"
-          r="30"
-          stroke="currentColor"
-          strokeWidth="6"
-          fill="transparent"
-          strokeLinecap="round"
-          strokeDasharray="188"
-          strokeDashoffset="75"
-          initial={{ rotate: 0 }}
+        <motion.svg
+          width="60"
+          height="60"
+          viewBox="0 0 60 60"
           animate={{ rotate: 360 }}
           transition={spinTransition}
-          className="text-primary"
-        />
-      </motion.svg>
-      <motion.span
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="mt-4 text-gray-600 dark:text-gray-300 font-medium"
-      >
-        Loading...
-      </motion.span>
+          className="mx-auto mb-4"
+        >
+          <motion.circle
+            cx="30"
+            cy="30"
+            r="25"
+            strokeWidth="4"
+            stroke="currentColor"
+            fill="none"
+            strokeDasharray="160"
+            strokeDashoffset="45"
+            className="text-primary dark:text-primary-light"
+          />
+        </motion.svg>
+        <p className="text-gray-600 dark:text-gray-400 font-medium">Loading content...</p>
+      </motion.div>
     </div>
   );
 };

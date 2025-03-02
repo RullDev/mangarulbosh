@@ -1,10 +1,10 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FaStar } from 'react-icons/fa';
 
-const ComicGrid = ({ comics, title }) => {
+const ComicGrid = ({ comics }) => {
+  // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -21,67 +21,40 @@ const ComicGrid = ({ comics, title }) => {
       opacity: 1,
       y: 0,
       transition: {
-        type: "spring",
-        stiffness: 260,
-        damping: 20
+        duration: 0.4
       }
     }
   };
 
   if (!comics || comics.length === 0) {
     return (
-      <div className="text-center py-10">
-        <motion.p 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-          className="text-xl text-gray-600 dark:text-gray-300"
-        >
-          No comics found.
-        </motion.p>
+      <div className="text-center py-12">
+        <p className="text-xl text-gray-600 dark:text-gray-400">No comics found.</p>
       </div>
     );
   }
 
   return (
-    <div className="py-8">
-      {title && (
-        <motion.h2
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ type: "spring", stiffness: 200, damping: 20 }}
-          className="text-2xl font-bold mb-6 text-dark dark:text-white"
-        >
-          {title}
-        </motion.h2>
-      )}
+    <div className="comic-grid">
       <motion.div 
-        className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+        className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
         {comics.map((comic, index) => (
           <motion.div 
-            key={index} 
-            className="comic-card h-full flex flex-col"
+            key={`${comic.slug}-${index}`}
             variants={itemVariants}
-            whileHover={{ 
-              y: -10, 
-              scale: 1.02,
-              boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
-              transition: { duration: 0.3 } 
-            }}
+            whileHover={{ y: -5, transition: { duration: 0.2 } }}
+            className="comic-card bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300 flex flex-col h-full"
           >
-            <Link to={`/comic/${comic.slug}`} className="block h-full">
-              <div className="relative aspect-[2/3] overflow-hidden rounded-t-lg">
-                <motion.img 
+            <Link to={`/info/${comic.slug}`} className="flex flex-col h-full">
+              <div className="relative overflow-hidden aspect-[2/3]">
+                <img 
                   src={comic.cover} 
-                  alt={comic.title}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                  whileHover={{ scale: 1.05 }}
-                  transition={{ duration: 0.5 }}
+                  alt={comic.title} 
+                  className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                   onError={(e) => {
                     e.target.onerror = null;
                     e.target.src = 'https://via.placeholder.com/300x450?text=No+Image';
