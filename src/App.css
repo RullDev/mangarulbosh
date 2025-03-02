@@ -351,7 +351,15 @@ html {
 
 /* Gradient text */
 .gradient-text {
-  @apply bg-gradient-to-r from-primary to-secondary-light bg-clip-text text-transparent;
+  @apply bg-gradient-to-r from-primary via-secondary-light to-primary-light bg-clip-text text-transparent;
+  background-size: 200% auto;
+  animation: gradientFlow 8s ease infinite;
+}
+
+@keyframes gradientFlow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 /* Loading spinner styles */
