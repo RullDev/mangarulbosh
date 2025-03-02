@@ -9,7 +9,8 @@ import {
   FaChevronLeft, 
   FaChevronRight,
   FaBookOpen,
-  FaArrowRight
+  FaArrowRight,
+  FaChevronDown
 } from 'react-icons/fa';
 import Comic from '../api/comicApi';
 import ComicGrid from '../components/ComicGrid';
