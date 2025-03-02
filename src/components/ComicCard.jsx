@@ -2,7 +2,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FaStar } from 'react-icons/fa';
 
 const ComicCard = ({ comic }) => {
   return (
@@ -13,24 +12,21 @@ const ComicCard = ({ comic }) => {
       whileHover={{ y: -5 }}
       className="comic-card"
     >
-      <Link to={`/info/${comic.slug}`}>
-        <div className="relative aspect-[2/3] overflow-hidden">
+      <Link to={`/info/${comic.slug}`} className="block">
+        <div className="relative aspect-[3/4] overflow-hidden rounded-lg">
           <img 
             src={comic.cover} 
             alt={comic.title} 
-            className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = 'https://via.placeholder.com/300x400?text=No+Image';
+            }}
           />
-          <div className="absolute top-0 left-0 bg-primary text-white px-2 py-1 text-xs font-bold">
-            {comic.type}
-          </div>
-          {comic.score && (
-            <div className="absolute top-0 right-0 bg-yellow-500 text-white px-2 py-1 text-xs font-bold flex items-center">
-              <FaStar className="mr-1" /> {comic.score}
-            </div>
-          )}
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-3">
-            <div className="text-white font-bold truncate">{comic.title}</div>
-            <div className="text-gray-300 text-xs">{comic.status}</div>
+          <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black to-transparent">
+            <div className="text-white font-bold">{comic.title}</div>
+            <div className="text-gray-300 text-sm">Chapter {comic.chapters && comic.chapters.length > 0 ? 
+              comic.chapters[0].title.replace(/[^0-9]/g, '') || 'New' : 'New'}</div>
           </div>
         </div>
       </Link>

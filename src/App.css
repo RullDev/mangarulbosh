@@ -1,17 +1,16 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --primary: #3b82f6;
-  --primary-light: #60a5fa;
-  --primary-dark: #2563eb;
+  --primary: #7c3aed;
+  --primary-light: #9f7aea;
+  --primary-dark: #6d28d9;
   --secondary: #f97316;
   --secondary-light: #fb923c;
   --secondary-dark: #ea580c;
   --background-light: #f5f7fa;
-  --background-dark: #121826;
+  --background-dark: #000000;
   --text-light: #1f2937;
   --text-dark: #e5e7eb;
 }
@@ -27,11 +26,11 @@
 }
 
 .btn-primary {
-  @apply bg-primary text-white hover:bg-primary-dark hover:shadow-md;
+  @apply bg-purple-600 text-white hover:bg-purple-700 hover:shadow-md;
 }
 
 .btn-secondary {
-  @apply bg-secondary text-white hover:bg-secondary-dark hover:shadow-md;
+  @apply bg-orange-500 text-white hover:bg-orange-600 hover:shadow-md;
 }
 
 .btn-icon {
@@ -134,143 +133,40 @@ body {
   display: block;
 }
 
-/* Theme toggle transition */
-.theme-toggle {
-  position: relative;
-  width: 48px;
-  height: 24px;
-  border-radius: 12px;
-  background-color: #e2e8f0;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.dark .theme-toggle {
-  background-color: #374151;
-}
-
-.theme-toggle-circle {
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background-color: white;
-  transition: transform 0.3s;
-}
-
-.dark .theme-toggle-circle {
-  transform: translateX(24px);
-  background-color: #3b82f6;
-}
-
-/* Loading spinner styles */
-.spinner {
-  border-radius: 50%;
-  border: 3px solid rgba(0, 0, 0, 0.1);
-  border-top-color: var(--primary);
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* Enhanced animations */
-.fade-in {
-  animation: fadeIn 0.5s ease forwards;
-}
-
-.slide-up {
-  animation: slideUp 0.5s ease forwards;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes slideUp {
-  from { 
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to { 
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Custom scrollbar */
+/* Customize scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
-}
-
-.dark ::-webkit-scrollbar-track {
-  background: #2d3748;
+  @apply bg-gray-900;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #c5c5c5;
-  border-radius: 4px;
-}
-
-.dark ::-webkit-scrollbar-thumb {
-  background: #4b5563;
+  @apply bg-gray-700 rounded-full;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #a3a3a3;
+  @apply bg-purple-600;
 }
 
-.dark ::-webkit-scrollbar-thumb:hover {
-  background: #6b7280;
+/* MangaSur specific styling */
+.mangasur-gradient {
+  background: linear-gradient(to right, #8b5cf6, #d946ef);
 }
 
-/* Custom styles for reading page */
-.reading-page img {
-  @apply mx-auto max-w-full;
+.comic-title {
+  @apply font-bold text-lg text-white leading-tight;
 }
 
-/* Theme color classes */
-.text-primary {
-  color: var(--primary);
+.comic-chapter {
+  @apply text-sm text-gray-400;
 }
 
-.text-primary-light {
-  color: var(--primary-light);
-}
-
-.bg-primary {
-  background-color: var(--primary);
-}
-
-.bg-primary-light {
-  background-color: var(--primary-light);
-}
-
-.bg-primary-dark {
-  background-color: var(--primary-dark);
-}
-
-.bg-secondary {
-  background-color: var(--secondary);
-}
-
-.bg-secondary-light {
-  background-color: var(--secondary-light);
-}
-
-.bg-secondary-dark {
-  background-color: var(--secondary-dark);
+/* Adjust tailwind dark mode */
+.dark {
+  color-scheme: dark;
 }
 
 /* Animation classes */
@@ -300,95 +196,4 @@ body {
     transform: translateY(0);
     opacity: 1;
   }
-}
-
-:root {
-  font-family: 'Inter', sans-serif;
-}
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  @apply bg-background-light text-text-light transition-colors duration-300;
-}
-
-.dark body {
-  @apply bg-background-dark text-text-dark;
-}
-
-.comic-card {
-  @apply bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transition-all duration-300;
-  backdrop-filter: blur(10px);
-}
-
-.btn {
-  @apply px-4 py-2 rounded-lg font-medium transition-all duration-300 inline-flex items-center justify-center;
-}
-
-.btn-primary {
-  @apply bg-primary text-white hover:bg-primary-dark hover:shadow-lg hover:shadow-primary/30;
-}
-
-.btn-secondary {
-  @apply bg-secondary text-white hover:bg-secondary-dark hover:shadow-lg hover:shadow-secondary/30;
-}
-
-.btn-icon {
-  @apply p-2 rounded-full;
-}
-
-.container-custom {
-  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
-}
-
-.footer {
-  @apply py-6 bg-gray-100/80 dark:bg-gray-800/80 border-t border-gray-200 dark:border-gray-700 transition-colors duration-300 backdrop-blur-sm;
-}
-
-/* Glassmorphism card effect */
-.glass-card {
-  @apply bg-white/70 dark:bg-gray-800/70 backdrop-blur-md border border-white/20 dark:border-gray-700/20;
-}
-
-/* Enhanced scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  @apply bg-gray-100 dark:bg-gray-800;
-}
-
-::-webkit-scrollbar-thumb {
-  @apply bg-gray-300 dark:bg-gray-600 rounded-full hover:bg-primary dark:hover:bg-primary-dark transition-colors;
-}
-
-/* Animate page transitions */
-.page-transition-enter {
-  opacity: 0;
-  transform: translateY(20px);
-}
-
-.page-transition-enter-active {
-  opacity: 1;
-  transform: translateY(0);
-  transition: opacity 300ms, transform 300ms;
-}
-
-.page-transition-exit {
-  opacity: 1;
-}
-
-.page-transition-exit-active {
-  opacity: 0;
-  transition: opacity 300ms;
-}
-
-.category-pill {
-  @apply inline-block px-3 py-1 rounded-full text-sm font-medium bg-primary-light dark:bg-primary-dark text-white m-1;
 }
