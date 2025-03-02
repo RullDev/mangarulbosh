@@ -141,90 +141,105 @@ const Home = () => {
 
   return (
     <>
-      {/* Simplified Hero Section with 16:9 Aspect Ratio */}
+      {/* Brand Banner */}
+      <div className="bg-gradient-to-r from-primary to-secondary py-4 text-center">
+        <motion.h1 
+          className="text-3xl md:text-4xl font-extrabold text-white drop-shadow-lg"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          MangaRul - The Best Comic Reading Website
+        </motion.h1>
+      </div>
+
+      {/* Enhanced Hero Section with fixed height and better layout */}
       <motion.div 
         ref={heroRef}
         className="relative bg-gradient-to-b from-primary/5 via-primary/10 to-transparent dark:from-primary-dark/10 dark:via-primary-dark/5 dark:to-transparent overflow-hidden"
         style={{ opacity }}
       >
         {featuredComic && (
-          <div className="container-custom py-10">
+          <div className="container-custom py-8">
             <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               transition={{ duration: 0.5 }}
               className="relative mx-auto overflow-hidden rounded-xl shadow-2xl"
-              style={{ maxWidth: "1200px" }}
+              style={{ maxWidth: "1200px", height: "500px" }} // Fixed height for consistency
             >
-              {/* 16:9 Container */}
-              <div className="relative w-full" style={{ paddingTop: "56.25%" }}>
-                {/* Sliding Animation */}
-                <motion.div
-                  className="absolute inset-0 overflow-hidden"
-                  initial={{ x: "100%" }}
-                  animate={{ x: 0 }}
-                  transition={{ duration: 0.8, ease: "easeOut" }}
-                >
-                  {/* Background Image with Overlay */}
-                  <div className="absolute inset-0">
-                    <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-transparent z-10"></div>
-                    <motion.img 
-                      src={featuredComic.cover} 
-                      alt={featuredComic.title}
-                      className="w-full h-full object-cover"
-                      initial={{ scale: 1.1 }}
-                      animate={{ scale: 1.05 }}
-                      transition={{ duration: 10, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }}
-                    />
-                  </div>
-                  
-                  {/* Content */}
-                  <div className="absolute inset-0 z-20 flex items-center">
-                    <div className="container-custom">
-                      <div className="max-w-xl pl-4 md:pl-8">
-                        <motion.h1
-                          className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 drop-shadow-lg"
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.2, duration: 0.5 }}
-                        >
+              {/* Sliding Animation */}
+              <motion.div
+                className="absolute inset-0 overflow-hidden"
+                initial={{ x: "100%" }}
+                animate={{ x: 0 }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+              >
+                {/* Background Image with Overlay */}
+                <div className="absolute inset-0">
+                  <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-black/50 z-10"></div>
+                  <img 
+                    src={featuredComic.cover} 
+                    alt={featuredComic.title}
+                    className="w-full h-full object-cover object-center"
+                    style={{ objectPosition: '50% 30%' }} // Better positioning for comic covers
+                  />
+                </div>
+                
+                {/* Content */}
+                <div className="absolute inset-0 z-20 flex items-center">
+                  <div className="container-custom">
+                    <div className="max-w-lg pl-4 md:pl-8">
+                      <motion.div
+                        className="mb-6"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.2, duration: 0.5 }}
+                      >
+                        <div className="inline-block px-3 py-1 bg-primary text-white text-sm font-semibold rounded-md mb-3">
+                          Featured Comic
+                        </div>
+                        <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 drop-shadow-lg line-clamp-2">
                           {featuredComic.title}
-                        </motion.h1>
-                        
-                        {/* Rating */}
-                        <motion.div
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.4, duration: 0.5 }}
-                          className="flex items-center gap-3 mb-6"
-                        >
-                          {featuredComic.score && (
-                            <div className="bg-yellow-500 text-white px-3 py-1 rounded-md text-sm font-bold flex items-center gap-1">
-                              <FaStar /> {featuredComic.score}
-                            </div>
-                          )}
-                          {featuredComic.type && (
-                            <div className="bg-primary/90 text-white px-3 py-1 rounded-md text-sm font-bold">
-                              {featuredComic.type}
-                            </div>
-                          )}
-                          {featuredComic.status && (
-                            <div className="bg-green-500/90 text-white px-3 py-1 rounded-md text-sm font-bold">
-                              {featuredComic.status}
-                            </div>
-                          )}
-                        </motion.div>
-                        
-                        {/* Navigation buttons */}
-                        <motion.div
-                          className="mt-4 flex items-center gap-3"
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ delay: 0.6, duration: 0.5 }}
-                        >
+                        </h2>
+                      </motion.div>
+                      
+                      {/* Rating badges in flex row with consistent sizing */}
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.4, duration: 0.5 }}
+                        className="flex flex-wrap items-center gap-3 mb-6"
+                      >
+                        {featuredComic.score && (
+                          <div className="bg-yellow-500 text-white px-3 py-1.5 rounded-md font-bold flex items-center gap-1 shadow-md">
+                            <FaStar className="text-yellow-300" /> 
+                            <span className="text-sm md:text-base">{featuredComic.score}</span>
+                          </div>
+                        )}
+                        {featuredComic.type && (
+                          <div className="bg-primary/90 text-white px-3 py-1.5 rounded-md font-semibold text-sm md:text-base shadow-md">
+                            {featuredComic.type}
+                          </div>
+                        )}
+                        {featuredComic.status && (
+                          <div className="bg-green-500/90 text-white px-3 py-1.5 rounded-md font-semibold text-sm md:text-base shadow-md">
+                            {featuredComic.status}
+                          </div>
+                        )}
+                      </motion.div>
+                      
+                      {/* Navigation buttons with consistent sizing and better spacing */}
+                      <motion.div
+                        className="flex flex-wrap items-center gap-3"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.6, duration: 0.5 }}
+                      >
+                        <div className="flex space-x-2">
                           <motion.button
                             onClick={handlePrevFeatured}
-                            className="p-3 rounded-full bg-black/30 text-white backdrop-blur-sm hover:bg-primary/80"
+                            className="p-3 rounded-full bg-black/40 text-white backdrop-blur-sm hover:bg-primary/80 shadow-lg"
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
                           >
@@ -232,34 +247,33 @@ const Home = () => {
                           </motion.button>
                           <motion.button
                             onClick={handleNextFeatured}
-                            className="p-3 rounded-full bg-black/30 text-white backdrop-blur-sm hover:bg-primary/80"
+                            className="p-3 rounded-full bg-black/40 text-white backdrop-blur-sm hover:bg-primary/80 shadow-lg"
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
                           >
                             <FaChevronRight />
                           </motion.button>
-                          
-                          <motion.div
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            className="ml-3"
+                        </div>
+                        
+                        <motion.div
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          <Link 
+                            to={featuredComic.chapters && featuredComic.chapters.length > 0 
+                              ? `/read/${featuredComic.chapters[0].slug}` 
+                              : `/info/${featuredComic.slug}`
+                            }
+                            className="btn btn-primary shadow-xl px-5 py-2.5 text-base"
                           >
-                            <Link 
-                              to={featuredComic.chapters && featuredComic.chapters.length > 0 
-                                ? `/read/${featuredComic.chapters[0].slug}` 
-                                : `/info/${featuredComic.slug}`
-                              }
-                              className="btn btn-primary"
-                            >
-                              Read Now
-                            </Link>
-                          </motion.div>
+                            Read Now
+                          </Link>
                         </motion.div>
-                      </div>
+                      </motion.div>
                     </div>
                   </div>
-                </motion.div>
-              </div>
+                </div>
+              </motion.div>
             </motion.div>
           </div>
         )}
