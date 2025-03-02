@@ -35,7 +35,8 @@ const Home = () => {
   
   const { scrollYProgress } = useScroll({
     target: heroRef,
-    offset: ["start start", "end start"]
+    offset: ["start start", "end start"],
+    layoutEffect: false // Prevents hydration errors
   });
 
   const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
