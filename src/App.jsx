@@ -25,6 +25,7 @@ export default function App() {
               <Route path="/" element={<Home />} />
               <Route path="/search" element={<SearchResults searchTerm={searchTerm} />} />
               <Route path="/comic/:slug" element={<ComicInfo />} />
+              <Route path="/info/:slug" element={<ComicInfo />} />
               <Route path="/read/:slug" element={<ReadingPage />} />
             </Routes>
           </AnimatePresence>

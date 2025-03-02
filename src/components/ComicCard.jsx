@@ -13,7 +13,7 @@ const ComicCard = ({ comic }) => {
       whileHover={{ y: -5 }}
       className="comic-card"
     >
-      <Link to={`/comic/${comic.slug}`}>
+      <Link to={`/info/${comic.slug}`}>
         <div className="relative aspect-[2/3] overflow-hidden">
           <img 
             src={comic.cover} 

@@ -17,6 +17,7 @@ const ReadingPage = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const readerRef = useRef(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     // Reset state when slug changes

@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaSearch, FaBars, FaTimes } from 'react-icons/fa';
 import ThemeToggle from './ThemeToggle';
@@ -10,6 +10,7 @@ const Header = ({ searchTerm, setSearchTerm }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   
   useEffect(() => {
     // Check if user has a preference
@@ -75,13 +76,13 @@ const Header = ({ searchTerm, setSearchTerm }) => {
                 Home
               </Link>
               <Link 
-                to="#popular"
+                to="/#popular"
                 className="font-medium text-gray-700 dark:text-gray-200 hover:text-primary dark:hover:text-primary-light transition-colors"
               >
                 Popular
               </Link>
               <Link 
-                to="#latest"
+                to="/#latest"
                 className="font-medium text-gray-700 dark:text-gray-200 hover:text-primary dark:hover:text-primary-light transition-colors"
               >
                 Latest
@@ -116,54 +117,56 @@ const Header = ({ searchTerm, setSearchTerm }) => {
         </div>
 
         {/* Mobile Navigation */}
-        {mobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="md:hidden mt-4 pb-4"
-          >
-            <form onSubmit={handleSearch} className="relative mb-4">
-              <input
-                type="text"
-                placeholder="Search comics..."
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                className="py-2 px-4 pl-10 w-full rounded-full bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-              <button 
-                type="submit"
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400"
-              >
-                <FaSearch />
-              </button>
-            </form>
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="md:hidden mt-4 pb-4"
+            >
+              <form onSubmit={handleSearch} className="relative mb-4">
+                <input
+                  type="text"
+                  placeholder="Search comics..."
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  className="py-2 px-4 pl-10 w-full rounded-full bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+                <button 
+                  type="submit"
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400"
+                >
+                  <FaSearch />
+                </button>
+              </form>
 
-            <nav className="flex flex-col space-y-4">
-              <Link 
-                to="/"
-                className="font-medium text-gray-700 dark:text-gray-200 hover:text-primary dark:hover:text-primary-light transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Home
-              </Link>
-              <Link 
-                to="#popular"
-                className="font-medium text-gray-700 dark:text-gray-200 hover:text-primary dark:hover:text-primary-light transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Popular
-              </Link>
-              <Link 
-                to="#latest"
-                className="font-medium text-gray-700 dark:text-gray-200 hover:text-primary dark:hover:text-primary-light transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Latest
-              </Link>
-            </nav>
-          </motion.div>
-        )}
+              <nav className="flex flex-col space-y-4">
+                <Link 
+                  to="/"
+                  className="font-medium text-gray-700 dark:text-gray-200 hover:text-primary dark:hover:text-primary-light transition-colors"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Home
+                </Link>
+                <Link 
+                  to="/#popular"
+                  className="font-medium text-gray-700 dark:text-gray-200 hover:text-primary dark:hover:text-primary-light transition-colors"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Popular
+                </Link>
+                <Link 
+                  to="/#latest"
+                  className="font-medium text-gray-700 dark:text-gray-200 hover:text-primary dark:hover:text-primary-light transition-colors"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Latest
+                </Link>
+              </nav>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </header>
   );
