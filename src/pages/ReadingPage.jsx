@@ -25,20 +25,31 @@ const ReadingPage = () => {
         const comicApi = new Comic(slug);
         const results = await comicApi.read();
 
-        if (results.length === 0) {
+        if (!results || results.length === 0) {
           setError('No images found for this chapter.');
+          setImages([]);
         } else {
           setImages(results);
           setCurrentPage(0);
 
-          // Get comic info to navigate between chapters
-          const comicInfoApi = new Comic(comicSlug);
-          const comicInfo = await comicInfoApi.series();
-          setCurrentComic(comicInfo);
+          try {
+            // Get comic info to navigate between chapters
+            const comicInfoApi = new Comic(comicSlug);
+            const comicInfo = await comicInfoApi.series();
+            if (comicInfo && Object.keys(comicInfo).length > 0) {
+              setCurrentComic(comicInfo);
+            } else {
+              console.warn('Comic info empty, navigation between chapters may not work');
+            }
+          } catch (infoErr) {
+            console.error('Error fetching comic info:', infoErr);
+            // Continue with chapter viewing even if comic info fails
+          }
         }
       } catch (err) {
         console.error('Error fetching chapter:', err);
         setError('Failed to load chapter. Please try again later.');
+        setImages([]);
       } finally {
         setLoading(false);
       }
