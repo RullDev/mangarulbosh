@@ -194,11 +194,11 @@ const ComicInfo = () => {
   return (
     <div className="container-custom py-8">
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+        <div className="bg-white/80 dark:bg-gray-800/80 rounded-xl shadow-xl overflow-hidden backdrop-blur-sm border border-gray-100 dark:border-gray-700">
           <div className="md:flex">
             <div className="md:w-1/3 p-6">
               <motion.div
@@ -206,25 +206,27 @@ const ComicInfo = () => {
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.2 }}
                 className="relative aspect-[2/3] mx-auto"
+                whileHover={{ scale: 1.02 }}
               >
                 <img
                   src={comic.cover}
                   alt={comic.title}
-                  className="w-full h-full object-cover rounded-lg shadow-md"
+                  className="w-full h-full object-cover rounded-xl shadow-lg"
                   onError={(e) => {
                     e.target.onerror = null;
                     e.target.src = 'https://via.placeholder.com/400x600?text=No+Image';
                   }}
                 />
-                <div className="absolute top-2 right-2 bg-primary text-white px-2 py-1 rounded-lg font-bold flex items-center">
+                <div className="absolute top-3 right-3 bg-primary/80 backdrop-blur-sm text-white px-3 py-1 rounded-full font-bold flex items-center shadow-md">
                   <FaStar className="mr-1 text-yellow-300" />
                   {comic.score}
                 </div>
                 
                 <motion.button
+                  whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={toggleFavorite}
-                  className="absolute bottom-3 right-3 bg-white dark:bg-gray-800 p-3 rounded-full shadow-lg"
+                  className="absolute bottom-3 right-3 bg-white/90 dark:bg-gray-800/90 p-3 rounded-full shadow-lg backdrop-blur-sm"
                 >
                   {isFavorite ? (
                     <FaHeart className="text-red-500 text-xl" />
@@ -235,27 +237,31 @@ const ComicInfo = () => {
               </motion.div>
               
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="mt-4 flex flex-col gap-2"
+                className="mt-6 flex flex-col gap-3"
               >
                 {comic.chapters && comic.chapters.length > 0 && (
-                  <Link
-                    to={`/read/${comic.chapters[0].slug}`}
-                    className="btn btn-primary w-full flex items-center justify-center gap-2 py-3"
-                  >
-                    <FaBookOpen /> Start Reading
-                  </Link>
+                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                    <Link
+                      to={`/read/${comic.chapters[0].slug}`}
+                      className="btn btn-primary w-full flex items-center justify-center gap-2 py-3 rounded-xl shadow-md"
+                    >
+                      <FaBookOpen /> Start Reading
+                    </Link>
+                  </motion.div>
                 )}
                 
                 {comic.chapters && comic.chapters.length > 1 && (
-                  <Link
-                    to={`/read/${comic.chapters[comic.chapters.length > 1 ? 1 : 0].slug}`}
-                    className="btn bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 w-full flex items-center justify-center gap-2 py-3"
-                  >
-                    <FaHistory /> Continue
-                  </Link>
+                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                    <Link
+                      to={`/read/${comic.chapters[comic.chapters.length > 1 ? 1 : 0].slug}`}
+                      className="btn bg-gray-200/80 dark:bg-gray-700/80 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 w-full flex items-center justify-center gap-2 py-3 rounded-xl shadow-md backdrop-blur-sm"
+                    >
+                      <FaHistory /> Continue
+                    </Link>
+                  </motion.div>
                 )}
               </motion.div>
             </div>

@@ -274,38 +274,41 @@ const ReadingPage = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.2 }}
-            className="fixed top-0 left-0 right-0 z-50 bg-black/80 text-white p-4 backdrop-blur-sm"
+            className="fixed top-0 left-0 right-0 z-50 bg-black/70 text-white p-3 backdrop-blur-md border-b border-gray-800/50"
           >
             <div className="container-custom flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Link to="/" className="btn-icon">
-                  <FaHome />
-                </Link>
-                {comicSlug && (
-                  <Link to={`/comic/${comicSlug}`} className="btn-nav">
-                    Back to Comic
-                  </Link>
-                )}
+              <div className="flex items-center gap-3">
+                <motion.button 
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  className="btn-icon bg-primary/80 hover:bg-primary transition-colors p-2.5 rounded-full backdrop-blur-sm"
+                  onClick={() => navigate(-1)}
+                >
+                  <FaArrowLeft />
+                </motion.button>
+                <div>
+                  <h1 className="text-lg font-medium truncate max-w-[200px] md:max-w-md">{slug.replace(/-/g, ' ')}</h1>
+                  <p className="text-xs text-gray-300 truncate">Chapter {currentChapter || ''}</p>
+                </div>
               </div>
 
-              <div className="text-center hidden md:block">
-                <h2 className="text-lg font-medium">
-                  {slug.replace(/-/g, ' ')}
-                </h2>
-                {readingMode === 'single-page' && (
-                  <p className="text-sm text-gray-400">
-                    Page {currentPage + 1} of {pages.length}
-                  </p>
-                )}
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button className="btn-icon" onClick={() => setIsSettingsOpen(!isSettingsOpen)}>
+              <div className="flex items-center gap-3">
+                <motion.button 
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  className="btn-icon bg-gray-700/80 hover:bg-gray-600 transition-colors p-2.5 rounded-full backdrop-blur-sm"
+                  onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+                >
                   <FaCog />
-                </button>
-                <button className="btn-icon" onClick={toggleFullscreen}>
+                </motion.button>
+                <motion.button 
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  className="btn-icon bg-gray-700/80 hover:bg-gray-600 transition-colors p-2.5 rounded-full backdrop-blur-sm"
+                  onClick={toggleFullscreen}
+                >
                   {isFullscreen ? <FaCompress /> : <FaExpand />}
-                </button>
+                </motion.button>
               </div>
             </div>
           </motion.div>

@@ -4,16 +4,17 @@
 @tailwind utilities;
 
 :root {
-  --primary: #3b82f6;
-  --primary-light: #60a5fa;
-  --primary-dark: #2563eb;
-  --secondary: #f97316;
-  --secondary-light: #fb923c;
-  --secondary-dark: #ea580c;
-  --background-light: #f5f7fa;
-  --background-dark: #121826;
-  --text-light: #1f2937;
-  --text-dark: #e5e7eb;
+  --primary: #7c3aed;
+  --primary-light: #9f7aea;
+  --primary-dark: #6d28d9;
+  --secondary: #4f46e5;
+  --secondary-light: #6366f1;
+  --secondary-dark: #4338ca;
+  --background-light: #f8fafc;
+  --background-dark: #171923;
+  --text-light: #1e293b;
+  --text-dark: #e2e8f0;
+  --accent: #f59e0b;
 }
 
 /* Custom container width */
@@ -321,12 +322,12 @@ body {
 }
 
 .comic-card {
-  @apply bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transition-all duration-300;
+  @apply bg-white/80 dark:bg-gray-800/80 rounded-xl shadow-md overflow-hidden transition-all duration-300 border border-gray-100/50 dark:border-gray-700/50;
   backdrop-filter: blur(10px);
 }
 
 .btn {
-  @apply px-4 py-2 rounded-lg font-medium transition-all duration-300 inline-flex items-center justify-center;
+  @apply px-4 py-2 rounded-xl font-medium transition-all duration-300 inline-flex items-center justify-center;
 }
 
 .btn-primary {
@@ -338,7 +339,7 @@ body {
 }
 
 .btn-icon {
-  @apply p-2 rounded-full;
+  @apply p-2 rounded-full hover:bg-white/10 active:bg-white/20 transition-all;
 }
 
 .container-custom {

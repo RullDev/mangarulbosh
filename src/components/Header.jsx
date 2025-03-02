@@ -163,6 +163,13 @@ const Header = ({ searchTerm, setSearchTerm }) => {
                 >
                   Latest
                 </Link>
+                
+                <div className="flex items-center mt-2 justify-between">
+                  <span className="font-medium text-gray-700 dark:text-gray-200">
+                    {darkMode ? 'Dark Mode' : 'Light Mode'}
+                  </span>
+                  <ThemeToggle darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
+                </div>
               </nav>
             </motion.div>
           )}
