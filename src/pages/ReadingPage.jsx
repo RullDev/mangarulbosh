@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -18,31 +17,31 @@ const ReadingPage = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const readerRef = useRef(null);
   const navigate = useNavigate();
-  
+
   useEffect(() => {
     // Reset state when slug changes
     setCurrentPage(0);
     setPages([]);
     setLoading(true);
     setError(null);
-    
+
     const fetchPages = async () => {
       try {
         setLoading(true);
         const comicApi = new Comic(slug);
         const fetchedPages = await comicApi.read();
-        
+
         if (!fetchedPages || fetchedPages.length === 0) {
           setError("No pages found for this chapter.");
         } else {
           // Filter out empty URLs
           const validPages = fetchedPages.filter(page => page.url && page.url.trim() !== '');
-          
+
           if (validPages.length === 0) {
             setError("No valid pages found for this chapter.");
           } else {
             setPages(validPages);
-            
+
             // Save to reading history with additional details
             try {
               // Extract comic name and chapter from slug
@@ -52,13 +51,13 @@ const ReadingPage = () => {
                 .slice(0, slugParts.indexOf(chapterPart))
                 .join(' ')
                 .replace(/-/g, ' ');
-              
+
               const history = JSON.parse(localStorage.getItem('readingHistory') || '[]');
               const now = new Date().toISOString();
-              
+
               // Remove if already exists
               const filteredHistory = history.filter(item => item.slug !== slug);
-              
+
               // Add to beginning
               filteredHistory.unshift({
                 slug,
@@ -66,7 +65,7 @@ const ReadingPage = () => {
                 chapter: chapterPart || 'Unknown Chapter',
                 timestamp: now
               });
-              
+
               // Keep only last 20 items
               const trimmedHistory = filteredHistory.slice(0, 20);
               localStorage.setItem('readingHistory', JSON.stringify(trimmedHistory));
@@ -84,13 +83,13 @@ const ReadingPage = () => {
     };
 
     fetchPages();
-    
+
     // Try to get saved reading mode preference
     const savedMode = localStorage.getItem('readingMode');
     if (savedMode) {
       setReadingMode(savedMode);
     }
-    
+
     // Listen for keyboard navigation
     const handleKeyDown = (e) => {
       if (e.key === 'ArrowRight' || e.key === 'd') {
@@ -101,9 +100,9 @@ const ReadingPage = () => {
         toggleFullscreen();
       }
     };
-    
+
     window.addEventListener('keydown', handleKeyDown);
-    
+
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
@@ -129,9 +128,9 @@ const ReadingPage = () => {
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
     };
-    
+
     document.addEventListener('fullscreenchange', handleFullscreenChange);
-    
+
     return () => {
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
     };
@@ -166,7 +165,7 @@ const ReadingPage = () => {
       const chapterIndex = parts.findIndex(part => 
         part.toLowerCase() === 'chapter' || /^ch(\d+)/.test(part)
       );
-      
+
       if (chapterIndex > 0) {
         return parts.slice(0, chapterIndex).join('-');
       }
@@ -177,7 +176,7 @@ const ReadingPage = () => {
   };
 
   const comicSlug = getComicSlug();
-  
+
   // Function to get chapter number
   const getChapterNumber = () => {
     const match = slug.match(/chapter[_-]?(\d+)/i) || slug.match(/ch[_-]?(\d+)/i);
@@ -226,7 +225,7 @@ const ReadingPage = () => {
               <FaHome className="mr-2" /> Back to Home
             </Link>
             {comicSlug && (
-              <Link to={`/info/${comicSlug}`} className="btn bg-secondary text-white">
+              <Link to={`/comic/${comicSlug}`} className="btn bg-secondary text-white">
                 Comic Info
               </Link>
             )}
@@ -250,7 +249,7 @@ const ReadingPage = () => {
               <FaHome className="mr-2" /> Back to Home
             </Link>
             {comicSlug && (
-              <Link to={`/info/${comicSlug}`} className="btn bg-secondary text-white">
+              <Link to={`/comic/${comicSlug}`} className="btn bg-secondary text-white">
                 Comic Info
               </Link>
             )}
@@ -282,12 +281,12 @@ const ReadingPage = () => {
                   <FaHome />
                 </Link>
                 {comicSlug && (
-                  <Link to={`/info/${comicSlug}`} className="btn-nav">
+                  <Link to={`/comic/${comicSlug}`} className="btn-nav">
                     Back to Comic
                   </Link>
                 )}
               </div>
-              
+
               <div className="text-center hidden md:block">
                 <h2 className="text-lg font-medium">
                   {slug.replace(/-/g, ' ')}
@@ -298,7 +297,7 @@ const ReadingPage = () => {
                   </p>
                 )}
               </div>
-              
+
               <div className="flex items-center gap-2">
                 <button className="btn-icon" onClick={() => setIsSettingsOpen(!isSettingsOpen)}>
                   <FaCog />
@@ -311,7 +310,7 @@ const ReadingPage = () => {
           </motion.div>
         )}
       </AnimatePresence>
-      
+
       {/* Settings Panel */}
       <AnimatePresence>
         {isSettingsOpen && (
@@ -345,7 +344,7 @@ const ReadingPage = () => {
           </motion.div>
         )}
       </AnimatePresence>
-      
+
       {/* Comic Reader */}
       <div className={`comic-reader ${readingMode} pt-16`}>
         {readingMode === 'vertical' && (
@@ -365,7 +364,7 @@ const ReadingPage = () => {
             ))}
           </div>
         )}
-        
+
         {readingMode === 'horizontal' && (
           <div className="horizontal-reader">
             <div 
@@ -391,7 +390,7 @@ const ReadingPage = () => {
             </div>
           </div>
         )}
-        
+
         {readingMode === 'single-page' && (
           <div className="single-page-reader flex justify-center items-center">
             <div className="relative w-full h-full flex items-center justify-center">
@@ -415,7 +414,7 @@ const ReadingPage = () => {
                   />
                 </motion.div>
               </AnimatePresence>
-              
+
               {/* Navigation buttons */}
               <button 
                 onClick={handlePrevPage}
@@ -426,7 +425,7 @@ const ReadingPage = () => {
               >
                 <FaArrowLeft />
               </button>
-              
+
               <button 
                 onClick={handleNextPage}
                 disabled={currentPage === pages.length - 1}
@@ -440,7 +439,7 @@ const ReadingPage = () => {
           </div>
         )}
       </div>
-      
+
       {/* Bottom Controls */}
       {showControls && readingMode !== 'vertical' && (
         <motion.div
@@ -457,7 +456,7 @@ const ReadingPage = () => {
             >
               <FaArrowLeft /> Prev Chapter
             </button>
-            
+
             {readingMode === 'single-page' && (
               <div className="flex items-center gap-2">
                 <button 
@@ -467,11 +466,11 @@ const ReadingPage = () => {
                 >
                   <FaArrowLeft />
                 </button>
-                
+
                 <span className="mx-2">
                   {currentPage + 1} / {pages.length}
                 </span>
-                
+
                 <button 
                   onClick={handleNextPage}
                   disabled={currentPage === pages.length - 1}
@@ -481,7 +480,7 @@ const ReadingPage = () => {
                 </button>
               </div>
             )}
-            
+
             <button 
               onClick={goToNextChapter}
               className="btn-nav"
@@ -491,7 +490,7 @@ const ReadingPage = () => {
           </div>
         </motion.div>
       )}
-      
+
       {/* Scroll to top button */}
       {readingMode === 'vertical' && (
         <button 
