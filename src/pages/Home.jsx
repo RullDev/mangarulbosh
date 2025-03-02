@@ -25,12 +25,16 @@ const Home = () => {
   const heroRef = useRef(null);
   const { scrollYProgress } = useScroll({
     target: heroRef,
-    offset: ["start start", "end start"]
+    offset: ["start start", "end start"],
+    layoutEffect: false // Prevents hydration errors
   });
 
-  const opacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
-  const scale = useTransform(scrollYProgress, [0, 1], [1, 0.9]);
-  const y = useTransform(scrollYProgress, [0, 1], [0, 100]);
+  const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
+  const scale = useTransform(scrollYProgress, [0, 0.5], [1, 0.97]);
+  const y = useTransform(scrollYProgress, [0, 0.5], [0, 50]);
+
+  // Parallax effect for background
+  const bgY = useTransform(scrollYProgress, [0, 1], ['0%', '20%']);
 
   useEffect(() => {
     fetchComics();
@@ -146,7 +150,7 @@ const Home = () => {
       >
         {featuredComic && (
           <>
-            <div className="absolute inset-0 z-0">
+            <div className="absolute inset-0 z-0" style={{ backgroundPositionY: bgY }}> {/* Apply parallax effect here */}
               <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background-light/80 to-background-light dark:from-transparent dark:via-background-dark/90 dark:to-background-dark"></div>
               <img 
                 src={featuredComic.cover} 

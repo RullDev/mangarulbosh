@@ -17,30 +17,44 @@ const Header = ({ searchTerm, setSearchTerm }) => {
     // Check if we're on the home page
     if (location.pathname !== '/') {
       // Navigate to home with hash
-      navigate('/#' + id);
+      navigate('/', { state: { scrollToId: id } });
       return;
     }
     
     // We're already on the home page, scroll to the section
     const element = document.getElementById(id);
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+      const headerOffset = 80; // Adjust this value based on your header height
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+      
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
     }
     
     // Close mobile menu
     setMobileMenuOpen(false);
   };
   
-  // Check if there's a hash in the URL when component mounts or when location changes
+  // Check if there's a hash in the URL or state when component mounts or when location changes
   useEffect(() => {
+    // Handle hash in URL
     if (location.hash && location.pathname === '/') {
       const id = location.hash.substring(1); // Remove the # character
       setTimeout(() => {
-        const element = document.getElementById(id);
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth' });
-        }
-      }, 500); // Small delay to ensure the page has rendered
+        scrollToSection(id);
+      }, 300); // Small delay to ensure the page has rendered
+    }
+    
+    // Handle state from navigation
+    if (location.state && location.state.scrollToId) {
+      setTimeout(() => {
+        scrollToSection(location.state.scrollToId);
+        // Clear the state to prevent scrolling on subsequent renders
+        navigate(location.pathname, { replace: true, state: {} });
+      }, 300);
     }
   }, [location]);
   
@@ -179,36 +193,50 @@ const Header = ({ searchTerm, setSearchTerm }) => {
               className="md:hidden p-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 focus:outline-none"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               whileTap={{ scale: 0.9 }}
+              aria-label="Toggle menu"
             >
               <motion.div
-                className="w-6 h-5 flex flex-col justify-between"
+                className="w-6 h-6 flex items-center justify-center"
                 initial={false}
-                animate={mobileMenuOpen ? "open" : "closed"}
               >
-                <motion.span 
-                  className="w-full h-0.5 bg-primary-dark dark:bg-primary-light rounded-full block"
-                  variants={{
-                    open: { rotate: 45, y: 9 },
-                    closed: { rotate: 0, y: 0 }
-                  }}
-                  transition={{ duration: 0.3 }}
-                />
-                <motion.span 
-                  className="w-full h-0.5 bg-primary-dark dark:bg-primary-light rounded-full block"
-                  variants={{
-                    open: { opacity: 0 },
-                    closed: { opacity: 1 }
-                  }}
-                  transition={{ duration: 0.3 }}
-                />
-                <motion.span 
-                  className="w-full h-0.5 bg-primary-dark dark:bg-primary-light rounded-full block"
-                  variants={{
-                    open: { rotate: -45, y: -9 },
-                    closed: { rotate: 0, y: 0 }
-                  }}
-                  transition={{ duration: 0.3 }}
-                />
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <motion.path
+                    d="M4 6H20"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    stroke="currentColor"
+                    variants={{
+                      open: { d: "M6 18L18 6" },
+                      closed: { d: "M4 6H20" }
+                    }}
+                    animate={mobileMenuOpen ? "open" : "closed"}
+                    transition={{ duration: 0.3 }}
+                  />
+                  <motion.path
+                    d="M4 12H20"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    stroke="currentColor"
+                    variants={{
+                      open: { opacity: 0 },
+                      closed: { opacity: 1 }
+                    }}
+                    animate={mobileMenuOpen ? "open" : "closed"}
+                    transition={{ duration: 0.3 }}
+                  />
+                  <motion.path
+                    d="M4 18H20"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    stroke="currentColor"
+                    variants={{
+                      open: { d: "M6 6L18 18" },
+                      closed: { d: "M4 18H20" }
+                    }}
+                    animate={mobileMenuOpen ? "open" : "closed"}
+                    transition={{ duration: 0.3 }}
+                  />
+                </svg>
               </motion.div>
             </motion.button>
           </div>
