@@ -201,6 +201,23 @@ body {
 }
 
 /* Hero section styles */
+.hero-slider {
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 20px 40px -20px rgba(0, 0, 0, 0.5);
+  border-radius: 0.75rem;
+}
+
+.hero-slider-content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  padding: 2rem;
+  width: 100%;
+  background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 60%, transparent 100%);
+}
+
 .featured-card {
   transform-style: preserve-3d;
   perspective: 1000px;
