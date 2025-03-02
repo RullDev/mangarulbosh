@@ -11,17 +11,17 @@ export default {
       colors: {
         primary: {
           light: "#9f7aea",
-          DEFAULT: "#8b5cf6",
+          DEFAULT: "#7c3aed",
           dark: "#6d28d9",
         },
         secondary: {
-          light: "#fb923c",
-          DEFAULT: "#f97316",
-          dark: "#ea580c",
+          light: "#6366f1",
+          DEFAULT: "#4f46e5",
+          dark: "#4338ca",
         },
         background: {
           light: "#f8fafc",
-          dark: "#000000",
+          dark: "#171923",
         },
         text: {
           light: "#1e293b",
@@ -30,10 +30,6 @@ export default {
         accent: {
           light: "#f59e0b",
           dark: "#d97706",
-        },
-        neutral: {
-          750: "#2a2a2a",
-          850: "#1a1a1a",
         }
       }
     },
