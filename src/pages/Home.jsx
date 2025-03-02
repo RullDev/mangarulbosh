@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FaSpinner, FaExclamationTriangle } from 'react-icons/fa';
@@ -23,28 +22,28 @@ const Home = () => {
   const fetchComics = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const comic = new Comic('1');
       let comicsData = await comic.latest();
-      
+
       // If failed, try using a different page number
-      if (!comicsData.length && retryCount < 2) {
+      if (!comicsData || !comicsData.length && retryCount < 2) {
         setRetryCount(prev => prev + 1);
         const comic2 = new Comic('2');
         comicsData = await comic2.latest();
       }
-      
+
       // If still failed, use mock data as a fallback
-      if (!comicsData.length) {
+      if (!comicsData || !comicsData.length) {
         comicsData = comic.getMockData();
       }
-      
+
       setComics(comicsData);
     } catch (err) {
       console.error("Error fetching comics:", err);
       setError("Failed to load comics. Please try again later.");
-      
+
       // Use mock data if all else fails
       const comic = new Comic('1');
       setComics(comic.getMockData());
@@ -59,7 +58,7 @@ const Home = () => {
 
   const filterComicsByCategory = () => {
     if (selectedCategory === 'all') return comics;
-    
+
     return comics.filter(comic => 
       comic.type && comic.type.toLowerCase().includes(selectedCategory.toLowerCase())
     );
@@ -74,7 +73,7 @@ const Home = () => {
       }
     }
   };
-  
+
   return (
     <div className="container-custom py-8">
       <motion.div 

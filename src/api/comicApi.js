@@ -247,10 +247,10 @@ class Comic {
                 });
             });
             
-            return result;
+            return result.length > 0 ? result : this.getMockData();
         } catch (e) {
             console.log('Latest error:', e);
-            return [];
+            return this.getMockData();
         }
     }
 
