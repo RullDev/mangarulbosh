@@ -257,7 +257,7 @@ const Header = ({ searchTerm, setSearchTerm }) => {
                   placeholder="Search comics..."
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  className="py-2 px-4 pl-10 w-full rounded-full bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="py-2 px-4 pl-10 w-full rounded-2xl bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-primary"
                 />
                 <button 
                   type="submit"

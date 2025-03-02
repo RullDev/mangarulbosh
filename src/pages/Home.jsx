@@ -223,7 +223,7 @@ const Home = () => {
                     whileTap={{ scale: 0.95 }}
                   >
                     <a 
-                      href="#latest" 
+                      href="#popular" 
                       className="btn btn-primary px-8 py-3 text-lg rounded-full shadow-lg shadow-primary/20 backdrop-blur-sm"
                     >
                       Explore Library <FaArrowDown className="ml-2 inline-block" />
