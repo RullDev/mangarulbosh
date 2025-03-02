@@ -1,199 +1,331 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { FaChevronLeft, FaChevronRight, FaHome, FaInfoCircle } from 'react-icons/fa';
-import LoadingSpinner from '../components/LoadingSpinner';
+
+import React, { useState, useEffect, useRef } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FaHome, FaArrowLeft, FaArrowRight, FaCog, FaTimes, FaList } from 'react-icons/fa';
 import Comic from '../api/comicApi';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const ReadingPage = () => {
   const { slug } = useParams();
-  const navigate = useNavigate();
-  const [images, setImages] = useState([]);
+  const [chapter, setChapter] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [currentComic, setCurrentComic] = useState(null);
-  const [currentPage, setCurrentPage] = useState(0);
-
-  // Extract comic slug from chapter slug
-  const comicSlug = slug.split('/')[0];
+  const [zoomLevel, setZoomLevel] = useState(100);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showChapters, setShowChapters] = useState(false);
+  const [autoScroll, setAutoScroll] = useState(false);
+  const [scrollSpeed, setScrollSpeed] = useState(1);
+  const scrollInterval = useRef(null);
+  const containerRef = useRef(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchChapterImages = async () => {
+    const fetchChapter = async () => {
       setLoading(true);
       setError(null);
+      
       try {
-        const comicApi = new Comic(slug);
-        const results = await comicApi.read();
-
-        if (!results || results.length === 0) {
-          setError('No images found for this chapter.');
-          setImages([]);
+        const comicApi = new Comic();
+        const chapterData = await comicApi.read(slug);
+        
+        if (!chapterData || !chapterData.pages || chapterData.pages.length === 0) {
+          setError('Chapter not found or has no pages.');
         } else {
-          setImages(results);
-          setCurrentPage(0);
-
-          try {
-            // Get comic info to navigate between chapters
-            const comicInfoApi = new Comic(comicSlug);
-            const comicInfo = await comicInfoApi.series();
-            if (comicInfo && Object.keys(comicInfo).length > 0) {
-              setCurrentComic(comicInfo);
-            } else {
-              console.warn('Comic info empty, navigation between chapters may not work');
-            }
-          } catch (infoErr) {
-            console.error('Error fetching comic info:', infoErr);
-            // Continue with chapter viewing even if comic info fails
-          }
+          setChapter(chapterData);
         }
       } catch (err) {
         console.error('Error fetching chapter:', err);
-        setError('Failed to load chapter. Please try again later.');
-        setImages([]);
+        setError('Failed to load chapter.');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchChapterImages();
-    // Scroll to top when loading a new chapter
-    window.scrollTo(0, 0);
-  }, [slug, comicSlug]);
+    if (slug) {
+      fetchChapter();
+    }
 
-  // Keyboard navigation
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'ArrowRight' && currentPage < images.length - 1) {
-        setCurrentPage(curr => curr + 1);
-      } else if (e.key === 'ArrowLeft' && currentPage > 0) {
-        setCurrentPage(curr => curr - 1);
+    // Cleanup any auto-scroll
+    return () => {
+      if (scrollInterval.current) {
+        clearInterval(scrollInterval.current);
       }
     };
+  }, [slug]);
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentPage, images.length]);
+  useEffect(() => {
+    // Handle auto-scroll
+    if (autoScroll && containerRef.current) {
+      scrollInterval.current = setInterval(() => {
+        containerRef.current.scrollTop += scrollSpeed;
+      }, 20);
+    } else if (scrollInterval.current) {
+      clearInterval(scrollInterval.current);
+    }
+
+    return () => {
+      if (scrollInterval.current) {
+        clearInterval(scrollInterval.current);
+      }
+    };
+  }, [autoScroll, scrollSpeed]);
+
+  const handleZoomChange = (newZoom) => {
+    setZoomLevel(Math.max(50, Math.min(200, newZoom)));
+  };
+
+  const navigateToChapter = (targetSlug) => {
+    if (targetSlug) {
+      navigate(`/read/${targetSlug}`);
+      setShowChapters(false);
+    }
+  };
+
+  const toggleAutoScroll = () => {
+    setAutoScroll(!autoScroll);
+  };
 
   if (loading) return <LoadingSpinner />;
 
   if (error) {
     return (
       <div className="container-custom py-12 text-center">
-        <p className="text-xl text-red-600 dark:text-red-400 mb-4">{error}</p>
-        <Link to="/" className="btn btn-primary">
-          Return to Home
-        </Link>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <p className="text-xl text-red-600 dark:text-red-400 mb-4">{error}</p>
+          <Link to="/" className="btn btn-primary inline-flex items-center">
+            <FaHome className="mr-2" /> Return to Home
+          </Link>
+        </motion.div>
       </div>
     );
   }
 
-  // Handle empty array without error
-  if (images.length === 0) {
-    return (
-      <div className="container-custom py-12 text-center">
-        <p className="text-xl text-gray-600 dark:text-gray-400 mb-4">No images available for this chapter.</p>
-        <Link to="/" className="btn btn-primary">
-          Return to Home
-        </Link>
-      </div>
-    );
-  }
-
-  // Find current chapter index
-  const currentChapterIndex = currentComic?.chapters?.findIndex(chapter => chapter.slug === slug) || -1;
-  const prevChapter = currentChapterIndex > 0 ? currentComic?.chapters[currentChapterIndex - 1] : null;
-  const nextChapter = currentChapterIndex !== -1 && currentChapterIndex < (currentComic?.chapters?.length - 1) 
-    ? currentComic?.chapters[currentChapterIndex + 1] 
-    : null;
+  if (!chapter) return null;
 
   return (
-    <div className="min-h-screen dark:bg-gray-900 bg-gray-100">
-      <div className="container-custom py-4">
-        {/* Navigation Bar */}
-        <div className="dark:bg-gray-800 bg-white text-gray-800 dark:text-white rounded-lg p-4 mb-6 flex justify-between items-center shadow-lg">
-          <div className="flex space-x-4">
-            <button 
-              onClick={() => navigate('/')}
-              className="bg-primary hover:bg-purple-700 text-white px-3 py-1 rounded flex items-center"
-            >
-              <FaHome className="mr-1" /> Home
-            </button>
-            <button 
-              onClick={() => navigate(`/comic/${comicSlug}`)}
-              className="bg-secondary hover:bg-indigo-700 text-white px-3 py-1 rounded flex items-center"
-            >
-              <FaInfoCircle className="mr-1" /> Comic Info
-            </button>
-          </div>
-
-          <div className="text-center">
-            <h1 className="text-lg font-semibold">{currentComic?.title || 'Reading'}</h1>
-            <p className="text-sm dark:text-gray-400 text-gray-600">
-              {currentComic?.chapters?.[currentChapterIndex]?.title || `Page ${currentPage + 1}/${images.length}`}
-            </p>
-          </div>
-
-          <div className="flex space-x-2">
-            <button 
-              onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
-              disabled={currentPage === 0}
-              className={`px-3 py-1 rounded flex items-center ${currentPage !== 0 ? 'bg-primary hover:bg-purple-700 text-white' : 'bg-gray-700 text-gray-400 cursor-not-allowed'}`}
-            >
-              <FaChevronLeft className="mr-1" /> Prev
-            </button>
-            <button 
-              onClick={() => setCurrentPage(prev => Math.min(images.length - 1, prev + 1))}
-              disabled={currentPage === images.length - 1}
-              className={`px-3 py-1 rounded flex items-center ${currentPage !== images.length - 1 ? 'bg-primary hover:bg-purple-700 text-white' : 'bg-gray-700 text-gray-400 cursor-not-allowed'}`}
-            >
-              Next <FaChevronRight className="ml-1" />
-            </button>
-          </div>
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 pb-20">
+      {/* Top Navigation Bar */}
+      <div className="sticky top-0 z-10 bg-white dark:bg-gray-800 shadow-md p-3 flex justify-between items-center">
+        <div className="flex items-center space-x-4">
+          <Link to="/" className="p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
+            <FaHome />
+          </Link>
+          
+          {chapter.comic && (
+            <Link to={`/comic/${chapter.comic.slug}`} className="font-medium text-gray-800 dark:text-gray-200 hover:text-primary">
+              {chapter.comic.title}
+            </Link>
+          )}
         </div>
-
-        {/* Current Image */}
-        <motion.div
-          key={currentPage}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3 }}
-          className="flex justify-center my-4"
-        >
-          <img 
-            src={images[currentPage]?.url} 
-            alt={`Page ${currentPage + 1}`} 
-            className="max-w-full max-h-[80vh] object-contain rounded-lg shadow-lg"
-            onError={(e) => {
-              e.target.onerror = null;
-              e.target.src = 'https://via.placeholder.com/800x1200?text=Image+Not+Available';
-            }}
-          />
-        </motion.div>
-
-        {/* Bottom Navigation */}
-        <div className="dark:bg-gray-800 bg-white text-gray-800 dark:text-white rounded-lg p-4 mt-6 flex justify-center items-center space-x-4 shadow-lg">
-          <button 
-            onClick={() => prevChapter && navigate(`/read/${prevChapter.slug}`)}
-            disabled={!prevChapter}
-            className={`px-4 py-2 rounded flex items-center ${prevChapter ? 'bg-primary hover:bg-purple-700 text-white' : 'bg-gray-700 text-gray-400 cursor-not-allowed'}`}
+        
+        <h1 className="text-lg font-bold text-center text-gray-900 dark:text-white">
+          {chapter.title}
+        </h1>
+        
+        <div className="flex items-center space-x-3">
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            className="p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
+            onClick={() => setShowChapters(!showChapters)}
           >
-            <FaChevronLeft className="mr-2" /> Previous Chapter
-          </button>
-          <button 
-            onClick={() => navigate(`/comic/${comicSlug}`)}
-            className="bg-secondary hover:bg-indigo-700 text-white px-4 py-2 rounded"
+            <FaList />
+          </motion.button>
+          
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            className="p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
+            onClick={() => setShowSettings(!showSettings)}
           >
-            Back to Comic
-          </button>
-          <button 
-            onClick={() => nextChapter && navigate(`/read/${nextChapter.slug}`)}
-            disabled={!nextChapter}
-            className={`px-4 py-2 rounded flex items-center ${nextChapter ? 'bg-primary hover:bg-purple-700 text-white' : 'bg-gray-700 text-gray-400 cursor-not-allowed'}`}
-          >
-            Next Chapter <FaChevronRight className="ml-2" />
-          </button>
+            <FaCog />
+          </motion.button>
         </div>
       </div>
+      
+      {/* Chapter Content */}
+      <div 
+        ref={containerRef}
+        className="container mx-auto px-4 py-6 relative"
+        style={{ paddingBottom: '100px' }}
+      >
+        <div className="max-w-3xl mx-auto" style={{ width: `${zoomLevel}%` }}>
+          {chapter.pages && chapter.pages.map((page, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: index * 0.05 }}
+              className="mb-4"
+            >
+              <img
+                src={page}
+                alt={`Page ${index + 1}`}
+                className="w-full rounded-lg shadow-lg"
+                loading="lazy"
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = 'https://via.placeholder.com/800x1200?text=Image+Not+Available';
+                }}
+              />
+            </motion.div>
+          ))}
+        </div>
+      </div>
+      
+      {/* Bottom Navigation */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-3 flex justify-between items-center z-10">
+        <motion.button
+          whileTap={{ scale: 0.95 }}
+          className={`btn ${chapter.prev ? 'btn-primary' : 'btn-secondary opacity-50'}`}
+          onClick={() => chapter.prev && navigateToChapter(chapter.prev.slug)}
+          disabled={!chapter.prev}
+        >
+          <FaArrowLeft className="mr-2" /> Previous
+        </motion.button>
+        
+        <div className="text-center">
+          <span className="text-sm font-medium dark:text-gray-300">
+            {chapter.current && chapter.current.number}
+          </span>
+        </div>
+        
+        <motion.button
+          whileTap={{ scale: 0.95 }}
+          className={`btn ${chapter.next ? 'btn-primary' : 'btn-secondary opacity-50'}`}
+          onClick={() => chapter.next && navigateToChapter(chapter.next.slug)}
+          disabled={!chapter.next}
+        >
+          Next <FaArrowRight className="ml-2" />
+        </motion.button>
+      </div>
+      
+      {/* Settings Panel */}
+      <AnimatePresence>
+        {showSettings && (
+          <motion.div
+            initial={{ opacity: 0, x: 300 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 300 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="fixed top-0 right-0 bottom-0 w-72 bg-white dark:bg-gray-800 shadow-xl z-20 p-4"
+          >
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-lg font-bold dark:text-white">Reading Settings</h2>
+              <button 
+                onClick={() => setShowSettings(false)}
+                className="p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
+              >
+                <FaTimes />
+              </button>
+            </div>
+            
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Zoom Level: {zoomLevel}%
+                </label>
+                <input
+                  type="range"
+                  min="50"
+                  max="200"
+                  value={zoomLevel}
+                  onChange={(e) => handleZoomChange(parseInt(e.target.value))}
+                  className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                />
+                <div className="flex justify-between mt-1">
+                  <span className="text-xs text-gray-500 dark:text-gray-400">50%</span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">200%</span>
+                </div>
+              </div>
+              
+              <div>
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={autoScroll}
+                    onChange={toggleAutoScroll}
+                    className="form-checkbox rounded text-primary"
+                  />
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Auto-scroll
+                  </span>
+                </label>
+                
+                {autoScroll && (
+                  <div className="mt-3">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Scroll Speed
+                    </label>
+                    <input
+                      type="range"
+                      min="1"
+                      max="10"
+                      value={scrollSpeed}
+                      onChange={(e) => setScrollSpeed(parseInt(e.target.value))}
+                      className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                    />
+                    <div className="flex justify-between mt-1">
+                      <span className="text-xs text-gray-500 dark:text-gray-400">Slow</span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">Fast</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      
+      {/* Chapters List Panel */}
+      <AnimatePresence>
+        {showChapters && chapter.comic && chapter.comic.chapters && (
+          <motion.div
+            initial={{ opacity: 0, x: -300 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -300 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="fixed top-0 left-0 bottom-0 w-72 bg-white dark:bg-gray-800 shadow-xl z-20 p-4 overflow-y-auto"
+          >
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-lg font-bold dark:text-white">Chapters</h2>
+              <button 
+                onClick={() => setShowChapters(false)}
+                className="p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
+              >
+                <FaTimes />
+              </button>
+            </div>
+            
+            <div className="space-y-2">
+              {chapter.comic.chapters.map((chap, index) => (
+                <motion.div
+                  key={index}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <button
+                    onClick={() => navigateToChapter(chap.slug)}
+                    className={`w-full text-left p-3 rounded-lg transition-colors ${
+                      chap.slug === slug 
+                        ? 'bg-primary text-white' 
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600'
+                    }`}
+                  >
+                    <div className="font-medium">{chap.title}</div>
+                    {chap.released && (
+                      <div className="text-xs mt-1 opacity-80">{chap.released}</div>
+                    )}
+                  </button>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
