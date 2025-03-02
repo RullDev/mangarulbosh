@@ -1,7 +1,19 @@
+
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaArrowLeft, FaHome, FaArrowRight, FaArrowUp, FaCog, FaExpand, FaCompress, FaExclamationTriangle } from 'react-icons/fa';
+import { 
+  FaArrowLeft, 
+  FaArrowRight, 
+  FaExpand, 
+  FaCompress, 
+  FaCog, 
+  FaHome,
+  FaArrowUp,
+  FaTimesCircle,
+  FaChevronLeft,
+  FaChevronRight
+} from 'react-icons/fa';
 import Comic from '../api/comicApi';
 import LoadingSpinner from '../components/LoadingSpinner';
 
@@ -15,6 +27,12 @@ const ReadingPage = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [prevChapter, setPrevChapter] = useState(null);
+  const [nextChapter, setNextChapter] = useState(null);
+  const [comicTitle, setComicTitle] = useState('');
+  const [currentChapter, setCurrentChapter] = useState('');
+  const [controlsTimeout, setControlsTimeout] = useState(null);
+  
   const readerRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
@@ -42,42 +60,95 @@ const ReadingPage = () => {
             setError("No valid pages found for this chapter.");
           } else {
             setPages(validPages);
-
-            // Save to reading history with additional details
+            
+            // Try to extract chapter info from slug
+            const chapterMatch = slug.match(/chapter[_-](\d+)/i);
+            if (chapterMatch) {
+              setCurrentChapter(chapterMatch[1]);
+            } else {
+              setCurrentChapter('Unknown');
+            }
+            
+            // Extract comic title from slug
+            const titleParts = slug.split(/chapter/i)[0] || '';
+            const formattedTitle = titleParts
+              .replace(/-/g, ' ')
+              .split(' ')
+              .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+              .join(' ')
+              .trim();
+            
+            setComicTitle(formattedTitle || 'Comic');
+            
+            // Fetch prev/next chapters
             try {
-              // Extract comic name and chapter from slug
-              const slugParts = slug.split('-');
-              const chapterPart = slugParts.find(part => part.toLowerCase().includes('chapter'));
-              const comicName = slugParts
-                .slice(0, slugParts.indexOf(chapterPart))
-                .join(' ')
-                .replace(/-/g, ' ');
-
-              const history = JSON.parse(localStorage.getItem('readingHistory') || '[]');
-              const now = new Date().toISOString();
-
-              // Remove if already exists
-              const filteredHistory = history.filter(item => item.slug !== slug);
-
-              // Add to beginning
-              filteredHistory.unshift({
-                slug,
-                comicName: comicName || 'Unknown Comic',
-                chapter: chapterPart || 'Unknown Chapter',
-                timestamp: now
-              });
-
-              // Keep only last 20 items
-              const trimmedHistory = filteredHistory.slice(0, 20);
-              localStorage.setItem('readingHistory', JSON.stringify(trimmedHistory));
-            } catch (err) {
-              console.error("Error saving to reading history:", err);
+              // Try to extract comic slug from chapter slug
+              const comicSlug = slug.split(/chapter/i)[0].slice(0, -1); // Remove trailing dash or underscore
+              
+              if (comicSlug) {
+                const infoApi = new Comic(comicSlug);
+                const comicInfo = await infoApi.info();
+                
+                if (comicInfo && Array.isArray(comicInfo.chapters)) {
+                  // Sort chapters numerically
+                  const chapters = [...comicInfo.chapters].sort((a, b) => {
+                    const getChapterNum = (slug) => {
+                      const match = slug.match(/chapter[_-](\d+)/i);
+                      return match ? parseInt(match[1]) : 0;
+                    };
+                    
+                    return getChapterNum(a.slug) - getChapterNum(b.slug);
+                  });
+                  
+                  // Find current chapter index
+                  const currentIndex = chapters.findIndex(ch => ch.slug === slug);
+                  
+                  if (currentIndex !== -1) {
+                    // Set previous chapter if available
+                    if (currentIndex > 0) {
+                      setPrevChapter(chapters[currentIndex - 1].slug);
+                    }
+                    
+                    // Set next chapter if available
+                    if (currentIndex < chapters.length - 1) {
+                      setNextChapter(chapters[currentIndex + 1].slug);
+                    }
+                    
+                    // Set comic title if available
+                    if (comicInfo.title) {
+                      setComicTitle(comicInfo.title);
+                    }
+                  } else {
+                    // If we can't find the chapter in the list, try a fallback approach
+                    if (chapterMatch) {
+                      const currentChapterNum = parseInt(chapterMatch[1]);
+                      
+                      // Look for adjacent chapters
+                      const prevCh = chapters.find(ch => {
+                        const match = ch.slug.match(/chapter[_-](\d+)/i);
+                        return match && parseInt(match[1]) === currentChapterNum - 1;
+                      });
+                      
+                      const nextCh = chapters.find(ch => {
+                        const match = ch.slug.match(/chapter[_-](\d+)/i);
+                        return match && parseInt(match[1]) === currentChapterNum + 1;
+                      });
+                      
+                      if (prevCh) setPrevChapter(prevCh.slug);
+                      if (nextCh) setNextChapter(nextCh.slug);
+                    }
+                  }
+                }
+              }
+            } catch (navErr) {
+              console.error("Error setting up navigation:", navErr);
+              // Non-blocking error, so we don't set the main error state
             }
           }
         }
       } catch (err) {
         console.error("Error fetching pages:", err);
-        setError("Failed to load chapter pages. Please try again later.");
+        setError("Failed to load chapter. Please try again later.");
       } finally {
         setLoading(false);
       }
@@ -85,175 +156,147 @@ const ReadingPage = () => {
 
     fetchPages();
 
-    // Try to get saved reading mode preference
-    const savedMode = localStorage.getItem('readingMode');
-    if (savedMode) {
-      setReadingMode(savedMode);
-    }
-
-    // Listen for keyboard navigation
-    const handleKeyDown = (e) => {
-      if (e.key === 'ArrowRight' || e.key === 'd') {
-        handleNextPage();
-      } else if (e.key === 'ArrowLeft' || e.key === 'a') {
-        handlePrevPage();
-      } else if (e.key === 'f') {
-        toggleFullscreen();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [slug]);
-
-  // Function to toggle fullscreen
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      if (readerRef.current.requestFullscreen) {
-        readerRef.current.requestFullscreen();
-        setIsFullscreen(true);
-      }
-    } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-        setIsFullscreen(false);
-      }
-    }
-  };
-
-  // Listen for fullscreen changes
-  useEffect(() => {
+    // Set up fullscreen change listener
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
     };
-
+    
     document.addEventListener('fullscreenchange', handleFullscreenChange);
 
+    // Cleanup
     return () => {
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      if (controlsTimeout) {
+        clearTimeout(controlsTimeout);
+      }
     };
-  }, []);
+  }, [slug]);
 
-  const handleNextPage = () => {
-    if (readingMode === 'single-page' && currentPage < pages.length - 1) {
-      setCurrentPage(prevPage => prevPage + 1);
-    } else if (readingMode === 'horizontal' && currentPage < pages.length - 1) {
-      setCurrentPage(prevPage => prevPage + 1);
+  useEffect(() => {
+    // Set up control hiding
+    if (showControls && readingMode !== 'vertical') {
+      const timeout = setTimeout(() => {
+        setShowControls(false);
+      }, 3000);
+      
+      setControlsTimeout(timeout);
+      
+      return () => {
+        clearTimeout(timeout);
+      };
+    }
+  }, [showControls, readingMode]);
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      readerRef.current.requestFullscreen().catch(err => {
+        console.error(`Error attempting to enable fullscreen: ${err.message}`);
+      });
+    } else {
+      document.exitFullscreen();
     }
   };
 
-  const handlePrevPage = () => {
-    if (readingMode === 'single-page' && currentPage > 0) {
-      setCurrentPage(prevPage => prevPage - 1);
-    } else if (readingMode === 'horizontal' && currentPage > 0) {
-      setCurrentPage(prevPage => prevPage - 1);
+  const toggleSettings = () => {
+    setIsSettingsOpen(!isSettingsOpen);
+    // Keep controls visible when settings are open
+    setShowControls(true);
+    
+    // Reset the control hiding timeout
+    if (controlsTimeout) {
+      clearTimeout(controlsTimeout);
+      setControlsTimeout(null);
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+      if (readingMode === 'single-page' || readingMode === 'horizontal') {
+        if (currentPage < pages.length - 1) {
+          setCurrentPage(currentPage + 1);
+        } else {
+          goToNextChapter();
+        }
+      }
+    } else if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+      if (readingMode === 'single-page' || readingMode === 'horizontal') {
+        if (currentPage > 0) {
+          setCurrentPage(currentPage - 1);
+        } else {
+          goToPrevChapter();
+        }
+      }
+    } else if (e.key === 'Home') {
+      setCurrentPage(0);
+    } else if (e.key === 'End') {
+      setCurrentPage(pages.length - 1);
+    } else if (e.key === 'f' || e.key === 'F') {
+      toggleFullscreen();
+    }
+
+    // Reset control visibility when interacting
+    setShowControls(true);
+  };
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [currentPage, pages.length, readingMode, prevChapter, nextChapter]);
+
+  const goToPrevChapter = () => {
+    if (prevChapter) {
+      navigate(`/read/${prevChapter}`);
+    }
+  };
+
+  const goToNextChapter = () => {
+    if (nextChapter) {
+      navigate(`/read/${nextChapter}`);
     }
   };
 
   const changeReadingMode = (mode) => {
     setReadingMode(mode);
-    localStorage.setItem('readingMode', mode);
+    setCurrentPage(0); // Reset to first page when changing modes
+    
+    // If switching to vertical, always show controls
+    if (mode === 'vertical') {
+      setShowControls(true);
+    }
+    
     setIsSettingsOpen(false);
-  };
-
-  // Extract comic and chapter info from slug
-  const getComicSlug = () => {
-    try {
-      const parts = slug.split('-');
-      const chapterIndex = parts.findIndex(part => 
-        part.toLowerCase() === 'chapter' || /^ch(\d+)/.test(part)
-      );
-
-      if (chapterIndex > 0) {
-        return parts.slice(0, chapterIndex).join('-');
-      }
-      return '';
-    } catch (e) {
-      return '';
-    }
-  };
-
-  const comicSlug = getComicSlug();
-
-  // Function to get chapter number
-  const getChapterNumber = () => {
-    const match = slug.match(/chapter[_-]?(\d+)/i) || slug.match(/ch[_-]?(\d+)/i);
-    return match ? match[1] : null;
-  };
-
-  // Get current chapter number
-  const currentChapter = getChapterNumber();
-
-  // Function to navigate to next/prev chapter (would need chapter list)
-  const goToNextChapter = () => {
-    if (currentChapter) {
-      const nextChapter = parseInt(currentChapter) + 1;
-      const nextSlug = slug.replace(/chapter[_-]?(\d+)/i, `chapter-${nextChapter}`)
-                          .replace(/ch[_-]?(\d+)/i, `ch-${nextChapter}`);
-      navigate(`/read/${nextSlug}`);
-    }
-  };
-
-  const goToPrevChapter = () => {
-    if (currentChapter && parseInt(currentChapter) > 1) {
-      const prevChapter = parseInt(currentChapter) - 1;
-      const prevSlug = slug.replace(/chapter[_-]?(\d+)/i, `chapter-${prevChapter}`)
-                          .replace(/ch[_-]?(\d+)/i, `ch-${prevChapter}`);
-      navigate(`/read/${prevSlug}`);
-    }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <LoadingSpinner size="large" message="Loading comic pages..." />
+      <div className="min-h-screen flex items-center justify-center bg-black text-white">
+        <LoadingSpinner size="large" message="Loading pages..." />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="container-custom py-16 text-center">
-        <div className="bg-red-50 dark:bg-red-900/20 p-8 rounded-lg max-w-md mx-auto">
-          <FaExclamationTriangle className="mx-auto text-red-500 text-5xl mb-4" />
-          <h2 className="text-2xl font-bold text-red-600 dark:text-red-400 mb-4">Error</h2>
-          <p className="text-gray-700 dark:text-gray-300 mb-6">{error}</p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/" className="btn btn-primary">
-              <FaHome className="mr-2" /> Back to Home
-            </Link>
-            {comicSlug && (
-              <Link to={`/comic/${comicSlug}`} className="btn bg-secondary text-white">
-                Comic Info
-              </Link>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (pages.length === 0) {
-    return (
-      <div className="container-custom py-16 text-center">
-        <div className="bg-yellow-50 dark:bg-yellow-900/20 p-8 rounded-lg max-w-md mx-auto">
-          <FaExclamationTriangle className="mx-auto text-yellow-500 text-5xl mb-4" />
-          <h2 className="text-2xl font-bold text-yellow-600 dark:text-yellow-400 mb-4">No Pages Found</h2>
-          <p className="text-gray-700 dark:text-gray-300 mb-6">
-            This chapter doesn't have any pages available. The source might be temporarily unavailable.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/" className="btn btn-primary">
-              <FaHome className="mr-2" /> Back to Home
-            </Link>
-            {comicSlug && (
-              <Link to={`/comic/${comicSlug}`} className="btn bg-secondary text-white">
-                Comic Info
-              </Link>
-            )}
+      <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white p-4">
+        <div className="text-center">
+          <FaTimesCircle className="text-red-500 text-5xl mx-auto mb-4" />
+          <h2 className="text-2xl font-bold mb-4">Error Loading Chapter</h2>
+          <p className="mb-6 text-gray-300">{error}</p>
+          <div className="flex flex-wrap justify-center gap-4">
+            <button 
+              onClick={() => navigate(-1)}
+              className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+            >
+              <FaArrowLeft /> Go Back
+            </button>
+            <button 
+              onClick={() => navigate('/')}
+              className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+            >
+              <FaHome /> Home
+            </button>
           </div>
         </div>
       </div>
@@ -287,64 +330,70 @@ const ReadingPage = () => {
                   <FaArrowLeft />
                 </motion.button>
                 <div>
-                  <h1 className="text-lg font-medium truncate max-w-[200px] md:max-w-md">{slug.replace(/-/g, ' ')}</h1>
+                  <h1 className="text-lg font-medium truncate max-w-[200px] md:max-w-md">{comicTitle}</h1>
                   <p className="text-xs text-gray-300 truncate">Chapter {currentChapter || ''}</p>
                 </div>
               </div>
-
-              <div className="flex items-center gap-3">
+              
+              <div className="flex items-center gap-2">
                 <motion.button 
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
-                  className="btn-icon bg-gray-700/80 hover:bg-gray-600 transition-colors p-2.5 rounded-full backdrop-blur-sm"
-                  onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+                  className="btn-icon"
+                  onClick={toggleSettings}
                 >
                   <FaCog />
                 </motion.button>
+                
                 <motion.button 
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
-                  className="btn-icon bg-gray-700/80 hover:bg-gray-600 transition-colors p-2.5 rounded-full backdrop-blur-sm"
+                  className="btn-icon"
                   onClick={toggleFullscreen}
                 >
                   {isFullscreen ? <FaCompress /> : <FaExpand />}
                 </motion.button>
               </div>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Settings Panel */}
-      <AnimatePresence>
-        {isSettingsOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="fixed top-16 right-4 z-50 bg-white dark:bg-gray-800 shadow-lg rounded-lg p-4 w-64"
-          >
-            <h3 className="font-bold text-gray-800 dark:text-white mb-3">Reading Settings</h3>
-            <div className="space-y-2">
-              <button 
-                onClick={() => changeReadingMode('vertical')}
-                className={`w-full text-left p-2 rounded ${readingMode === 'vertical' ? 'bg-primary text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'}`}
-              >
-                Vertical Scrolling
-              </button>
-              <button 
-                onClick={() => changeReadingMode('horizontal')}
-                className={`w-full text-left p-2 rounded ${readingMode === 'horizontal' ? 'bg-primary text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'}`}
-              >
-                Horizontal Pages
-              </button>
-              <button 
-                onClick={() => changeReadingMode('single-page')}
-                className={`w-full text-left p-2 rounded ${readingMode === 'single-page' ? 'bg-primary text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'}`}
-              >
-                Single Page
-              </button>
-            </div>
+            
+            {/* Settings Panel */}
+            <AnimatePresence>
+              {isSettingsOpen && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="container-custom mt-3 pb-2 overflow-hidden"
+                >
+                  <div className="bg-gray-800/90 backdrop-blur-md rounded-lg p-4">
+                    <h3 className="text-lg font-medium mb-3">Reading Settings</h3>
+                    
+                    <div className="mb-4">
+                      <p className="text-sm text-gray-300 mb-2">Reading Mode</p>
+                      <div className="flex flex-wrap gap-2">
+                        <button 
+                          onClick={() => changeReadingMode('vertical')}
+                          className={`px-3 py-1.5 rounded-lg text-sm ${readingMode === 'vertical' ? 'bg-primary text-white' : 'bg-gray-700 text-gray-300'}`}
+                        >
+                          Vertical Scroll
+                        </button>
+                        <button 
+                          onClick={() => changeReadingMode('single-page')}
+                          className={`px-3 py-1.5 rounded-lg text-sm ${readingMode === 'single-page' ? 'bg-primary text-white' : 'bg-gray-700 text-gray-300'}`}
+                        >
+                          Single Page
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div className="text-sm text-gray-400">
+                      <p>Keyboard Controls: ←/→ or A/D to navigate pages, F for fullscreen</p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         )}
       </AnimatePresence>
@@ -368,129 +417,93 @@ const ReadingPage = () => {
             ))}
           </div>
         )}
-
-        {readingMode === 'horizontal' && (
-          <div className="horizontal-reader">
-            <div 
-              className="flex overflow-x-auto hide-scrollbar snap-x snap-mandatory"
-              style={{ height: 'calc(100vh - 64px)' }}
-            >
-              {pages.map((page, index) => (
-                <div 
-                  key={index} 
-                  className="flex-shrink-0 w-full h-full flex items-center justify-center snap-center"
-                >
-                  <img 
-                    src={page.url} 
-                    alt={`Page ${index + 1}`}
-                    className="max-h-full max-w-full object-contain"
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src = 'https://via.placeholder.com/800x1200?text=Image+Not+Available';
-                    }}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
+        
         {readingMode === 'single-page' && (
-          <div className="single-page-reader flex justify-center items-center">
-            <div className="relative w-full h-full flex items-center justify-center">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={currentPage}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="w-full h-full flex items-center justify-center"
+          <div className="single-page-reader flex items-center justify-center min-h-screen">
+            <div className="relative w-full max-w-3xl mx-auto h-full flex items-center">
+              {/* Previous Page Button */}
+              {currentPage > 0 && (
+                <motion.button 
+                  className="absolute left-2 z-20 p-3 rounded-full bg-black/40 text-white hover:bg-black/60 transition-colors"
+                  onClick={() => setCurrentPage(currentPage - 1)}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
                 >
-                  <img 
-                    src={pages[currentPage]?.url} 
-                    alt={`Page ${currentPage + 1}`}
-                    className="max-h-full max-w-full object-contain"
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src = 'https://via.placeholder.com/800x1200?text=Image+Not+Available';
-                    }}
-                  />
-                </motion.div>
-              </AnimatePresence>
-
-              {/* Navigation buttons */}
-              <button 
-                onClick={handlePrevPage}
-                disabled={currentPage === 0}
-                className={`absolute left-0 top-1/2 transform -translate-y-1/2 ${
-                  currentPage === 0 ? 'opacity-30 cursor-not-allowed' : 'opacity-70 hover:opacity-100'
-                } bg-black/50 p-4 rounded-r-lg text-white`}
+                  <FaChevronLeft />
+                </motion.button>
+              )}
+              
+              {/* Current Page */}
+              <motion.div 
+                className="page-container max-h-[90vh] px-4"
+                key={currentPage}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
               >
-                <FaArrowLeft />
-              </button>
-
-              <button 
-                onClick={handleNextPage}
-                disabled={currentPage === pages.length - 1}
-                className={`absolute right-0 top-1/2 transform -translate-y-1/2 ${
-                  currentPage === pages.length - 1 ? 'opacity-30 cursor-not-allowed' : 'opacity-70 hover:opacity-100'
-                } bg-black/50 p-4 rounded-l-lg text-white`}
-              >
-                <FaArrowRight />
-              </button>
+                <img 
+                  src={pages[currentPage]?.url} 
+                  alt={`Page ${currentPage + 1}`} 
+                  className="max-h-[90vh] max-w-full object-contain mx-auto"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = 'https://via.placeholder.com/800x1200?text=Image+Not+Available';
+                  }}
+                />
+              </motion.div>
+              
+              {/* Next Page Button */}
+              {currentPage < pages.length - 1 && (
+                <motion.button 
+                  className="absolute right-2 z-20 p-3 rounded-full bg-black/40 text-white hover:bg-black/60 transition-colors"
+                  onClick={() => setCurrentPage(currentPage + 1)}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <FaChevronRight />
+                </motion.button>
+              )}
             </div>
           </div>
         )}
       </div>
 
-      {/* Bottom Controls */}
-      {showControls && readingMode !== 'vertical' && (
+      {/* Bottom Navigation for Prev/Next Chapter */}
+      {showControls && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 20 }}
           transition={{ duration: 0.2 }}
-          className="fixed bottom-0 left-0 right-0 z-50 bg-black/80 text-white p-4 backdrop-blur-sm"
+          className="fixed bottom-0 left-0 right-0 z-40 bg-black/70 text-white p-4 backdrop-blur-md border-t border-gray-800/50"
         >
           <div className="container-custom flex justify-between items-center">
-            <button 
-              onClick={goToPrevChapter}
-              className="btn-nav"
-              disabled={!currentChapter || parseInt(currentChapter) <= 1}
-            >
-              <FaArrowLeft /> Prev Chapter
-            </button>
-
-            {readingMode === 'single-page' && (
-              <div className="flex items-center gap-2">
-                <button 
-                  onClick={handlePrevPage}
-                  disabled={currentPage === 0}
-                  className={`btn-icon ${currentPage === 0 ? 'opacity-50' : ''}`}
-                >
-                  <FaArrowLeft />
-                </button>
-
-                <span className="mx-2">
-                  {currentPage + 1} / {pages.length}
+            <div>
+              {readingMode === 'single-page' && (
+                <span className="text-sm text-gray-300">
+                  Page {currentPage + 1} of {pages.length}
                 </span>
-
-                <button 
-                  onClick={handleNextPage}
-                  disabled={currentPage === pages.length - 1}
-                  className={`btn-icon ${currentPage === pages.length - 1 ? 'opacity-50' : ''}`}
-                >
-                  <FaArrowRight />
-                </button>
-              </div>
-            )}
-
-            <button 
-              onClick={goToNextChapter}
-              className="btn-nav"
-            >
-              Next Chapter <FaArrowRight />
-            </button>
+              )}
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={goToPrevChapter}
+                className={`btn-nav ${!prevChapter ? 'opacity-50 cursor-not-allowed' : ''}`}
+                disabled={!prevChapter}
+              >
+                <FaArrowLeft /> Previous Chapter
+              </button>
+              
+              <button 
+                onClick={goToNextChapter}
+                className={`btn-nav ${!nextChapter ? 'opacity-50 cursor-not-allowed' : ''}`}
+                disabled={!nextChapter}
+              >
+                Next Chapter <FaArrowRight />
+              </button>
+            </div>
           </div>
         </motion.div>
       )}
@@ -499,7 +512,7 @@ const ReadingPage = () => {
       {readingMode === 'vertical' && (
         <button 
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="fixed bottom-8 right-8 p-4 rounded-full bg-primary text-white shadow-lg hover:bg-primary-dark transition-colors z-30"
+          className="fixed bottom-20 right-8 p-4 rounded-full bg-primary text-white shadow-lg hover:bg-primary-dark transition-colors z-30"
         >
           <FaArrowUp />
         </button>

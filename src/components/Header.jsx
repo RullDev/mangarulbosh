@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaSearch, FaBars, FaBookOpen, FaFire, FaClock, FaHome } from 'react-icons/fa';
+import { FaSearch, FaBars, FaBookOpen, FaFire, FaClock, FaHome, FaChevronDown } from 'react-icons/fa';
 import ThemeToggle from './ThemeToggle';
 
 const Header = ({ searchTerm, setSearchTerm }) => {
@@ -14,14 +14,35 @@ const Header = ({ searchTerm, setSearchTerm }) => {
   
   // Scroll navigation helper
   const scrollToSection = (id) => {
+    // Check if we're on the home page
+    if (location.pathname !== '/') {
+      // Navigate to home with hash
+      navigate('/#' + id);
+      return;
+    }
+    
+    // We're already on the home page, scroll to the section
     const element = document.getElementById(id);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
-    } else {
-      navigate('/#' + id);
     }
+    
+    // Close mobile menu
     setMobileMenuOpen(false);
   };
+  
+  // Check if there's a hash in the URL when component mounts or when location changes
+  useEffect(() => {
+    if (location.hash && location.pathname === '/') {
+      const id = location.hash.substring(1); // Remove the # character
+      setTimeout(() => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 500); // Small delay to ensure the page has rendered
+    }
+  }, [location]);
   
   useEffect(() => {
     // Check if user has a preference
@@ -65,6 +86,12 @@ const Header = ({ searchTerm, setSearchTerm }) => {
   const variants = {
     open: { opacity: 1, y: 0 },
     closed: { opacity: 0, y: -20 },
+  };
+  
+  // Dropdown animation
+  const dropdownVariants = {
+    hidden: { opacity: 0, y: -10 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.2 } }
   };
 
   return (
