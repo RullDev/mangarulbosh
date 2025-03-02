@@ -79,7 +79,7 @@ const Header = ({ searchTerm, setSearchTerm }) => {
               className="relative"
             >
               <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary-light bg-clip-text text-transparent group-hover:from-secondary-light group-hover:to-primary transition-all duration-500">
-                MangaSur
+                MangaRul
               </h1>
               <motion.div 
                 className="absolute -bottom-1 left-0 h-1 bg-gradient-to-r from-primary to-secondary-light rounded-full"
