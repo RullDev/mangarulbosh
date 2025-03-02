@@ -142,146 +142,318 @@ const Home = () => {
 
   return (
     <>
-      {/* Hero Section */}
+      {/* Modern Hero Section */}
       <motion.div 
         ref={heroRef}
-        className="relative min-h-[70vh] bg-gradient-to-b from-primary/10 to-transparent dark:from-primary-dark/20 dark:to-transparent overflow-hidden"
+        className="relative min-h-[85vh] bg-gradient-to-b from-primary/5 via-primary/10 to-transparent dark:from-primary-dark/10 dark:via-primary-dark/5 dark:to-transparent overflow-hidden"
         style={{ opacity, scale, y }}
       >
         {featuredComic && (
           <>
-            <div className="absolute inset-0 z-0" style={{ backgroundPositionY: bgY }}> {/* Apply parallax effect here */}
+            <motion.div 
+              className="absolute inset-0 z-0" 
+              style={{ backgroundPositionY: bgY }}
+              initial={{ scale: 1.1 }}
+              animate={{ scale: 1.05 }}
+              transition={{ duration: 20, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }}
+            >
               <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background-light/80 to-background-light dark:from-transparent dark:via-background-dark/90 dark:to-background-dark"></div>
-              <img 
-                src={featuredComic.cover} 
-                alt={featuredComic.title} 
-                className="w-full h-full object-cover opacity-30 dark:opacity-20 blur-sm scale-110"
-              />
-            </div>
-
-            <div className="container-custom relative z-10 py-16 min-h-[70vh] flex flex-col justify-center">
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="max-w-4xl mx-auto text-center mb-8"
+              <motion.div
+                initial={{ filter: "blur(8px)" }}
+                animate={{ filter: "blur(6px)" }}
+                transition={{ duration: 3, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }}
+                className="w-full h-full"
               >
-                <h1 className="text-4xl md:text-6xl font-bold mb-4 text-gray-800 dark:text-white drop-shadow-lg">
-                  Dive into the world of manga
-                </h1>
-                <p className="text-xl text-gray-700 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
-                  Enjoy high-quality mirror scans of your favorite manga, and discover new manga to read.
-                </p>
+                <img 
+                  src={featuredComic.cover} 
+                  alt={featuredComic.title} 
+                  className="w-full h-full object-cover opacity-30 dark:opacity-20 scale-110"
+                />
+              </motion.div>
+            </motion.div>
+
+            <div className="container-custom relative z-10 py-16 min-h-[85vh] flex flex-col justify-center">
+              <motion.div 
+                initial={{ opacity: 0, y: 40 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ 
+                  delay: 0.2, 
+                  duration: 0.8,
+                  ease: [0.22, 1, 0.36, 1] // Custom cubic bezier for smooth slide
+                }}
+                className="max-w-4xl mx-auto text-center mb-12"
+              >
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.3, duration: 0.8 }}
+                  className="mb-3"
+                >
+                  <span className="bg-primary/20 dark:bg-primary-dark/30 px-4 py-1 rounded-full text-primary-dark dark:text-primary-light text-sm font-medium inline-block">
+                    Modern Manga Experience
+                  </span>
+                </motion.div>
+                <motion.h1 
+                  className="text-5xl md:text-7xl font-bold mb-6 text-gray-800 dark:text-white drop-shadow-lg bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5, duration: 0.8 }}
+                >
+                  Dive into the world of 
+                  <span className="block mt-2 text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary-light">
+                    Manga & Comics
+                  </span>
+                </motion.h1>
+                <motion.p 
+                  className="text-xl text-gray-700 dark:text-gray-300 mb-10 max-w-2xl mx-auto"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.7, duration: 0.8 }}
+                >
+                  Explore high-quality mirror scans of your favorite manga and discover new stories to immerse yourself in.
+                </motion.p>
 
                 <motion.div 
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="inline-block"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.9, duration: 0.5 }}
+                  className="flex flex-wrap gap-4 justify-center"
                 >
-                  <a 
-                    href="#latest" 
-                    className="btn btn-primary px-8 py-3 text-lg rounded-full shadow-lg shadow-primary/20"
+                  <motion.div 
+                    whileHover={{ scale: 1.05, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.2)" }}
+                    whileTap={{ scale: 0.95 }}
                   >
-                    Start Exploring <FaArrowDown className="ml-2 inline-block" />
-                  </a>
+                    <a 
+                      href="#latest" 
+                      className="btn btn-primary px-8 py-3 text-lg rounded-full shadow-lg shadow-primary/20 backdrop-blur-sm"
+                    >
+                      Explore Library <FaArrowDown className="ml-2 inline-block" />
+                    </a>
+                  </motion.div>
+                  
+                  <motion.div 
+                    whileHover={{ scale: 1.05, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Link 
+                      to={featuredComic.chapters && featuredComic.chapters.length > 0 
+                        ? `/read/${featuredComic.chapters[0].slug}` 
+                        : `/info/${featuredComic.slug}`
+                      }
+                      className="btn bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-gray-800 dark:text-gray-200 px-8 py-3 text-lg rounded-full shadow-md border border-gray-200/50 dark:border-gray-700/50"
+                    >
+                      Read Featured
+                    </Link>
+                  </motion.div>
                 </motion.div>
               </motion.div>
 
               <motion.div 
-                initial={{ opacity: 0, y: 30 }}
+                initial={{ opacity: 0, y: 50 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
+                transition={{ 
+                  delay: 1.1, 
+                  duration: 0.8,
+                  ease: [0.22, 1, 0.36, 1]
+                }}
                 className="mt-8"
               >
-                <div className="relative max-w-screen-lg mx-auto flex flex-col md:flex-row items-center gap-8">
+                <div className="relative max-w-screen-lg mx-auto flex flex-col md:flex-row items-center gap-12">
                   <motion.div 
-                    whileHover={{ y: -5 }}
-                    className="md:w-1/3 relative z-10"
+                    className="md:w-2/5 relative z-10"
+                    initial={{ opacity: 0, x: -30, rotateY: 10 }}
+                    animate={{ opacity: 1, x: 0, rotateY: 0 }}
+                    transition={{ delay: 1.3, duration: 0.8 }}
+                    whileHover={{ 
+                      y: -8, 
+                      rotateY: 5,
+                      transition: { duration: 0.3 }
+                    }}
                   >
                     <Link to={`/info/${featuredComic.slug}`}>
-                      <div className="relative aspect-[2/3] rounded-2xl overflow-hidden shadow-2xl transform md:rotate-[-5deg] hover:rotate-0 transition-all duration-300">
-                        <img 
+                      <div className="featured-card relative aspect-[2/3] rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.3)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+                        <motion.div
+                          className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent z-10"
+                          initial={{ opacity: 0.7 }}
+                          whileHover={{ opacity: 0.4 }}
+                          transition={{ duration: 0.3 }}
+                        />
+                        <motion.img 
                           src={featuredComic.cover} 
                           alt={featuredComic.title} 
                           className="w-full h-full object-cover"
+                          whileHover={{ scale: 1.05 }}
+                          transition={{ duration: 0.5 }}
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
-                        <div className="absolute bottom-4 left-4 right-4">
-                          <h3 className="text-white font-bold text-lg md:text-xl line-clamp-2">{featuredComic.title}</h3>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="bg-primary/80 text-white text-xs px-2 py-1 rounded-md">
-                              {featuredComic.type || 'Unknown'}
+                        <motion.div 
+                          className="absolute bottom-0 left-0 right-0 p-6 z-20"
+                          initial={{ y: 20, opacity: 0 }}
+                          animate={{ y: 0, opacity: 1 }}
+                          transition={{ delay: 1.5, duration: 0.5 }}
+                        >
+                          <h3 className="text-white font-bold text-xl md:text-2xl line-clamp-2 mb-2">{featuredComic.title}</h3>
+                          <div className="flex items-center gap-2 mt-2">
+                            <span className="bg-primary/90 text-white text-xs px-3 py-1 rounded-md">
+                              {featuredComic.type || 'Manga'}
                             </span>
                             {featuredComic.score && (
-                              <span className="bg-yellow-500/80 text-white text-xs px-2 py-1 rounded-md flex items-center">
+                              <span className="bg-yellow-500/90 text-white text-xs px-3 py-1 rounded-md flex items-center">
                                 ★ {featuredComic.score}
                               </span>
                             )}
+                            {featuredComic.status && (
+                              <span className="bg-green-500/90 text-white text-xs px-3 py-1 rounded-md">
+                                {featuredComic.status}
+                              </span>
+                            )}
                           </div>
-                        </div>
+                        </motion.div>
                       </div>
                     </Link>
+                    
+                    {/* Decorative elements */}
+                    <motion.div 
+                      className="absolute -bottom-6 -right-6 w-24 h-24 bg-secondary-light/20 dark:bg-secondary-dark/20 rounded-full blur-2xl z-0"
+                      animate={{ 
+                        scale: [1, 1.2, 1],
+                        opacity: [0.5, 0.8, 0.5]
+                      }}
+                      transition={{ 
+                        duration: 5,
+                        repeat: Infinity,
+                        repeatType: "reverse"
+                      }}
+                    />
+                    <motion.div 
+                      className="absolute -top-6 -left-6 w-32 h-32 bg-primary/20 dark:bg-primary-dark/20 rounded-full blur-2xl z-0"
+                      animate={{ 
+                        scale: [1, 1.3, 1],
+                        opacity: [0.5, 0.7, 0.5]
+                      }}
+                      transition={{ 
+                        duration: 6,
+                        repeat: Infinity,
+                        repeatType: "reverse",
+                        delay: 0.5
+                      }}
+                    />
                   </motion.div>
 
-                  <div className="md:w-2/3 md:pl-8">
-                    <h2 className="text-2xl md:text-3xl font-bold mb-3 text-gray-800 dark:text-white">
+                  <motion.div 
+                    className="md:w-3/5 md:pl-8"
+                    initial={{ opacity: 0, x: 30 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 1.4, duration: 0.8 }}
+                  >
+                    <motion.h2 
+                      className="text-3xl md:text-4xl font-bold mb-4 text-gray-800 dark:text-white"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 1.6, duration: 0.5 }}
+                    >
                       {featuredComic.title}
-                    </h2>
-                    <p className="text-gray-700 dark:text-gray-300 mb-6 line-clamp-3">
-                      {featuredComic.synopsis || 'No synopsis available.'}
-                    </p>
+                    </motion.h2>
+                    
+                    <motion.div
+                      className="flex flex-wrap gap-2 mb-4"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 1.7, duration: 0.5 }}
+                    >
+                      {featuredComic.genre && featuredComic.genre.slice(0, 3).map((genre, index) => (
+                        <motion.span 
+                          key={index} 
+                          className="bg-secondary-light/20 dark:bg-secondary-dark/20 text-secondary-dark dark:text-secondary-light px-3 py-1 rounded-full text-sm"
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 1.8 + (index * 0.1), duration: 0.5 }}
+                          whileHover={{ scale: 1.05, x: 2 }}
+                        >
+                          {genre.name}
+                        </motion.span>
+                      ))}
+                    </motion.div>
 
-                    <div className="flex gap-3 mb-6">
-                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    <motion.p 
+                      className="text-gray-700 dark:text-gray-300 mb-6 line-clamp-3 text-lg"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 1.9, duration: 0.5 }}
+                    >
+                      {featuredComic.synopsis || 'Dive into this exciting manga adventure and discover a world of intrigue, action, and unforgettable characters.'}
+                    </motion.p>
+
+                    <motion.div 
+                      className="flex flex-wrap gap-3 mb-6"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 2.0, duration: 0.5 }}
+                    >
+                      <motion.div 
+                        whileHover={{ scale: 1.05, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)" }} 
+                        whileTap={{ scale: 0.95 }}
+                      >
                         <Link 
                           to={`/info/${featuredComic.slug}`}
-                          className="btn btn-primary"
+                          className="btn btn-primary min-w-[120px]"
                         >
                           View Details
                         </Link>
                       </motion.div>
 
                       {featuredComic.chapters && featuredComic.chapters.length > 0 && (
-                        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                        <motion.div whileHover={{ scale: 1.05, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)" }} whileTap={{ scale: 0.95 }}>
                           <Link 
                             to={`/read/${featuredComic.chapters[0].slug}`}
-                            className="btn bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
+                            className="btn bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-gray-800 dark:text-gray-200 min-w-[120px] border border-gray-200/50 dark:border-gray-700/50"
                           >
                             Start Reading
                           </Link>
                         </motion.div>
                       )}
-                    </div>
+                    </motion.div>
 
-                    <div className="flex items-center justify-between">
-                      <div className="flex flex-wrap gap-2">
-                        {featuredComic.genre && featuredComic.genre.slice(0, 3).map((genre, index) => (
-                          <span key={index} className="bg-secondary-light/20 dark:bg-secondary-dark/20 text-secondary-dark dark:text-secondary-light px-3 py-1 rounded-full text-sm">
-                            {genre.name}
-                          </span>
-                        ))}
-                      </div>
+                    <motion.div 
+                      className="flex items-center justify-between"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 2.1, duration: 0.5 }}
+                    >
+                      <motion.div 
+                        className="flex flex-wrap gap-2"
+                      >
+                        {featuredComic.released && (
+                          <div className="text-sm text-gray-600 dark:text-gray-400">
+                            Released: {featuredComic.released}
+                          </div>
+                        )}
+                      </motion.div>
 
-                      <div className="flex items-center gap-2">
+                      <motion.div 
+                        className="flex items-center gap-3"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 2.2, duration: 0.5 }}
+                      >
                         <motion.button
                           onClick={handlePrevFeatured}
-                          className="p-2 rounded-full bg-gray-200/80 dark:bg-gray-800/80 text-gray-700 dark:text-gray-300 hover:bg-primary/20 hover:text-primary dark:hover:bg-primary-dark/20 dark:hover:text-primary-light"
-                          whileHover={{ scale: 1.1 }}
+                          className="p-3 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-gray-700 dark:text-gray-300 hover:bg-primary/20 hover:text-primary dark:hover:bg-primary-dark/20 dark:hover:text-primary-light border border-gray-200/50 dark:border-gray-700/50"
+                          whileHover={{ scale: 1.1, x: -2 }}
                           whileTap={{ scale: 0.9 }}
                         >
                           <FaChevronLeft />
                         </motion.button>
                         <motion.button
                           onClick={handleNextFeatured}
-                          className="p-2 rounded-full bg-gray-200/80 dark:bg-gray-800/80 text-gray-700 dark:text-gray-300 hover:bg-primary/20 hover:text-primary dark:hover:bg-primary-dark/20 dark:hover:text-primary-light"
-                          whileHover={{ scale: 1.1 }}
+                          className="p-3 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-gray-700 dark:text-gray-300 hover:bg-primary/20 hover:text-primary dark:hover:bg-primary-dark/20 dark:hover:text-primary-light border border-gray-200/50 dark:border-gray-700/50"
+                          whileHover={{ scale: 1.1, x: 2 }}
                           whileTap={{ scale: 0.9 }}
                         >
                           <FaChevronRight />
                         </motion.button>
-                      </div>
-                    </div>
-                  </div>
+                      </motion.div>
+                    </motion.div>
+                  </motion.div>
                 </div>
               </motion.div>
             </div>
