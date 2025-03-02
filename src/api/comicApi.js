@@ -9,7 +9,7 @@ class Comic {
     */
     constructor(text) {
         this.text = text;
-        this.baseUrl = 'https://komikcast.la';
+        this.baseUrl = 'https://komikcast02.com';
     }
     
     /**
