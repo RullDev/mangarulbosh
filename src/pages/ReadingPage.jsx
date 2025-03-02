@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaArrowLeft, FaHome, FaArrowRight, FaArrowUp, FaCog, FaExpand, FaCompress, FaExclamationTriangle } from 'react-icons/fa';
 import Comic from '../api/comicApi';
