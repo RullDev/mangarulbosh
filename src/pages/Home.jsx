@@ -144,8 +144,8 @@ const Home = () => {
       {/* Enhanced Hero Section with fixed height and better layout */}
       <motion.div 
         ref={heroRef}
-        className="relative bg-gradient-to-b from-primary/5 via-primary/10 to-transparent dark:from-primary-dark/10 dark:via-primary-dark/5 dark:to-black overflow-hidden"
-        style={{ opacity: 1 }}
+        className="relative bg-gradient-to-b from-primary/5 via-primary/10 to-transparent dark:from-primary-dark/10 dark:via-primary-dark/5 dark:to-transparent overflow-hidden"
+        style={{ opacity }}
       >
         {featuredComic && (
           <div className="container-custom py-8">
@@ -159,7 +159,7 @@ const Home = () => {
               {/* Sliding Animation */}
               <motion.div
                 className="absolute inset-0 overflow-hidden"
-                initial={{ x: 0 }}
+                initial={{ x: "100%" }}
                 animate={{ x: 0 }}
                 transition={{ duration: 0.8, ease: "easeOut" }}
               >
