@@ -15,6 +15,22 @@ const categories = [
   { id: 'manhwa', name: 'Manhwa', icon: '🇰🇷' }
 ];
 
+// Generate random particles for hero section
+const generateParticles = (count) => {
+  const particles = [];
+  for (let i = 0; i < count; i++) {
+    particles.push({
+      id: i,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: Math.random() * 5 + 2,
+      duration: Math.random() * 10 + 5,
+      delay: Math.random() * 5
+    });
+  }
+  return particles;
+};
+
 const Home = () => {
   const [latestComics, setLatestComics] = useState([]);
   const [popularComics, setPopularComics] = useState([]);
@@ -24,6 +40,7 @@ const Home = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [featuredIndex, setFeaturedIndex] = useState(0);
   const { darkMode } = useContext(ThemeContext);
+  const particles = generateParticles(30);
 
   const heroRef = useRef(null);
   const { scrollYProgress } = useScroll({
@@ -34,6 +51,7 @@ const Home = () => {
 
   const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
   const bgY = useTransform(scrollYProgress, [0, 1], ['0%', '10%']);
+  const textY = useTransform(scrollYProgress, [0, 1], ['0%', '50%']);
 
   useEffect(() => {
     fetchComics();
@@ -121,35 +139,110 @@ const Home = () => {
 
   return (
     <>
-      {/* Hero section with featured comic */}
-      <div ref={heroRef} className="relative bg-gradient-to-b from-gray-900 to-black dark:from-black dark:to-black text-white overflow-hidden">
-        {/* Logo and welcome message */}
-        <div className="container-custom pt-6 pb-2 flex flex-col items-center relative z-10">
-          <motion.img 
-            src="https://i.imgur.com/aFqV5yM.png" 
-            alt="AnimaVers Logo" 
-            className="w-24 h-24 mb-2"
-            initial={{ y: -50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.5 }}
-          />
-          
-          <motion.div 
-            className="bg-gray-800/60 backdrop-blur-md rounded-xl p-4 mb-4 w-full max-w-md text-center"
-            initial={{ y: 30, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
+      {/* Enhanced Hero section with dynamic elements */}
+      <div ref={heroRef} className="relative hero-manga overflow-hidden">
+        {/* Particle background */}
+        <div className="manga-particles">
+          {particles.map((particle) => (
+            <motion.div
+              key={particle.id}
+              className="manga-particle"
+              initial={{ 
+                x: `${particle.x}%`, 
+                y: `${particle.y}%`, 
+                opacity: 0,
+                backgroundColor: darkMode ? 'rgba(255, 255, 255, 0.3)' : 'rgba(255, 255, 255, 0.6)'
+              }}
+              animate={{
+                y: [particle.y + '%', '-10%'],
+                opacity: [0, 1, 0],
+                scale: [0, 1, 0.5]
+              }}
+              transition={{
+                duration: particle.duration,
+                repeat: Infinity,
+                delay: particle.delay,
+                ease: "easeInOut"
+              }}
+              style={{
+                width: particle.size,
+                height: particle.size
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Content - MangaRul Logo and Welcome */}
+        <div className="container-custom pt-16 pb-12 relative z-10 text-white">
+          <motion.div
+            className="flex flex-col items-center text-center"
+            initial={{ opacity: 0, y: -50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7 }}
           >
-            <h2 className="text-xl font-bold mb-1 flex items-center justify-center">
-              <FaStar className="mr-2 text-yellow-400" /> 
-              Welcome to AnimaVers!
-            </h2>
-            <p className="text-gray-300 text-sm">
-              Version <span className="font-bold">3.3.1</span> • Your ultimate comics experience
-            </p>
+            {/* Logo */}
+            <motion.div 
+              className="relative mb-6 flex items-center justify-center"
+              animate={{ y: [0, -10, 0] }}
+              transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <div className="absolute w-32 h-32 rounded-full bg-blue-500/20 blur-xl"></div>
+              <div className="relative z-10">
+                <svg width="120" height="120" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="50" cy="50" r="50" fill="url(#paint0_radial)" />
+                  <path d="M30 35L45 50L30 65M55 35H70M55 65H70M50 25V75" stroke="white" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
+                  <defs>
+                    <radialGradient id="paint0_radial" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(50 50) rotate(90) scale(50)">
+                      <stop stopColor="#3B82F6" />
+                      <stop offset="1" stopColor="#1E3A8A" />
+                    </radialGradient>
+                  </defs>
+                </svg>
+              </div>
+            </motion.div>
+
+            {/* Brand name */}
+            <motion.h1 
+              className="text-5xl md:text-6xl font-bold mb-4 gradient-text"
+              style={{ 
+                backgroundImage: 'linear-gradient(45deg, #60a5fa, #fff, #93c5fd)' 
+              }}
+            >
+              MangaRul
+            </motion.h1>
+
+            <motion.p 
+              className="text-lg md:text-xl max-w-md mx-auto text-blue-100 mb-8"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+            >
+              Your ultimate destination for the finest manga, manhwa, and manhua collections!
+            </motion.p>
+
+            {/* Animated stats */}
+            <motion.div 
+              className="flex gap-4 md:gap-8 justify-center flex-wrap"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8 }}
+            >
+              <div className="flex flex-col items-center bg-white/10 backdrop-blur-md rounded-lg px-6 py-3">
+                <span className="text-2xl font-bold text-blue-300">10K+</span>
+                <span className="text-sm text-blue-200">Titles</span>
+              </div>
+              <div className="flex flex-col items-center bg-white/10 backdrop-blur-md rounded-lg px-6 py-3">
+                <span className="text-2xl font-bold text-blue-300">50K+</span>
+                <span className="text-sm text-blue-200">Chapters</span>
+              </div>
+              <div className="flex flex-col items-center bg-white/10 backdrop-blur-md rounded-lg px-6 py-3">
+                <span className="text-2xl font-bold text-blue-300">100K+</span>
+                <span className="text-sm text-blue-200">Readers</span>
+              </div>
+            </motion.div>
           </motion.div>
         </div>
-        
+
         {/* Featured comic carousel */}
         {featuredComic && (
           <motion.div 
@@ -159,7 +252,7 @@ const Home = () => {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.4 }}
           >
-            <div className="w-full h-[280px] relative overflow-hidden">
+            <div className="w-full h-[280px] relative overflow-hidden rounded-b-3xl">
               {/* Background Image with Parallax */}
               <motion.div 
                 className="absolute inset-0"
@@ -179,20 +272,23 @@ const Home = () => {
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ duration: 0.5, delay: 0.6 }}
+                  style={{ y: textY }}
                 >
                   <Link to={`/comic/${featuredComic.slug}`} className="block">
-                    <h2 className="text-2xl lg:text-3xl font-bold text-white">
-                      {featuredComic.title}
-                    </h2>
-                    
-                    <div className="flex items-center mt-2 text-sm text-gray-300">
-                      <span className="px-2 py-0.5 bg-primary/20 rounded-full mr-2">
-                        {featuredComic.type}
-                      </span>
-                      <span className="flex items-center">
-                        <FaStar className="text-yellow-400 mr-1" /> 
-                        {featuredComic.score || "N/A"}
-                      </span>
+                    <div className="bg-black/30 backdrop-blur-md p-4 rounded-xl">
+                      <h2 className="text-2xl lg:text-3xl font-bold text-white">
+                        {featuredComic.title}
+                      </h2>
+                      
+                      <div className="flex items-center mt-2 text-sm text-gray-300">
+                        <span className="px-2 py-0.5 bg-primary/20 rounded-full mr-2">
+                          {featuredComic.type}
+                        </span>
+                        <span className="flex items-center">
+                          <FaStar className="text-yellow-400 mr-1" /> 
+                          {featuredComic.score || "N/A"}
+                        </span>
+                      </div>
                     </div>
                   </Link>
                 </motion.div>
@@ -249,6 +345,7 @@ const Home = () => {
           transition={{ duration: 0.5 }}
           viewport={{ once: true }}
           className="mb-10"
+          id="popular"
         >
           <div className="flex items-center mb-4">
             <div className="bg-primary/20 p-2 rounded-full mr-2">
@@ -267,6 +364,7 @@ const Home = () => {
           transition={{ duration: 0.5 }}
           viewport={{ once: true }}
           className="mb-10"
+          id="latest"
         >
           <div className="flex items-center mb-4">
             <div className="bg-blue-500/20 p-2 rounded-full mr-2">
@@ -285,6 +383,7 @@ const Home = () => {
           transition={{ duration: 0.5 }}
           viewport={{ once: true }}
           className="mb-20"
+          id="series"
         >
           <div className="flex items-center mb-4">
             <div className="bg-green-500/20 p-2 rounded-full mr-2">
