@@ -122,10 +122,7 @@ const Home = () => {
   return (
     <>
       {/* Hero section with featured comic */}
-      <div ref={heroRef} className="relative bg-gradient-to-b from-gray-900 to-black dark:from-black dark:to-black text-white overflow-hidden">
-        {/* Logo and welcome message */}
-        
-          
+      <div ref={heroRef} className="relative bg-black text-white overflow-hidden">
         {/* Featured comic carousel */}
         {featuredComic && (
           <motion.div 
@@ -135,47 +132,70 @@ const Home = () => {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.4 }}
           >
-            <div className="w-full h-[280px] relative overflow-hidden">
+            <div className="w-full h-[320px] relative overflow-hidden">
               {/* Background Image with Parallax */}
               <motion.div 
                 className="absolute inset-0"
                 style={{ y: bgY }}
               >
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent z-10"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/90 to-black/70 z-10"></div>
                 <img 
                   src={featuredComic.cover} 
                   alt={featuredComic.title}
-                  className="w-full h-full object-cover object-center"
+                  className="w-full h-full object-cover object-center blur-sm opacity-60"
                 />
               </motion.div>
               
-              {/* Content - positioned at bottom */}
-              <div className="absolute bottom-0 left-0 right-0 z-20 p-6">
-                <motion.div
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ duration: 0.5, delay: 0.6 }}
-                >
-                  <Link to={`/comic/${featuredComic.slug}`} className="block">
-                    <h2 className="text-2xl lg:text-3xl font-bold text-white">
-                      {featuredComic.title}
-                    </h2>
-                    
-                    <div className="flex items-center mt-2 text-sm text-gray-300">
-                      <span className="px-2 py-0.5 bg-primary/20 rounded-full mr-2">
-                        {featuredComic.type}
-                      </span>
-                      <span className="flex items-center">
-                        <FaStar className="text-yellow-400 mr-1" /> 
-                        {featuredComic.score || "N/A"}
-                      </span>
-                    </div>
-                  </Link>
-                </motion.div>
+              {/* Content - centered with comic image */}
+              <div className="absolute inset-0 z-20 flex items-center p-6">
+                <div className="container-custom flex flex-row items-center gap-4">
+                  {/* Comic cover */}
+                  <motion.div
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ duration: 0.5, delay: 0.6 }}
+                    className="w-[120px] h-[180px] flex-shrink-0 rounded-lg overflow-hidden shadow-lg shadow-black/50"
+                  >
+                    <img 
+                      src={featuredComic.cover} 
+                      alt={featuredComic.title}
+                      className="w-full h-full object-cover object-center"
+                    />
+                  </motion.div>
+                  
+                  {/* Comic info */}
+                  <motion.div
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ duration: 0.5, delay: 0.7 }}
+                    className="flex-1"
+                  >
+                    <Link to={`/comic/${featuredComic.slug}`} className="block">
+                      <h2 className="text-2xl lg:text-3xl font-bold text-white mb-2">
+                        {featuredComic.title}
+                      </h2>
+                      
+                      <div className="flex items-center mb-2 text-sm text-gray-300">
+                        <span className="px-2 py-0.5 bg-primary/30 rounded-full mr-2">
+                          {featuredComic.type}
+                        </span>
+                        <span className="flex items-center">
+                          <FaStar className="text-yellow-400 mr-1" /> 
+                          {featuredComic.score || "N/A"}
+                        </span>
+                      </div>
+                      
+                      <p className="text-sm text-gray-300 line-clamp-2">
+                        {featuredComic.status ? `Status: ${featuredComic.status}` : ''} 
+                        {featuredComic.chapter ? ` • Latest: ${featuredComic.chapter}` : ''}
+                      </p>
+                    </Link>
+                  </motion.div>
+                </div>
               </div>
             </div>
             
-            {/* Carousel Indicators */}
+            {/* Carousel Indicators - moved to the bottom of the hero */}
             <div className="flex justify-center gap-2 py-3">
               {latestComics.slice(0, 5).map((_, idx) => (
                 <button 
@@ -183,8 +203,8 @@ const Home = () => {
                   onClick={() => setFeaturedIndex(idx)}
                   className={`w-2 h-2 rounded-full transition-all ${
                     idx === featuredIndex 
-                      ? 'bg-primary w-5' 
-                      : 'bg-gray-500'
+                      ? 'bg-primary w-8' 
+                      : 'bg-gray-700 hover:bg-gray-600'
                   }`}
                   aria-label={`Go to slide ${idx + 1}`}
                 />

@@ -2,15 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Dark mode colors */
+/* Dark mode colors - always enabled */
 :root {
   --color-bg-dark: #000000;
   --color-text-dark: #ffffff;
 }
 
-.dark {
+body {
   background-color: var(--color-bg-dark);
   color: var(--color-text-dark);
+}
+
+html {
+  background-color: #000000;
 }
 
 /* Custom container */
