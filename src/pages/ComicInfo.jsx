@@ -161,7 +161,7 @@ const ComicInfo = () => {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="text-center md:text-left text-white"
             >
-              <h1 className="text-3xl font-bold mb-2">{comic.title}</h1>
+              <h1 className="text-3xl font-bold mb-2 text-gray-600 dark:text-white">{comic.title}</h1>
 
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mb-4">
                 <span className={`px-3 py-1 rounded-full text-sm font-medium ${
@@ -189,7 +189,7 @@ const ComicInfo = () => {
               </div>
 
               {/* Author, Released, Total Chapters */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-4 text-sm text-gray-300">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-4 text-sm text-gray-800 dark:text-white">
                 {comic.author && (
                   <div className="flex items-center justify-center md:justify-start">
                     <FaUser className="mr-2 text-gray-400" />

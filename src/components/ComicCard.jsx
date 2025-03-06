@@ -37,12 +37,12 @@ const ComicCard = ({ comic }) => {
             </div>
           )}
           
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-white/80 via-white/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             whileHover={{ opacity: 1, y: 0 }}
-            className="absolute bottom-0 left-0 right-0 p-4 text-white bg-gradient-to-t from-black/80 to-transparent"
+            className="absolute bottom-0 left-0 right-0 p-4 text-white bg-gradient-to-t from-white/80 to-transparent"
           >
             <h3 className="font-bold truncate text-white text-sm md:text-base">{comic.title}</h3>
             <div className="flex items-center justify-between mt-1">
