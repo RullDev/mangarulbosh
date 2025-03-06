@@ -139,64 +139,197 @@ const Home = () => {
 
   return (
     <>
-      {/* Simplified Hero section based on reference */}
-      <div ref={heroRef} className="relative hero-manga overflow-hidden bg-black text-white">
-        {/* Simple centered content layout */}
-        <div className="container-custom py-8 relative z-10 flex flex-col items-center">
-          {/* Logo */}
+      {/* Enhanced Hero section with dynamic banner */}
+      <div ref={heroRef} className="relative hero-manga overflow-hidden bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900 text-white">
+        {/* Animated manga patterns background */}
+        <div className="absolute inset-0 opacity-20">
+          <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="manga-pattern" x="0" y="0" width="50" height="50" patternUnits="userSpaceOnUse">
+                <path d="M0 0L50 0L50 50L0 50Z" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1" />
+                <circle cx="25" cy="25" r="10" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="1" />
+                <path d="M12 12L38 38M38 12L12 38" stroke="rgba(255,255,255,0.2)" strokeWidth="1" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#manga-pattern)" />
+          </svg>
+        </div>
+        
+        {/* Dynamic particles */}
+        <div className="manga-particles">
+          {particles.map((particle) => (
+            <motion.div
+              key={particle.id}
+              className="manga-particle"
+              initial={{ 
+                x: `${particle.x}%`, 
+                y: `${particle.y}%`, 
+                opacity: 0,
+                backgroundColor: 'rgba(255, 255, 255, 0.4)'
+              }}
+              animate={{
+                y: [particle.y + '%', '-10%'],
+                opacity: [0, 1, 0],
+                scale: [0, 1, 0.5]
+              }}
+              transition={{
+                duration: particle.duration,
+                repeat: Infinity,
+                delay: particle.delay,
+                ease: "easeInOut"
+              }}
+              style={{
+                width: particle.size,
+                height: particle.size
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Stylish banner with decorative elements */}
+        <div className="absolute inset-0 overflow-hidden">
           <motion.div 
-            className="mb-6"
+            className="absolute -right-40 md:-right-20 -top-40 w-96 h-96 rounded-full bg-gradient-to-br from-blue-500/40 to-purple-500/40 blur-3xl"
+            animate={{ 
+              scale: [1, 1.2, 1],
+              opacity: [0.5, 0.7, 0.5]
+            }}
+            transition={{ 
+              duration: 8, 
+              repeat: Infinity,
+              ease: "easeInOut" 
+            }}
+          />
+          <motion.div 
+            className="absolute -left-40 md:-left-20 -bottom-40 w-96 h-96 rounded-full bg-gradient-to-tr from-indigo-500/40 to-pink-500/40 blur-3xl"
+            animate={{ 
+              scale: [1.2, 1, 1.2],
+              opacity: [0.7, 0.5, 0.7]
+            }}
+            transition={{ 
+              duration: 8, 
+              repeat: Infinity,
+              ease: "easeInOut" 
+            }}
+          />
+        </div>
+
+        {/* Content - MangaRul Logo and Welcome */}
+        <div className="container-custom py-16 relative z-10">
+          <motion.div
+            className="flex flex-col items-center text-center"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.7 }}
           >
-            <img 
-              src="https://i.imgur.com/YL3GhXk.png" 
-              alt="MangaRul Logo" 
-              className="w-32 h-32 object-contain"
-            />
-          </motion.div>
-
-          {/* Welcome card - similar to reference */}
-          <motion.div
-            className="bg-gray-900 rounded-lg p-6 mb-8 w-full max-w-md text-center"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
-            <div className="flex items-center justify-center mb-2">
-              <span className="text-blue-400 mr-2">✨</span>
-              <h2 className="text-2xl font-bold">Selamat Datang di MangaRul!</h2>
-            </div>
-            <p className="text-gray-300 mt-2">
-              Saat ini, kami berada di versi <span className="bg-gray-800 px-2 py-1 rounded">3.3.1</span>. 
-              Jika Anda memiliki keluhan atau saran, jangan ragu untuk melaporkannya kepada kami.
-            </p>
-          </motion.div>
-
-          {/* Featured comic banner */}
-          <motion.div 
-            className="relative w-full max-w-md overflow-hidden rounded-lg"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-          >
-            <img 
-              src="https://i.pinimg.com/originals/5e/3a/45/5e3a4560b4f257bcafd40b2c8eee1c5f.jpg" 
-              alt="Featured Comic" 
-              className="w-full h-80 object-cover"
-            />
-            
-            <div className="absolute bottom-0 w-full bg-gradient-to-t from-black to-transparent pt-10 pb-4 px-4">
-              <h3 className="text-3xl font-bold mb-2 drop-shadow-lg">Solo Leveling</h3>
-              <div className="flex items-center text-sm">
-                <span className="px-2 py-0.5 bg-primary/20 rounded mr-2">Manhwa</span>
-                <span className="flex items-center">
-                  <FaStar className="text-yellow-400 mr-1" /> 
-                  9.8
-                </span>
+            {/* Animated logo with glow effect */}
+            <motion.div 
+              className="relative mb-4 flex items-center justify-center"
+              animate={{ y: [0, -8, 0] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <div className="absolute w-32 h-32 rounded-full bg-blue-500/30 blur-xl animate-pulse"></div>
+              <div className="relative z-10">
+                <motion.svg 
+                  width="120" 
+                  height="120" 
+                  viewBox="0 0 100 100" 
+                  fill="none" 
+                  xmlns="http://www.w3.org/2000/svg"
+                  animate={{ rotate: [0, 5, 0, -5, 0] }}
+                  transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+                >
+                  <circle cx="50" cy="50" r="48" fill="url(#paint0_radial)" stroke="rgba(255,255,255,0.3)" strokeWidth="2" />
+                  <motion.path 
+                    d="M30 35L45 50L30 65M55 35H70M55 65H70M50 25V75" 
+                    stroke="white" 
+                    strokeWidth="6" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round"
+                    animate={{ 
+                      strokeDasharray: [200, 200],
+                      strokeDashoffset: [200, 0]
+                    }}
+                    transition={{ 
+                      duration: 3,
+                      ease: "easeInOut"
+                    }}
+                  />
+                  <defs>
+                    <radialGradient id="paint0_radial" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(50 50) rotate(90) scale(50)">
+                      <stop stopColor="#3B82F6" />
+                      <stop offset="0.5" stopColor="#4F46E5" />
+                      <stop offset="1" stopColor="#1E3A8A" />
+                    </radialGradient>
+                  </defs>
+                </motion.svg>
               </div>
-            </div>
+            </motion.div>
+
+            {/* Dynamic brand name */}
+            <motion.h1 
+              className="text-5xl md:text-6xl font-bold mb-3"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.8 }}
+            >
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-300 via-white to-indigo-300">
+                MangaRul
+              </span>
+            </motion.h1>
+
+            <motion.p 
+              className="text-lg md:text-xl max-w-2xl mx-auto text-blue-100 mb-6"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+            >
+              Discover the world of illustrated stories
+            </motion.p>
+            
+            {/* Stylish synopsis card */}
+            <motion.div
+              className="max-w-2xl mx-auto mb-8 px-6 py-4 bg-indigo-900/60 backdrop-blur-md rounded-xl border border-indigo-500/30 shadow-lg shadow-blue-900/20"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+            >
+              <p className="text-gray-200 leading-relaxed">
+                Dive into a vast universe of incredible stories from Japan, Korea, and China. 
+                From action-packed adventures to heartwarming romances, your next favorite 
+                story awaits. Start reading today and join our growing community of manga enthusiasts!
+              </p>
+            </motion.div>
+
+            {/* Enhanced stats section */}
+            <motion.div 
+              className="flex gap-8 justify-center"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.7 }}
+            >
+              <motion.div 
+                className="flex flex-col items-center"
+                whileHover={{ scale: 1.05 }}
+              >
+                <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-300 to-blue-100">10K+</span>
+                <span className="text-sm text-blue-200">Titles</span>
+              </motion.div>
+              <motion.div 
+                className="flex flex-col items-center"
+                whileHover={{ scale: 1.05 }}
+              >
+                <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-300 to-indigo-100">50K+</span>
+                <span className="text-sm text-blue-200">Chapters</span>
+              </motion.div>
+              <motion.div 
+                className="flex flex-col items-center"
+                whileHover={{ scale: 1.05 }}
+              >
+                <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-300 to-purple-100">100K+</span>
+                <span className="text-sm text-blue-200">Readers</span>
+              </motion.div>
+            </motion.div>
           </motion.div>
         </div>
 
