@@ -526,7 +526,7 @@ button:focus-visible, a:focus-visible, input:focus-visible {
 .hero-manga {
   position: relative;
   min-height: 500px;
-  background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+  background: #000000;
   overflow: hidden;
 }
 
@@ -733,7 +733,7 @@ body {
 }
 
 .comic-card {
-  @apply bg-black dark:bg-black rounded-lg shadow-md overflow-hidden transition-all duration-300;
+  @apply bg-black rounded-lg shadow-md overflow-hidden transition-all duration-300;
 }
 
 .comic-card:hover {

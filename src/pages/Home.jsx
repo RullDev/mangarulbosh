@@ -139,8 +139,8 @@ const Home = () => {
 
   return (
     <>
-      {/* Enhanced Hero section with dynamic elements */}
-      <div ref={heroRef} className="relative hero-manga overflow-hidden">
+      {/* Simplified Hero section with cleaner design */}
+      <div ref={heroRef} className="relative hero-manga overflow-hidden bg-black text-white">
         {/* Particle background */}
         <div className="manga-particles">
           {particles.map((particle) => (
@@ -151,7 +151,7 @@ const Home = () => {
                 x: `${particle.x}%`, 
                 y: `${particle.y}%`, 
                 opacity: 0,
-                backgroundColor: darkMode ? 'rgba(255, 255, 255, 0.3)' : 'rgba(255, 255, 255, 0.6)'
+                backgroundColor: 'rgba(255, 255, 255, 0.4)'
               }}
               animate={{
                 y: [particle.y + '%', '-10%'],
@@ -173,22 +173,22 @@ const Home = () => {
         </div>
 
         {/* Content - MangaRul Logo and Welcome */}
-        <div className="container-custom pt-16 pb-12 relative z-10 text-white">
+        <div className="container-custom py-16 relative z-10">
           <motion.div
             className="flex flex-col items-center text-center"
-            initial={{ opacity: 0, y: -50 }}
+            initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7 }}
           >
             {/* Logo */}
             <motion.div 
-              className="relative mb-6 flex items-center justify-center"
-              animate={{ y: [0, -10, 0] }}
-              transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+              className="relative mb-4 flex items-center justify-center"
+              animate={{ y: [0, -8, 0] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
             >
-              <div className="absolute w-32 h-32 rounded-full bg-blue-500/20 blur-xl"></div>
+              <div className="absolute w-28 h-28 rounded-full bg-blue-500/30 blur-xl"></div>
               <div className="relative z-10">
-                <svg width="120" height="120" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <circle cx="50" cy="50" r="50" fill="url(#paint0_radial)" />
                   <path d="M30 35L45 50L30 65M55 35H70M55 65H70M50 25V75" stroke="white" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
                   <defs>
@@ -203,7 +203,7 @@ const Home = () => {
 
             {/* Brand name */}
             <motion.h1 
-              className="text-5xl md:text-6xl font-bold mb-4 gradient-text"
+              className="text-5xl md:text-6xl font-bold mb-3 gradient-text"
               style={{ 
                 backgroundImage: 'linear-gradient(45deg, #60a5fa, #fff, #93c5fd)' 
               }}
@@ -212,30 +212,44 @@ const Home = () => {
             </motion.h1>
 
             <motion.p 
-              className="text-lg md:text-xl max-w-md mx-auto text-blue-100 mb-8"
+              className="text-lg md:text-xl max-w-2xl mx-auto text-blue-100 mb-6"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
+              transition={{ delay: 0.3 }}
             >
-              Your ultimate destination for the finest manga, manhwa, and manhua collections!
+              Discover the world of illustrated stories
             </motion.p>
-
-            {/* Animated stats */}
-            <motion.div 
-              className="flex gap-4 md:gap-8 justify-center flex-wrap"
+            
+            {/* Synopsis */}
+            <motion.div
+              className="max-w-2xl mx-auto mb-8 px-6 py-4 bg-blue-900/30 backdrop-blur-md rounded-xl border border-blue-500/20"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8 }}
+              transition={{ delay: 0.5 }}
             >
-              <div className="flex flex-col items-center bg-white/10 backdrop-blur-md rounded-lg px-6 py-3">
+              <p className="text-gray-200 leading-relaxed">
+                Dive into a vast universe of incredible stories from Japan, Korea, and China. 
+                From action-packed adventures to heartwarming romances, your next favorite 
+                story awaits. Start reading today and join our growing community of manga enthusiasts!
+              </p>
+            </motion.div>
+
+            {/* Stats - Simplified */}
+            <motion.div 
+              className="flex gap-6 justify-center"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.7 }}
+            >
+              <div className="flex flex-col items-center">
                 <span className="text-2xl font-bold text-blue-300">10K+</span>
                 <span className="text-sm text-blue-200">Titles</span>
               </div>
-              <div className="flex flex-col items-center bg-white/10 backdrop-blur-md rounded-lg px-6 py-3">
+              <div className="flex flex-col items-center">
                 <span className="text-2xl font-bold text-blue-300">50K+</span>
                 <span className="text-sm text-blue-200">Chapters</span>
               </div>
-              <div className="flex flex-col items-center bg-white/10 backdrop-blur-md rounded-lg px-6 py-3">
+              <div className="flex flex-col items-center">
                 <span className="text-2xl font-bold text-blue-300">100K+</span>
                 <span className="text-sm text-blue-200">Readers</span>
               </div>

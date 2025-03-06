@@ -39,7 +39,7 @@ const ComicGrid = ({ comics }) => {
       {comics.map((comic, index) => (
         <motion.div key={comic.slug + index} variants={item}>
           <Link to={`/comic/${comic.slug}`} className="block">
-            <div className="comic-card h-full flex flex-col">
+            <div className="comic-card h-full flex flex-col bg-black">
               <div className="relative overflow-hidden rounded-t-lg aspect-[3/4]">
                 <img 
                   src={comic.cover || 'https://via.placeholder.com/300x400?text=No+Image'} 
