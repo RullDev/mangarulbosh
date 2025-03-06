@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -11,9 +12,7 @@ import {
   FaArrowUp,
   FaTimesCircle,
   FaChevronLeft,
-  FaChevronRight,
-  FaBookmark,
-  FaRegBookmark
+  FaChevronRight
 } from 'react-icons/fa';
 import Comic from '../api/comicApi';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -33,8 +32,7 @@ const ReadingPage = () => {
   const [comicTitle, setComicTitle] = useState('');
   const [currentChapter, setCurrentChapter] = useState('');
   const [controlsTimeout, setControlsTimeout] = useState(null);
-  const [bookmarked, setBookmarked] = useState(false);
-
+  
   const readerRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
@@ -62,7 +60,7 @@ const ReadingPage = () => {
             setError("No valid pages found for this chapter.");
           } else {
             setPages(validPages);
-
+            
             // Try to extract chapter info from slug
             const chapterMatch = slug.match(/chapter[_-](\d+)/i);
             if (chapterMatch) {
@@ -70,7 +68,7 @@ const ReadingPage = () => {
             } else {
               setCurrentChapter('Unknown');
             }
-
+            
             // Extract comic title from slug
             const titleParts = slug.split(/chapter/i)[0] || '';
             const formattedTitle = titleParts
@@ -79,22 +77,18 @@ const ReadingPage = () => {
               .map(word => word.charAt(0).toUpperCase() + word.slice(1))
               .join(' ')
               .trim();
-
+            
             setComicTitle(formattedTitle || 'Comic');
-
-            // Check if this chapter is bookmarked
-            const savedBookmarks = JSON.parse(localStorage.getItem('readingBookmarks') || '[]');
-            setBookmarked(savedBookmarks.some(b => b.slug === slug));
-
+            
             // Fetch prev/next chapters
             try {
               // Try to extract comic slug from chapter slug
               const comicSlug = slug.split(/chapter/i)[0].slice(0, -1); // Remove trailing dash or underscore
-
+              
               if (comicSlug) {
                 const infoApi = new Comic(comicSlug);
                 const comicInfo = await infoApi.info();
-
+                
                 if (comicInfo && Array.isArray(comicInfo.chapters)) {
                   // Sort chapters numerically
                   const chapters = [...comicInfo.chapters].sort((a, b) => {
@@ -102,24 +96,24 @@ const ReadingPage = () => {
                       const match = slug.match(/chapter[_-](\d+)/i);
                       return match ? parseInt(match[1]) : 0;
                     };
-
+                    
                     return getChapterNum(a.slug) - getChapterNum(b.slug);
                   });
-
+                  
                   // Find current chapter index
                   const currentIndex = chapters.findIndex(ch => ch.slug === slug);
-
+                  
                   if (currentIndex !== -1) {
                     // Set previous chapter if available
                     if (currentIndex > 0) {
                       setPrevChapter(chapters[currentIndex - 1].slug);
                     }
-
+                    
                     // Set next chapter if available
                     if (currentIndex < chapters.length - 1) {
                       setNextChapter(chapters[currentIndex + 1].slug);
                     }
-
+                    
                     // Set comic title if available
                     if (comicInfo.title) {
                       setComicTitle(comicInfo.title);
@@ -128,18 +122,18 @@ const ReadingPage = () => {
                     // If we can't find the chapter in the list, try a fallback approach
                     if (chapterMatch) {
                       const currentChapterNum = parseInt(chapterMatch[1]);
-
+                      
                       // Look for adjacent chapters
                       const prevCh = chapters.find(ch => {
                         const match = ch.slug.match(/chapter[_-](\d+)/i);
                         return match && parseInt(match[1]) === currentChapterNum - 1;
                       });
-
+                      
                       const nextCh = chapters.find(ch => {
                         const match = ch.slug.match(/chapter[_-](\d+)/i);
                         return match && parseInt(match[1]) === currentChapterNum + 1;
                       });
-
+                      
                       if (prevCh) setPrevChapter(prevCh.slug);
                       if (nextCh) setNextChapter(nextCh.slug);
                     }
@@ -166,7 +160,7 @@ const ReadingPage = () => {
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
     };
-
+    
     document.addEventListener('fullscreenchange', handleFullscreenChange);
 
     // Cleanup
@@ -174,13 +168,6 @@ const ReadingPage = () => {
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
       if (controlsTimeout) {
         clearTimeout(controlsTimeout);
-      }
-
-      // Exit fullscreen on unmount if necessary
-      if (document.fullscreenElement) {
-        document.exitFullscreen().catch(err => {
-          console.error('Error exiting fullscreen:', err);
-        });
       }
     };
   }, [slug]);
@@ -191,9 +178,9 @@ const ReadingPage = () => {
       const timeout = setTimeout(() => {
         setShowControls(false);
       }, 3000);
-
+      
       setControlsTimeout(timeout);
-
+      
       return () => {
         clearTimeout(timeout);
       };
@@ -214,30 +201,12 @@ const ReadingPage = () => {
     setIsSettingsOpen(!isSettingsOpen);
     // Keep controls visible when settings are open
     setShowControls(true);
-
+    
     // Reset the control hiding timeout
     if (controlsTimeout) {
       clearTimeout(controlsTimeout);
       setControlsTimeout(null);
     }
-  };
-
-  const toggleBookmark = () => {
-    const savedBookmarks = JSON.parse(localStorage.getItem('readingBookmarks') || '[]');
-
-    if (bookmarked) {
-      const updatedBookmarks = savedBookmarks.filter(b => b.slug !== slug);
-      localStorage.setItem('readingBookmarks', JSON.stringify(updatedBookmarks));
-    } else {
-      const newBookmark = {
-        slug,
-        title: comicTitle,
-        timestamp: new Date().toISOString()
-      };
-      localStorage.setItem('readingBookmarks', JSON.stringify([...savedBookmarks, newBookmark]));
-    }
-
-    setBookmarked(!bookmarked);
   };
 
   const handleKeyDown = (e) => {
@@ -291,17 +260,13 @@ const ReadingPage = () => {
   const changeReadingMode = (mode) => {
     setReadingMode(mode);
     setCurrentPage(0); // Reset to first page when changing modes
-
+    
     // If switching to vertical, always show controls
     if (mode === 'vertical') {
       setShowControls(true);
     }
-
+    
     setIsSettingsOpen(false);
-  };
-
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   if (loading) {
@@ -341,7 +306,7 @@ const ReadingPage = () => {
   return (
     <div 
       ref={readerRef}
-      className={`${isFullscreen ? 'reading-fullscreen' : ''} reading-page bg-black min-h-screen`}
+      className={`${isFullscreen ? 'reading-fullscreen' : ''} reading-page`}
       onMouseMove={() => setShowControls(true)}
     >
       {/* Top Controls */}
@@ -369,18 +334,8 @@ const ReadingPage = () => {
                   <p className="text-xs text-gray-300 truncate">Chapter {currentChapter || ''}</p>
                 </div>
               </div>
-
+              
               <div className="flex items-center gap-2">
-                <motion.button 
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  className="btn-icon"
-                  onClick={toggleBookmark}
-                  title={bookmarked ? "Remove Bookmark" : "Add Bookmark"}
-                >
-                  {bookmarked ? <FaBookmark className="text-yellow-400" /> : <FaRegBookmark />}
-                </motion.button>
-
                 <motion.button 
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
@@ -389,7 +344,7 @@ const ReadingPage = () => {
                 >
                   <FaCog />
                 </motion.button>
-
+                
                 <motion.button 
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
@@ -400,7 +355,7 @@ const ReadingPage = () => {
                 </motion.button>
               </div>
             </div>
-
+            
             {/* Settings Panel */}
             <AnimatePresence>
               {isSettingsOpen && (
@@ -413,7 +368,7 @@ const ReadingPage = () => {
                 >
                   <div className="bg-gray-800/90 backdrop-blur-md rounded-lg p-4">
                     <h3 className="text-lg font-medium mb-3">Reading Settings</h3>
-
+                    
                     <div className="mb-4">
                       <p className="text-sm text-gray-300 mb-2">Reading Mode</p>
                       <div className="flex flex-wrap gap-2">
@@ -431,7 +386,7 @@ const ReadingPage = () => {
                         </button>
                       </div>
                     </div>
-
+                    
                     <div className="text-sm text-gray-400">
                       <p>Keyboard Controls: ←/→ or A/D to navigate pages, F for fullscreen</p>
                     </div>
@@ -462,7 +417,7 @@ const ReadingPage = () => {
             ))}
           </div>
         )}
-
+        
         {readingMode === 'single-page' && (
           <div className="single-page-reader flex items-center justify-center min-h-screen">
             <div className="relative w-full max-w-3xl mx-auto h-full flex items-center">
@@ -477,7 +432,7 @@ const ReadingPage = () => {
                   <FaChevronLeft />
                 </motion.button>
               )}
-
+              
               {/* Current Page */}
               <motion.div 
                 className="page-container max-h-[90vh] px-4"
@@ -497,7 +452,7 @@ const ReadingPage = () => {
                   }}
                 />
               </motion.div>
-
+              
               {/* Next Page Button */}
               {currentPage < pages.length - 1 && (
                 <motion.button 
@@ -521,7 +476,7 @@ const ReadingPage = () => {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 20 }}
           transition={{ duration: 0.2 }}
-          className="fixed bottom-0 left-0 right-0 z-40 bg-black/70 text-white p-4 backdrop-blur-md border-t border-gray-800/50 reading-controls"
+          className="fixed bottom-0 left-0 right-0 z-40 bg-black/70 text-white p-4 backdrop-blur-md border-t border-gray-800/50"
         >
           <div className="container-custom flex justify-between items-center">
             <div>
@@ -531,7 +486,7 @@ const ReadingPage = () => {
                 </span>
               )}
             </div>
-
+            
             <div className="flex items-center gap-3">
               <button 
                 onClick={goToPrevChapter}
@@ -540,7 +495,7 @@ const ReadingPage = () => {
               >
                 <FaArrowLeft /> Previous Chapter
               </button>
-
+              
               <button 
                 onClick={goToNextChapter}
                 className={`btn-nav ${!nextChapter ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -556,12 +511,341 @@ const ReadingPage = () => {
       {/* Scroll to top button */}
       {readingMode === 'vertical' && (
         <button 
-          onClick={scrollToTop}
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           className="fixed bottom-20 right-8 p-4 rounded-full bg-primary text-white shadow-lg hover:bg-primary-dark transition-colors z-30"
         >
           <FaArrowUp />
         </button>
       )}
+    </div>
+  );
+};
+
+export default ReadingPage;
+import React, { useState, useEffect, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FaArrowLeft, FaHome, FaChevronUp, FaChevronDown, FaExpand, FaCompress, FaCog, FaBookmark, FaRegBookmark } from 'react-icons/fa';
+import Comic from '../api/comicApi';
+import LoadingSpinner from '../components/LoadingSpinner';
+
+const ReadingPage = () => {
+  const { slug } = useParams();
+  const navigate = useNavigate();
+  const [pages, setPages] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [showControls, setShowControls] = useState(true);
+  const [fullscreen, setFullscreen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [bookmarked, setBookmarked] = useState(false);
+  const containerRef = useRef(null);
+  const [comicTitle, setComicTitle] = useState('');
+
+  useEffect(() => {
+    fetchPages();
+    
+    // Extract comic title from slug for display
+    const extractedTitle = slug.split('-').map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(' ');
+    setComicTitle(extractedTitle);
+    
+    // Check if this chapter is bookmarked
+    const savedBookmarks = JSON.parse(localStorage.getItem('readingBookmarks') || '[]');
+    setBookmarked(savedBookmarks.some(b => b.slug === slug));
+    
+    // Hide controls after inactivity
+    let timeout;
+    const handleActivity = () => {
+      setShowControls(true);
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        if (!fullscreen) return;
+        setShowControls(false);
+      }, 3000);
+    };
+    
+    window.addEventListener('mousemove', handleActivity);
+    window.addEventListener('click', handleActivity);
+    window.addEventListener('keydown', handleActivity);
+    
+    return () => {
+      window.removeEventListener('mousemove', handleActivity);
+      window.removeEventListener('click', handleActivity);
+      window.removeEventListener('keydown', handleActivity);
+      clearTimeout(timeout);
+      
+      // Exit fullscreen on unmount if necessary
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+      }
+    };
+  }, [slug, fullscreen]);
+
+  const fetchPages = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const comicApi = new Comic(slug);
+      const results = await comicApi.read();
+      
+      if (results && Array.isArray(results) && results.length > 0) {
+        setPages(results);
+      } else {
+        throw new Error('No pages found for this chapter');
+      }
+    } catch (err) {
+      console.error('Error fetching comic pages:', err);
+      setError('Failed to load the chapter. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      containerRef.current.requestFullscreen().catch(err => {
+        console.error(`Error attempting to enable fullscreen: ${err.message}`);
+      });
+      setFullscreen(true);
+    } else {
+      document.exitFullscreen();
+      setFullscreen(false);
+    }
+  };
+
+  const toggleBookmark = () => {
+    const savedBookmarks = JSON.parse(localStorage.getItem('readingBookmarks') || '[]');
+    
+    if (bookmarked) {
+      const updatedBookmarks = savedBookmarks.filter(b => b.slug !== slug);
+      localStorage.setItem('readingBookmarks', JSON.stringify(updatedBookmarks));
+    } else {
+      const newBookmark = {
+        slug,
+        title: comicTitle,
+        timestamp: new Date().toISOString()
+      };
+      localStorage.setItem('readingBookmarks', JSON.stringify([...savedBookmarks, newBookmark]));
+    }
+    
+    setBookmarked(!bookmarked);
+  };
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const scrollToBottom = () => {
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+  };
+
+  const goToNextPage = () => {
+    if (currentPage < pages.length - 1) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const goToPrevPage = () => {
+    if (currentPage > 0) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <LoadingSpinner message="Loading chapter..." />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container-custom py-10 text-center">
+        <div className="bg-red-50 dark:bg-red-900/20 p-6 rounded-lg max-w-md mx-auto">
+          <p className="text-red-600 dark:text-red-400 mb-4">{error}</p>
+          <div className="flex justify-center gap-4">
+            <button
+              onClick={fetchPages}
+              className="btn btn-primary"
+            >
+              Try Again
+            </button>
+            <button
+              onClick={() => navigate(-1)}
+              className="btn btn-secondary"
+            >
+              Go Back
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div 
+      ref={containerRef}
+      className={`bg-black min-h-screen ${fullscreen ? 'reading-fullscreen' : ''}`}
+    >
+      {/* Reading Controls - Fixed at bottom */}
+      <AnimatePresence>
+        {showControls && (
+          <motion.div 
+            className="reading-controls"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.2 }}
+          >
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={() => navigate(-1)}
+              className="btn-icon"
+              title="Back"
+            >
+              <FaArrowLeft />
+            </motion.button>
+            
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={() => navigate('/')}
+              className="btn-icon"
+              title="Home"
+            >
+              <FaHome />
+            </motion.button>
+            
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={scrollToTop}
+              className="btn-icon"
+              title="Scroll to Top"
+            >
+              <FaChevronUp />
+            </motion.button>
+            
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={scrollToBottom}
+              className="btn-icon"
+              title="Scroll to Bottom"
+            >
+              <FaChevronDown />
+            </motion.button>
+            
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={toggleFullscreen}
+              className="btn-icon"
+              title={fullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+            >
+              {fullscreen ? <FaCompress /> : <FaExpand />}
+            </motion.button>
+            
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={toggleBookmark}
+              className="btn-icon"
+              title={bookmarked ? "Remove Bookmark" : "Add Bookmark"}
+            >
+              {bookmarked ? <FaBookmark className="text-yellow-400" /> : <FaRegBookmark />}
+            </motion.button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      
+      {/* Title bar */}
+      <AnimatePresence>
+        {showControls && (
+          <motion.div 
+            className="fixed top-0 left-0 right-0 bg-black/70 text-white p-4 backdrop-blur-sm z-50"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+          >
+            <div className="container-custom">
+              <div className="flex items-center justify-between">
+                <button
+                  onClick={() => navigate(-1)}
+                  className="flex items-center gap-2 hover:text-primary-light transition-colors"
+                >
+                  <FaArrowLeft />
+                  <span className="truncate max-w-[200px]">{comicTitle}</span>
+                </button>
+                
+                <div className="text-sm text-gray-400">
+                  {pages.length > 0 && `${currentPage + 1} / ${pages.length}`}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      
+      {/* Vertical Reading Mode */}
+      <div className="pt-16 pb-20 px-4 max-w-3xl mx-auto">
+        {pages.map((page, index) => (
+          <motion.div 
+            key={index}
+            className="mb-4"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.1 > 1 ? 1 : index * 0.1 }}
+          >
+            <img 
+              src={page.url} 
+              alt={`Page ${index + 1}`} 
+              className="w-full rounded-md shadow-lg"
+              loading="lazy"
+              onLoad={() => {
+                // Mark this as the current page when it enters viewport
+                const observer = new IntersectionObserver((entries) => {
+                  if (entries[0].isIntersecting) {
+                    setCurrentPage(index);
+                  }
+                }, { threshold: 0.5 });
+                
+                observer.observe(document.querySelectorAll('img')[index]);
+                return () => observer.disconnect();
+              }}
+            />
+          </motion.div>
+        ))}
+        
+        {/* End of chapter message */}
+        <motion.div 
+          className="text-center py-10 text-white"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1 }}
+        >
+          <h3 className="text-xl font-bold mb-2">End of Chapter</h3>
+          <p className="text-gray-400 mb-4">You've reached the end of this chapter</p>
+          <div className="flex justify-center gap-4">
+            <button 
+              onClick={() => navigate(-1)} 
+              className="btn btn-primary"
+            >
+              Back to Info
+            </button>
+            <button 
+              onClick={() => navigate('/')} 
+              className="btn btn-secondary"
+            >
+              Home
+            </button>
+          </div>
+        </motion.div>
+      </div>
     </div>
   );
 };
