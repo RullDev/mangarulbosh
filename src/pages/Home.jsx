@@ -124,32 +124,8 @@ const Home = () => {
       {/* Hero section with featured comic */}
       <div ref={heroRef} className="relative bg-gradient-to-b from-gray-900 to-black dark:from-black dark:to-black text-white overflow-hidden">
         {/* Logo and welcome message */}
-        <div className="container-custom pt-6 pb-2 flex flex-col items-center relative z-10">
-          <motion.img 
-            src="https://i.imgur.com/aFqV5yM.png" 
-            alt="AnimaVers Logo" 
-            className="w-24 h-24 mb-2"
-            initial={{ y: -50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.5 }}
-          />
-          
-          <motion.div 
-            className="bg-gray-800/60 backdrop-blur-md rounded-xl p-4 mb-4 w-full max-w-md text-center"
-            initial={{ y: 30, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
-            <h2 className="text-xl font-bold mb-1 flex items-center justify-center">
-              <FaStar className="mr-2 text-yellow-400" /> 
-              Welcome to AnimaVers!
-            </h2>
-            <p className="text-gray-300 text-sm">
-              Version <span className="font-bold">3.3.1</span> • Your ultimate comics experience
-            </p>
-          </motion.div>
-        </div>
         
+          
         {/* Featured comic carousel */}
         {featuredComic && (
           <motion.div 
