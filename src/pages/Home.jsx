@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { FaSpinner, FaExclamationTriangle, FaChevronLeft, FaChevronRight, FaArrowDown, FaStar, FaBookOpen, FaFire, FaClock } from 'react-icons/fa';
+import { FaSpinner, FaExclamationTriangle, FaChevronLeft, FaChevronRight, FaArrowDown, FaBookReader, FaStar, FaBookOpen, FaFire, FaClock } from 'react-icons/fa';
 import Comic from '../api/comicApi';
 import ComicGrid from '../components/ComicGrid';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -141,79 +141,6 @@ const Home = () => {
 
   return (
     <>
-      {/* Brand Banner */}
-      <div className="container-custom relative z-10 py-16 min-h-[70vh] flex flex-col justify-center overflow-hidden">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="max-w-4xl mx-auto text-center mb-8 relative"
-        >
-          {/* Decorative elements */}
-          <motion.div 
-            className="absolute -left-10 -top-10 w-20 h-20 rounded-full bg-primary/10 dark:bg-primary-dark/10 blur-xl"
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-          />
-          <motion.div 
-            className="absolute -right-10 -bottom-10 w-28 h-28 rounded-full bg-secondary-light/10 dark:bg-secondary-dark/10 blur-xl"
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.5 }}
-          />
-          
-          <motion.h1 
-            className="text-4xl md:text-6xl font-black mb-6 gradient-text drop-shadow-lg"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.3 }}
-          >
-            Discover Your Next <span className="text-primary dark:text-primary-light">Manga</span> Adventure
-          </motion.h1>
-          
-          <motion.div
-            initial={{ width: "0%" }}
-            animate={{ width: "100%" }}
-            transition={{ duration: 1.2, delay: 0.6 }}
-            className="h-1 bg-gradient-to-r from-primary via-secondary-light to-primary-light rounded-full mx-auto mb-6 max-w-md"
-          />
-          
-          <motion.p 
-            className="text-xl text-gray-700 dark:text-gray-300 mb-8 max-w-2xl mx-auto leading-relaxed"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.7, delay: 0.5 }}
-          >
-            Immerse yourself in a vast collection of high-quality manga, manhwa, and manhua. 
-            <span className="block mt-2 font-medium text-primary/90 dark:text-primary-light/90">Your journey into amazing stories begins here.</span>
-          </motion.p>
-          
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.7 }}
-            className="flex justify-center space-x-4 mt-8"
-          >
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="btn btn-primary px-6 py-3 shadow-lg shadow-primary/20 dark:shadow-primary-dark/20"
-              onClick={() => document.getElementById('popular').scrollIntoView({ behavior: 'smooth' })}
-            >
-              Explore Popular
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="btn bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-200 px-6 py-3"
-              onClick={() => document.getElementById('latest').scrollIntoView({ behavior: 'smooth' })}
-            >
-              Latest Updates
-            </motion.button>
-          </motion.div>
-        </motion.div>
-
       {/* Enhanced Hero Section with fixed height and better layout */}
       <motion.div 
         ref={heroRef}
@@ -257,8 +184,9 @@ const Home = () => {
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.2, duration: 0.5 }}
                       >
-                        <div className="inline-block px-3 py-1 bg-primary text-white text-sm font-semibold rounded-md mb-3">
-                          Featured Comic
+                        
+                        <div className="inline-block px-3 py-1 bg-red-500 text-white text-sm font-semibold rounded-md mb-3">
+                          Recommended
                         </div>
                         <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 drop-shadow-lg line-clamp-2">
                           {featuredComic.title}
@@ -325,9 +253,9 @@ const Home = () => {
                               ? `/read/${featuredComic.chapters[0].slug}` 
                               : `/info/${featuredComic.slug}`
                             }
-                            className="btn btn-primary shadow-xl px-5 py-2.5 text-base"
+                  className="btn btn-primary shadow-xl px-4 py-2.5 text-base"
                           >
-                            Read Now
+                            Read Now <FaBookReader className="ml-2" />          
                           </Link>
                         </motion.div>
                       </motion.div>

@@ -51,7 +51,7 @@ const ComicGrid = ({ comics }) => {
           >
             <Link to={`/info/${comic.slug}`} className="flex flex-col h-full">
               <div className="relative overflow-hidden aspect-[2/3]">
-                <img 
+                <img
                   src={comic.cover} 
                   alt={comic.title} 
                   className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"

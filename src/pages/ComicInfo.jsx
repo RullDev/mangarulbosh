@@ -337,6 +337,12 @@ const ComicInfo = () => {
                       Updated: {comic.updated}
                     </span>
                   )}
+
+                  {comic.status && (
+                    <span className="px-3 py-1 rounded-full text-white text-sm font-medium bg-blue-800">
+                      Status: {comic.status}
+                    </span>
+                  )}
                 </div>
               </motion.div>
               

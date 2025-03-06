@@ -64,6 +64,7 @@ class Comic {
                     obj.status = $(b).find('.status').text().trim();
                     obj.type = $(b).find('.type').text().trim();
                     obj.score = $(b).find('.numscore').text().trim();
+                    obj.chapter = $(b).find(".chapter").text().trim();
                     result.push(obj);
                 });
                 return result;
