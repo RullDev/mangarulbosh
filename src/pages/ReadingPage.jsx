@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -16,14 +16,16 @@ import {
 } from 'react-icons/fa';
 import Comic from '../api/comicApi';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { ThemeContext } from '../App';
 
 const ReadingPage = () => {
   const { slug } = useParams();
+  const { darkMode } = useContext(ThemeContext);
   const [pages, setPages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(0);
-  const [readingMode, setReadingMode] = useState('vertical'); // 'vertical', 'horizontal', 'single-page'
+  const [readingMode, setReadingMode] = useState('vertical'); // 'vertical', 'single-page'
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -199,10 +201,8 @@ const ReadingPage = () => {
 
   const toggleSettings = () => {
     setIsSettingsOpen(!isSettingsOpen);
-    // Keep controls visible when settings are open
     setShowControls(true);
     
-    // Reset the control hiding timeout
     if (controlsTimeout) {
       clearTimeout(controlsTimeout);
       setControlsTimeout(null);
@@ -211,7 +211,7 @@ const ReadingPage = () => {
 
   const handleKeyDown = (e) => {
     if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
-      if (readingMode === 'single-page' || readingMode === 'horizontal') {
+      if (readingMode === 'single-page') {
         if (currentPage < pages.length - 1) {
           setCurrentPage(currentPage + 1);
         } else {
@@ -219,7 +219,7 @@ const ReadingPage = () => {
         }
       }
     } else if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
-      if (readingMode === 'single-page' || readingMode === 'horizontal') {
+      if (readingMode === 'single-page') {
         if (currentPage > 0) {
           setCurrentPage(currentPage - 1);
         } else {
@@ -306,7 +306,7 @@ const ReadingPage = () => {
   return (
     <div 
       ref={readerRef}
-      className={`${isFullscreen ? 'reading-fullscreen' : ''} reading-page`}
+      className={`${isFullscreen ? 'reading-fullscreen' : ''} reading-page bg-black text-white`}
       onMouseMove={() => setShowControls(true)}
     >
       {/* Top Controls */}
@@ -317,14 +317,14 @@ const ReadingPage = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.2 }}
-            className="fixed top-0 left-0 right-0 z-50 bg-black/70 text-white p-3 backdrop-blur-md border-b border-gray-800/50"
+            className="fixed top-0 left-0 right-0 z-50 bg-black/80 text-white p-3 backdrop-blur-md border-b border-gray-800/50"
           >
             <div className="container-custom flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <motion.button 
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
-                  className="btn-icon bg-primary/80 hover:bg-primary transition-colors p-2.5 rounded-full backdrop-blur-sm"
+                  className="btn-icon bg-primary/90 hover:bg-primary transition-colors p-2.5 rounded-full backdrop-blur-sm"
                   onClick={() => navigate(-1)}
                 >
                   <FaArrowLeft />
@@ -476,7 +476,7 @@ const ReadingPage = () => {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 20 }}
           transition={{ duration: 0.2 }}
-          className="fixed bottom-0 left-0 right-0 z-40 bg-black/70 text-white p-4 backdrop-blur-md border-t border-gray-800/50"
+          className="fixed bottom-0 left-0 right-0 z-40 bg-black/80 text-white p-4 backdrop-blur-md border-t border-gray-800/50"
         >
           <div className="container-custom flex justify-between items-center">
             <div>

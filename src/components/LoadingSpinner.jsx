@@ -1,44 +1,44 @@
+
 import React from 'react';
 import { motion } from 'framer-motion';
 
-const LoadingSpinner = () => {
-  // SVG animation properties
-  const spinTransition = {
-    repeat: Infinity,
-    ease: "linear",
-    duration: 1
+const LoadingSpinner = ({ size = 'medium', message = 'Loading...' }) => {
+  const sizeClass = {
+    small: 'w-4 h-4 border-2',
+    medium: 'w-8 h-8 border-3',
+    large: 'w-12 h-12 border-4'
+  };
+
+  const bounce = {
+    animate: {
+      y: [0, -10, 0],
+      transition: {
+        duration: 1,
+        repeat: Infinity,
+        repeatType: "loop",
+        ease: "easeInOut"
+      }
+    }
   };
 
   return (
-    <div className="flex justify-center items-center py-20">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.3 }}
-        className="text-center"
-      >
-        <motion.svg
-          width="60"
-          height="60"
-          viewBox="0 0 60 60"
-          animate={{ rotate: 360 }}
-          transition={spinTransition}
-          className="mx-auto mb-4"
+    <div className="flex flex-col items-center justify-center">
+      <div className="relative">
+        <motion.div
+          className={`${sizeClass[size]} rounded-full border-gray-300 border-t-primary animate-spin`}
+          style={{ borderTopColor: 'var(--primary)' }}
+        />
+      </div>
+      
+      {message && (
+        <motion.p 
+          className="mt-4 text-gray-600 dark:text-gray-300 text-center"
+          variants={bounce}
+          animate="animate"
         >
-          <motion.circle
-            cx="30"
-            cy="30"
-            r="25"
-            strokeWidth="4"
-            stroke="currentColor"
-            fill="none"
-            strokeDasharray="160"
-            strokeDashoffset="45"
-            className="text-primary dark:text-primary-light"
-          />
-        </motion.svg>
-        <p className="text-gray-600 dark:text-gray-400 font-medium">Loading content...</p>
-      </motion.div>
+          {message}
+        </motion.p>
+      )}
     </div>
   );
 };
