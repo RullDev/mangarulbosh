@@ -288,7 +288,7 @@ const ComicInfo = () => {
                   </div>
                   <div>
                     <p className="text-sm text-gray-500 dark:text-gray-400">Author</p>
-                    <p className="text-gray-800 dark:text-gray-200 font-medium">{comic.author || 'Unknown'}</p>
+                    <p className="text-gray-800 dark:text-white font-medium">{comic.author || 'Unknown'}</p>
                   </div>
                 </div>
                 
@@ -298,7 +298,7 @@ const ComicInfo = () => {
                   </div>
                   <div>
                     <p className="text-sm text-gray-500 dark:text-gray-400">Status</p>
-                    <p className="text-gray-800 dark:text-gray-200 font-medium">{comic.status}</p>
+                    <p className="text-gray-800 dark:text-white font-medium">{comic.status}</p>
                   </div>
                 </div>
                 
@@ -308,7 +308,7 @@ const ComicInfo = () => {
                   </div>
                   <div>
                     <p className="text-sm text-gray-500 dark:text-gray-400">Released</p>
-                    <p className="text-gray-800 dark:text-gray-200 font-medium">{comic.released || 'Unknown'}</p>
+                    <p className="text-gray-800 dark:text-white font-medium">{comic.released || 'Unknown'}</p>
                   </div>
                 </div>
               </motion.div>
