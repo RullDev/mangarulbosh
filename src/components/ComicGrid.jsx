@@ -107,3 +107,119 @@ const ComicCard = ({ comic, index }) => {
 };
 
 export default ComicGrid;
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { FaStar } from 'react-icons/fa';
+
+const ComicGrid = ({ comics, showScore = true }) => {
+  // Handle empty state
+  if (!comics || comics.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-500 dark:text-gray-400">No comics found</p>
+      </div>
+    );
+  }
+
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.05
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        type: 'spring',
+        stiffness: 300,
+        damping: 30
+      }
+    }
+  };
+
+  return (
+    <motion.div 
+      className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      exit="hidden"
+    >
+      {comics.map((comic, index) => (
+        <ComicCard 
+          key={`${comic.slug}-${index}`} 
+          comic={comic} 
+          index={index}
+          showScore={showScore}
+          variants={itemVariants}
+        />
+      ))}
+    </motion.div>
+  );
+};
+
+const ComicCard = ({ comic, index, showScore, variants }) => {
+  const getTypeClass = (type) => {
+    if (!type) return '';
+    const lowerType = type.toLowerCase();
+    if (lowerType.includes('manga')) return 'type-manga';
+    if (lowerType.includes('manhwa')) return 'type-manhwa';
+    if (lowerType.includes('manhua')) return 'type-manhua';
+    return '';
+  };
+
+  return (
+    <motion.div 
+      variants={variants}
+      whileHover={{ y: -5 }}
+      whileTap={{ scale: 0.98 }}
+      className="comic-card"
+    >
+      <Link to={`/comic/${comic.slug}`}>
+        <div className="relative overflow-hidden rounded-t-lg">
+          <img 
+            src={comic.cover || 'https://via.placeholder.com/300x400?text=No+Image'} 
+            alt={comic.title} 
+            className="comic-card-image"
+            loading="lazy"
+          />
+          {showScore && comic.score && (
+            <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm text-white rounded-full px-2 py-1 text-xs flex items-center">
+              <FaStar className="text-yellow-400 mr-1" />
+              <span>{comic.score}</span>
+            </div>
+          )}
+          {comic.type && (
+            <div className={`absolute top-2 left-2 px-2 py-1 text-xs rounded-full ${getTypeClass(comic.type)}`}>
+              {comic.type}
+            </div>
+          )}
+          {comic.status && (
+            <div className={`absolute bottom-2 left-2 px-2 py-1 text-xs rounded-full ${
+              comic.status.toLowerCase().includes('ongoing') ? 'bg-green-500/70' : 'bg-blue-500/70'
+            } text-white backdrop-blur-sm`}>
+              {comic.status}
+            </div>
+          )}
+        </div>
+        <div className="p-3">
+          <h3 className="font-semibold text-sm sm:text-base text-white line-clamp-1">{comic.title}</h3>
+          {comic.chapter && (
+            <p className="text-xs text-gray-300 mt-1">{comic.chapter}</p>
+          )}
+        </div>
+      </Link>
+    </motion.div>
+  );
+};
+
+export default ComicGrid;

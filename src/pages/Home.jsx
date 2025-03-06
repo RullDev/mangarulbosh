@@ -1,16 +1,17 @@
+
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
-import { FaSpinner, FaExclamationTriangle, FaChevronLeft, FaChevronRight, FaArrowDown, FaBookReader, FaStar, FaBookOpen, FaFire, FaClock } from 'react-icons/fa';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FaSpinner, FaExclamationTriangle, FaArrowDown, FaBookReader, FaStar, FaBookOpen, FaFire, FaClock } from 'react-icons/fa';
 import Comic from '../api/comicApi';
 import ComicGrid from '../components/ComicGrid';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { Link } from 'react-router-dom';
 
 const categories = [
-  { id: 'all', name: 'All' },
-  { id: 'manga', name: 'Manga' },
-  { id: 'manhua', name: 'Manhua' },
-  { id: 'manhwa', name: 'Manhwa' }
+  { id: 'all', name: 'All', icon: '🌐' },
+  { id: 'manga', name: 'Manga', icon: '🇯🇵' },
+  { id: 'manhua', name: 'Manhua', icon: '🇨🇳' },
+  { id: 'manhwa', name: 'Manhwa', icon: '🇰🇷' }
 ];
 
 const Home = () => {
@@ -21,20 +22,19 @@ const Home = () => {
   const [error, setError] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [featuredIndex, setFeaturedIndex] = useState(0);
-
-  const heroRef = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: heroRef,
-    offset: ["start start", "end start"],
-    layoutEffect: false // Prevents hydration errors
-  });
-
-  const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
-  // Simplified parallax for better performance
-  const bgY = useTransform(scrollYProgress, [0, 1], ['0%', '10%']);
+  const [isHeroVisible, setIsHeroVisible] = useState(true);
 
   useEffect(() => {
     fetchComics();
+    
+    // Hide hero section when scrolling down
+    const handleScroll = () => {
+      const scrollPosition = window.scrollY;
+      setIsHeroVisible(scrollPosition < 300);
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   // Auto shifting interval for featured comic
@@ -89,37 +89,7 @@ const Home = () => {
     });
   };
 
-  const handlePrevFeatured = () => {
-    setFeaturedIndex(prev => (prev === 0 ? latestComics.length - 1 : prev - 1));
-  };
-
-  const handleNextFeatured = () => {
-    setFeaturedIndex(prev => (prev === latestComics.length - 1 ? 0 : prev + 1));
-  };
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: { 
-      opacity: 1,
-      transition: { 
-        staggerChildren: 0.1 
-      }
-    }
-  };
-
   const featuredComic = latestComics[featuredIndex];
-
-  const SectionHeading = ({ title, icon, id }) => (
-    <div className="flex items-center justify-between mb-6" id={id}>
-      <div className="flex items-center gap-2">
-        {icon}
-        <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">{title}</h2>
-      </div>
-      <Link to={`/#${id}`} className="text-primary dark:text-primary-light text-sm font-medium">
-        See all
-      </Link>
-    </div>
-  );
 
   if (loading) {
     return (
@@ -150,76 +120,133 @@ const Home = () => {
 
   return (
     <>
-      {/* AnimaVers style hero section with welcome message and featured comic */}
-      <div className="bg-black text-white">
-        {/* Logo and welcome message */}
-        <div className="container-custom py-6 flex flex-col items-center">
-          <img 
-            src="https://i.imgur.com/aFqV5yM.png" 
-            alt="AnimaVers Logo" 
-            className="w-32 h-32 mb-4"
-          />
-          
-          <div className="bg-gray-900 rounded-lg p-6 mb-6 w-full max-w-2xl text-center">
-            <h2 className="text-2xl font-bold mb-2 flex items-center justify-center">
-              <FaStar className="mr-2 text-white" /> 
-              Selamat Datang di AnimaVers!
-            </h2>
-            <p className="text-gray-300">
-              Saat ini, kami berada di versi <span className="font-bold">3.3.1</span>. Jika 
-              Anda memiliki keluhan atau saran, jangan ragu untuk melaporkannya kepada kami.
-            </p>
-          </div>
-        </div>
-        
-        {/* Featured comic carousel */}
-        {featuredComic && (
-          <div className="relative w-full">
-            <div className="w-full h-[300px] relative overflow-hidden">
-              {/* Background Image */}
-              <div className="absolute inset-0">
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent z-10"></div>
-                <img 
-                  src={featuredComic.cover} 
-                  alt={featuredComic.title}
-                  className="w-full h-full object-cover"
-                />
+      {/* Hero Section */}
+      <AnimatePresence>
+        {isHeroVisible && featuredComic && (
+          <motion.div 
+            className="bg-black text-white"
+            initial={{ height: 400 }}
+            animate={{ height: 400 }}
+            exit={{ height: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            {/* Logo and welcome message */}
+            <motion.div 
+              className="container-custom py-6 flex flex-col items-center"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <img 
+                src="https://i.imgur.com/aFqV5yM.png" 
+                alt="AnimaVers Logo" 
+                className="w-32 h-32 mb-4"
+              />
+              
+              <motion.div 
+                className="bg-gray-900 rounded-lg p-6 mb-6 w-full max-w-2xl text-center"
+                whileHover={{ scale: 1.02 }}
+                transition={{ type: "spring", stiffness: 400, damping: 10 }}
+              >
+                <h2 className="text-2xl font-bold mb-2 flex items-center justify-center">
+                  <FaStar className="mr-2 text-white" /> 
+                  Selamat Datang di AnimaVers!
+                </h2>
+                <p className="text-gray-300">
+                  Saat ini, kami berada di versi <span className="font-bold">3.3.1</span>. Jika 
+                  Anda memiliki keluhan atau saran, jangan ragu untuk melaporkannya kepada kami.
+                </p>
+              </motion.div>
+            </motion.div>
+            
+            {/* Featured comic carousel */}
+            <motion.div 
+              className="relative w-full"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+            >
+              <div className="w-full h-[300px] relative overflow-hidden">
+                {/* Background Image */}
+                <div className="absolute inset-0">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent z-10"></div>
+                  <motion.img 
+                    src={featuredComic.cover} 
+                    alt={featuredComic.title}
+                    className="w-full h-full object-cover"
+                    initial={{ scale: 1 }}
+                    animate={{ scale: 1.05 }}
+                    transition={{ duration: 8, repeat: Infinity, repeatType: "reverse" }}
+                  />
+                </div>
+                
+                {/* Content - positioned at bottom */}
+                <motion.div 
+                  className="absolute bottom-0 left-0 right-0 z-20 p-6"
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.7 }}
+                >
+                  <h2 className="text-3xl lg:text-4xl font-bold text-white">
+                    {featuredComic.title}
+                  </h2>
+                  
+                  {featuredComic.chapters && featuredComic.chapters.length > 0 && (
+                    <p className="text-gray-300 mt-1">
+                      Chapter {featuredComic.chapters[0].number || '??'}
+                    </p>
+                  )}
+                </motion.div>
               </div>
               
-              {/* Content - positioned at bottom */}
-              <div className="absolute bottom-0 left-0 right-0 z-20 p-6">
-                <h2 className="text-3xl lg:text-4xl font-bold text-white">
-                  {featuredComic.title}
-                </h2>
-                
-                {featuredComic.chapters && featuredComic.chapters.length > 0 && (
-                  <p className="text-gray-300 mt-1">
-                    Chapter {featuredComic.chapters[0].number || '??'}
-                  </p>
-                )}
+              {/* Carousel Indicators */}
+              <div className="flex justify-center gap-2 py-3">
+                {latestComics.slice(0, 8).map((_, idx) => (
+                  <motion.button 
+                    key={idx}
+                    onClick={() => setFeaturedIndex(idx)}
+                    className={`w-3 h-3 rounded-full transition-all ${
+                      idx === featuredIndex 
+                        ? 'bg-white w-6' 
+                        : 'bg-gray-500'
+                    }`}
+                    whileHover={{ scale: 1.2 }}
+                    whileTap={{ scale: 0.9 }}
+                    aria-label={`Go to slide ${idx + 1}`}
+                  />
+                ))}
               </div>
-            </div>
-            
-            {/* Carousel Indicators */}
-            <div className="flex justify-center gap-2 py-3">
-              {latestComics.slice(0, 8).map((_, idx) => (
-                <button 
-                  key={idx}
-                  onClick={() => setFeaturedIndex(idx)}
-                  className={`w-3 h-3 rounded-full transition-all ${
-                    idx === featuredIndex 
-                      ? 'bg-white w-6' 
-                      : 'bg-gray-500'
-                  }`}
-                  aria-label={`Go to slide ${idx + 1}`}
-                />
-              ))}
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         )}
-      </div>
+      </AnimatePresence>
 
       <div className="container-custom py-4">
+        {/* Categories Filter - horizontal scrollable */}
+        <motion.div 
+          className="flex items-center gap-2 overflow-x-auto py-4 hide-scrollbar mt-4"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          {categories.map(category => (
+            <motion.div 
+              key={category.id}
+              className={`category-pill cursor-pointer ${
+                selectedCategory === category.id 
+                ? 'bg-gray-700 text-white dark:bg-gray-600' 
+                : 'bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-white'
+              }`}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setSelectedCategory(category.id)}
+            >
+              <span className="w-5 h-5 flex items-center justify-center">{category.icon}</span>
+              <span>{category.name}</span>
+            </motion.div>
+          ))}
+        </motion.div>
+
         {/* Popular Section */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
@@ -227,6 +254,7 @@ const Home = () => {
           transition={{ duration: 0.5 }}
           viewport={{ once: true }}
           className="mb-10"
+          id="popular"
         >
           <div className="flex items-center mb-4">
             <div className="bg-blue-500 p-1.5 rounded-full mr-2">
@@ -236,45 +264,6 @@ const Home = () => {
           </div>
           
           <ComicGrid comics={filterComicsByCategory(popularComics)} />
-          
-          {/* Categories Filter - horizontal scrollable */}
-          <div className="flex items-center gap-2 overflow-x-auto py-4 hide-scrollbar mt-4">
-            <div className={`px-4 py-2 rounded-full text-sm flex items-center gap-1 ${
-              selectedCategory === 'all' 
-              ? 'bg-gray-700 text-white' 
-              : 'bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-white'
-            }`}>
-              <span className="w-5 h-5 flex items-center justify-center">🌐</span>
-              <span onClick={() => setSelectedCategory('all')}>All</span>
-            </div>
-            
-            <div className={`px-4 py-2 rounded-full text-sm flex items-center gap-1 ${
-              selectedCategory === 'manga' 
-              ? 'bg-gray-700 text-white' 
-              : 'bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-white'
-            }`}>
-              <span className="w-5 h-5 flex items-center justify-center">🇯🇵</span>
-              <span onClick={() => setSelectedCategory('manga')}>Manga</span>
-            </div>
-            
-            <div className={`px-4 py-2 rounded-full text-sm flex items-center gap-1 ${
-              selectedCategory === 'manhwa' 
-              ? 'bg-gray-700 text-white' 
-              : 'bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-white'
-            }`}>
-              <span className="w-5 h-5 flex items-center justify-center">🇰🇷</span>
-              <span onClick={() => setSelectedCategory('manhwa')}>Manhwa</span>
-            </div>
-            
-            <div className={`px-4 py-2 rounded-full text-sm flex items-center gap-1 ${
-              selectedCategory === 'manhua' 
-              ? 'bg-gray-700 text-white' 
-              : 'bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-white'
-            }`}>
-              <span className="w-5 h-5 flex items-center justify-center">🇨🇳</span>
-              <span onClick={() => setSelectedCategory('manhua')}>Manhua</span>
-            </div>
-          </div>
         </motion.section>
 
         {/* Latest Updates Section */}
@@ -284,9 +273,10 @@ const Home = () => {
           transition={{ duration: 0.5 }}
           viewport={{ once: true }}
           className="mb-20"
+          id="latest"
         >
           <div className="flex items-center mb-4">
-            <div className="bg-white p-1.5 rounded-full mr-2">
+            <div className="bg-white p-1.5 rounded-full mr-2 dark:bg-gray-700">
               <FaClock className="text-blue-500" />
             </div>
             <h2 className="text-xl font-bold text-gray-800 dark:text-white">Last Update</h2>
@@ -302,9 +292,10 @@ const Home = () => {
           transition={{ duration: 0.5 }}
           viewport={{ once: true }}
           className="mb-20"
+          id="series"
         >
           <div className="flex items-center mb-4">
-            <div className="bg-white p-1.5 rounded-full mr-2">
+            <div className="bg-white p-1.5 rounded-full mr-2 dark:bg-gray-700">
               <FaBookOpen className="text-green-500" />
             </div>
             <h2 className="text-xl font-bold text-gray-800 dark:text-white">Series Collection</h2>

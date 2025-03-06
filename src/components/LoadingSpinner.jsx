@@ -44,3 +44,84 @@ const LoadingSpinner = () => {
 };
 
 export default LoadingSpinner;
+import React from 'react';
+import { motion } from 'framer-motion';
+
+const LoadingSpinner = ({ size = 'medium', message = 'Loading...' }) => {
+  // Define sizes
+  const sizes = {
+    small: 'w-6 h-6 border-2',
+    medium: 'w-10 h-10 border-3',
+    large: 'w-16 h-16 border-4'
+  };
+
+  // Animation variants for the dots
+  const dotsVariants = {
+    animate: {
+      opacity: [0.2, 1, 0.2],
+      transition: {
+        duration: 1.5,
+        repeat: Infinity,
+        ease: "easeInOut",
+      }
+    }
+  };
+
+  const dotTransition = (delay) => ({
+    duration: 1.5,
+    repeat: Infinity,
+    ease: "easeInOut",
+    delay
+  });
+
+  return (
+    <div className="flex flex-col items-center justify-center p-4">
+      <div className="relative flex items-center justify-center">
+        <motion.div 
+          className={`rounded-full border-transparent border-t-primary border-r-primary dark:border-t-primary-light dark:border-r-primary-light ${sizes[size]}`}
+          animate={{ rotate: 360 }}
+          transition={{
+            duration: 1,
+            repeat: Infinity,
+            ease: 'linear'
+          }}
+        />
+        
+        <motion.div 
+          className={`absolute rounded-full border-transparent border-b-secondary border-l-secondary dark:border-b-secondary-light dark:border-l-secondary-light ${sizes[size]}`}
+          animate={{ rotate: -180 }}
+          transition={{
+            duration: 1.5,
+            repeat: Infinity,
+            ease: 'linear'
+          }}
+        />
+      </div>
+      
+      <div className="mt-4 flex items-center gap-1">
+        <p className="text-gray-700 dark:text-gray-300 font-medium">
+          {message}
+        </p>
+        <div className="flex gap-1">
+          <motion.div 
+            className="w-1 h-1 rounded-full bg-primary dark:bg-primary-light"
+            animate={{ opacity: [0.2, 1, 0.2] }}
+            transition={dotTransition(0)}
+          />
+          <motion.div 
+            className="w-1 h-1 rounded-full bg-primary dark:bg-primary-light"
+            animate={{ opacity: [0.2, 1, 0.2] }}
+            transition={dotTransition(0.15)}
+          />
+          <motion.div 
+            className="w-1 h-1 rounded-full bg-primary dark:bg-primary-light"
+            animate={{ opacity: [0.2, 1, 0.2] }}
+            transition={dotTransition(0.3)}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default LoadingSpinner;
