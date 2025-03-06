@@ -139,9 +139,23 @@ const Home = () => {
 
   return (
     <>
-      {/* Simplified Hero section with cleaner design */}
-      <div ref={heroRef} className="relative hero-manga overflow-hidden bg-black text-white">
-        {/* Particle background */}
+      {/* Enhanced Hero section with dynamic banner */}
+      <div ref={heroRef} className="relative hero-manga overflow-hidden bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900 text-white">
+        {/* Animated manga patterns background */}
+        <div className="absolute inset-0 opacity-20">
+          <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="manga-pattern" x="0" y="0" width="50" height="50" patternUnits="userSpaceOnUse">
+                <path d="M0 0L50 0L50 50L0 50Z" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1" />
+                <circle cx="25" cy="25" r="10" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="1" />
+                <path d="M12 12L38 38M38 12L12 38" stroke="rgba(255,255,255,0.2)" strokeWidth="1" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#manga-pattern)" />
+          </svg>
+        </div>
+        
+        {/* Dynamic particles */}
         <div className="manga-particles">
           {particles.map((particle) => (
             <motion.div
@@ -172,6 +186,34 @@ const Home = () => {
           ))}
         </div>
 
+        {/* Stylish banner with decorative elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <motion.div 
+            className="absolute -right-40 md:-right-20 -top-40 w-96 h-96 rounded-full bg-gradient-to-br from-blue-500/40 to-purple-500/40 blur-3xl"
+            animate={{ 
+              scale: [1, 1.2, 1],
+              opacity: [0.5, 0.7, 0.5]
+            }}
+            transition={{ 
+              duration: 8, 
+              repeat: Infinity,
+              ease: "easeInOut" 
+            }}
+          />
+          <motion.div 
+            className="absolute -left-40 md:-left-20 -bottom-40 w-96 h-96 rounded-full bg-gradient-to-tr from-indigo-500/40 to-pink-500/40 blur-3xl"
+            animate={{ 
+              scale: [1.2, 1, 1.2],
+              opacity: [0.7, 0.5, 0.7]
+            }}
+            transition={{ 
+              duration: 8, 
+              repeat: Infinity,
+              ease: "easeInOut" 
+            }}
+          />
+        </div>
+
         {/* Content - MangaRul Logo and Welcome */}
         <div className="container-custom py-16 relative z-10">
           <motion.div
@@ -180,35 +222,60 @@ const Home = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7 }}
           >
-            {/* Logo */}
+            {/* Animated logo with glow effect */}
             <motion.div 
               className="relative mb-4 flex items-center justify-center"
               animate={{ y: [0, -8, 0] }}
               transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
             >
-              <div className="absolute w-28 h-28 rounded-full bg-blue-500/30 blur-xl"></div>
+              <div className="absolute w-32 h-32 rounded-full bg-blue-500/30 blur-xl animate-pulse"></div>
               <div className="relative z-10">
-                <svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="50" cy="50" r="50" fill="url(#paint0_radial)" />
-                  <path d="M30 35L45 50L30 65M55 35H70M55 65H70M50 25V75" stroke="white" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
+                <motion.svg 
+                  width="120" 
+                  height="120" 
+                  viewBox="0 0 100 100" 
+                  fill="none" 
+                  xmlns="http://www.w3.org/2000/svg"
+                  animate={{ rotate: [0, 5, 0, -5, 0] }}
+                  transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+                >
+                  <circle cx="50" cy="50" r="48" fill="url(#paint0_radial)" stroke="rgba(255,255,255,0.3)" strokeWidth="2" />
+                  <motion.path 
+                    d="M30 35L45 50L30 65M55 35H70M55 65H70M50 25V75" 
+                    stroke="white" 
+                    strokeWidth="6" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round"
+                    animate={{ 
+                      strokeDasharray: [200, 200],
+                      strokeDashoffset: [200, 0]
+                    }}
+                    transition={{ 
+                      duration: 3,
+                      ease: "easeInOut"
+                    }}
+                  />
                   <defs>
                     <radialGradient id="paint0_radial" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(50 50) rotate(90) scale(50)">
                       <stop stopColor="#3B82F6" />
+                      <stop offset="0.5" stopColor="#4F46E5" />
                       <stop offset="1" stopColor="#1E3A8A" />
                     </radialGradient>
                   </defs>
-                </svg>
+                </motion.svg>
               </div>
             </motion.div>
 
-            {/* Brand name */}
+            {/* Dynamic brand name */}
             <motion.h1 
-              className="text-5xl md:text-6xl font-bold mb-3 gradient-text"
-              style={{ 
-                backgroundImage: 'linear-gradient(45deg, #60a5fa, #fff, #93c5fd)' 
-              }}
+              className="text-5xl md:text-6xl font-bold mb-3"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.8 }}
             >
-              MangaRul
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-300 via-white to-indigo-300">
+                MangaRul
+              </span>
             </motion.h1>
 
             <motion.p 
@@ -220,9 +287,9 @@ const Home = () => {
               Discover the world of illustrated stories
             </motion.p>
             
-            {/* Synopsis */}
+            {/* Stylish synopsis card */}
             <motion.div
-              className="max-w-2xl mx-auto mb-8 px-6 py-4 bg-blue-900/30 backdrop-blur-md rounded-xl border border-blue-500/20"
+              className="max-w-2xl mx-auto mb-8 px-6 py-4 bg-indigo-900/60 backdrop-blur-md rounded-xl border border-indigo-500/30 shadow-lg shadow-blue-900/20"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5 }}
@@ -234,25 +301,34 @@ const Home = () => {
               </p>
             </motion.div>
 
-            {/* Stats - Simplified */}
+            {/* Enhanced stats section */}
             <motion.div 
-              className="flex gap-6 justify-center"
+              className="flex gap-8 justify-center"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.7 }}
             >
-              <div className="flex flex-col items-center">
-                <span className="text-2xl font-bold text-blue-300">10K+</span>
+              <motion.div 
+                className="flex flex-col items-center"
+                whileHover={{ scale: 1.05 }}
+              >
+                <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-300 to-blue-100">10K+</span>
                 <span className="text-sm text-blue-200">Titles</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <span className="text-2xl font-bold text-blue-300">50K+</span>
+              </motion.div>
+              <motion.div 
+                className="flex flex-col items-center"
+                whileHover={{ scale: 1.05 }}
+              >
+                <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-300 to-indigo-100">50K+</span>
                 <span className="text-sm text-blue-200">Chapters</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <span className="text-2xl font-bold text-blue-300">100K+</span>
+              </motion.div>
+              <motion.div 
+                className="flex flex-col items-center"
+                whileHover={{ scale: 1.05 }}
+              >
+                <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-300 to-purple-100">100K+</span>
                 <span className="text-sm text-blue-200">Readers</span>
-              </div>
+              </motion.div>
             </motion.div>
           </motion.div>
         </div>
