@@ -299,8 +299,19 @@ const ComicInfo = () => {
             transition={{ duration: 0.4, delay: 0.6 }}
             className="md:col-span-2 order-1 md:order-2"
           >
-            <div className="bg-gray-900/90 backdrop-blur-sm rounded-xl p-5 shadow-md">
-              <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-4">Chapters</h2>
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-md relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16"></div>
+              <div className="absolute bottom-0 left-0 w-24 h-24 bg-primary/5 rounded-full -ml-12 -mb-12"></div>
+              <div className="relative">
+                <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-4 flex items-center">
+                  <span className="bg-primary/10 text-primary p-1 rounded-md mr-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" />
+                    </svg>
+                  </span>
+                  Chapters <span className="ml-2 text-sm font-normal text-gray-500 dark:text-gray-400">({comic.chapters?.length || 0})</span>
+                </h2>
+              </div>
 
               {comic.chapters && comic.chapters.length > 0 ? (
                 <div className="divide-y divide-gray-100 dark:divide-gray-700">

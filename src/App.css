@@ -974,3 +974,48 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Reading Page Styles */
+.reading-container img {
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Comic Info Page Animations */
+@keyframes pulse-border {
+  0% { border-color: rgba(var(--primary-rgb), 0.3); }
+  50% { border-color: rgba(var(--primary-rgb), 0.7); }
+  100% { border-color: rgba(var(--primary-rgb), 0.3); }
+}
+
+.comic-info-card {
+  transition: all 0.3s ease;
+}
+
+.comic-info-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* Chapter hover effect */
+.chapter-item {
+  position: relative;
+  overflow: hidden;
+}
+
+.chapter-item::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--primary);
+  transition: width 0.3s ease;
+}
+
+.chapter-item:hover::after {
+  width: 100%;
+}
