@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -11,20 +12,20 @@ import {
   FaArrowUp,
   FaTimesCircle,
   FaChevronLeft,
-  FaChevronRight,
-  FaBookmark,
-  FaRegBookmark
+  FaChevronRight
 } from 'react-icons/fa';
 import Comic from '../api/comicApi';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { ThemeContext } from '../App';
 
 const ReadingPage = () => {
   const { slug } = useParams();
+  const { darkMode } = useContext(ThemeContext);
   const [pages, setPages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(0);
-  const [readingMode, setReadingMode] = useState('vertical'); // 'vertical', 'horizontal', 'single-page'
+  const [readingMode, setReadingMode] = useState('vertical'); // 'vertical', 'single-page'
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -33,8 +34,7 @@ const ReadingPage = () => {
   const [comicTitle, setComicTitle] = useState('');
   const [currentChapter, setCurrentChapter] = useState('');
   const [controlsTimeout, setControlsTimeout] = useState(null);
-  const [bookmarked, setBookmarked] = useState(false);
-
+  
   const readerRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
@@ -62,7 +62,7 @@ const ReadingPage = () => {
             setError("No valid pages found for this chapter.");
           } else {
             setPages(validPages);
-
+            
             // Try to extract chapter info from slug
             const chapterMatch = slug.match(/chapter[_-](\d+)/i);
             if (chapterMatch) {
@@ -70,7 +70,7 @@ const ReadingPage = () => {
             } else {
               setCurrentChapter('Unknown');
             }
-
+            
             // Extract comic title from slug
             const titleParts = slug.split(/chapter/i)[0] || '';
             const formattedTitle = titleParts
@@ -79,22 +79,18 @@ const ReadingPage = () => {
               .map(word => word.charAt(0).toUpperCase() + word.slice(1))
               .join(' ')
               .trim();
-
+            
             setComicTitle(formattedTitle || 'Comic');
-
-            // Check if this chapter is bookmarked
-            const savedBookmarks = JSON.parse(localStorage.getItem('readingBookmarks') || '[]');
-            setBookmarked(savedBookmarks.some(b => b.slug === slug));
-
+            
             // Fetch prev/next chapters
             try {
               // Try to extract comic slug from chapter slug
               const comicSlug = slug.split(/chapter/i)[0].slice(0, -1); // Remove trailing dash or underscore
-
+              
               if (comicSlug) {
                 const infoApi = new Comic(comicSlug);
                 const comicInfo = await infoApi.info();
-
+                
                 if (comicInfo && Array.isArray(comicInfo.chapters)) {
                   // Sort chapters numerically
                   const chapters = [...comicInfo.chapters].sort((a, b) => {
@@ -102,24 +98,24 @@ const ReadingPage = () => {
                       const match = slug.match(/chapter[_-](\d+)/i);
                       return match ? parseInt(match[1]) : 0;
                     };
-
+                    
                     return getChapterNum(a.slug) - getChapterNum(b.slug);
                   });
-
+                  
                   // Find current chapter index
                   const currentIndex = chapters.findIndex(ch => ch.slug === slug);
-
+                  
                   if (currentIndex !== -1) {
                     // Set previous chapter if available
                     if (currentIndex > 0) {
                       setPrevChapter(chapters[currentIndex - 1].slug);
                     }
-
+                    
                     // Set next chapter if available
                     if (currentIndex < chapters.length - 1) {
                       setNextChapter(chapters[currentIndex + 1].slug);
                     }
-
+                    
                     // Set comic title if available
                     if (comicInfo.title) {
                       setComicTitle(comicInfo.title);
@@ -128,18 +124,18 @@ const ReadingPage = () => {
                     // If we can't find the chapter in the list, try a fallback approach
                     if (chapterMatch) {
                       const currentChapterNum = parseInt(chapterMatch[1]);
-
+                      
                       // Look for adjacent chapters
                       const prevCh = chapters.find(ch => {
                         const match = ch.slug.match(/chapter[_-](\d+)/i);
                         return match && parseInt(match[1]) === currentChapterNum - 1;
                       });
-
+                      
                       const nextCh = chapters.find(ch => {
                         const match = ch.slug.match(/chapter[_-](\d+)/i);
                         return match && parseInt(match[1]) === currentChapterNum + 1;
                       });
-
+                      
                       if (prevCh) setPrevChapter(prevCh.slug);
                       if (nextCh) setNextChapter(nextCh.slug);
                     }
@@ -166,7 +162,7 @@ const ReadingPage = () => {
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
     };
-
+    
     document.addEventListener('fullscreenchange', handleFullscreenChange);
 
     // Cleanup
@@ -174,13 +170,6 @@ const ReadingPage = () => {
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
       if (controlsTimeout) {
         clearTimeout(controlsTimeout);
-      }
-
-      // Exit fullscreen on unmount if necessary
-      if (document.fullscreenElement) {
-        document.exitFullscreen().catch(err => {
-          console.error('Error exiting fullscreen:', err);
-        });
       }
     };
   }, [slug]);
@@ -191,9 +180,9 @@ const ReadingPage = () => {
       const timeout = setTimeout(() => {
         setShowControls(false);
       }, 3000);
-
+      
       setControlsTimeout(timeout);
-
+      
       return () => {
         clearTimeout(timeout);
       };
@@ -212,37 +201,17 @@ const ReadingPage = () => {
 
   const toggleSettings = () => {
     setIsSettingsOpen(!isSettingsOpen);
-    // Keep controls visible when settings are open
     setShowControls(true);
-
-    // Reset the control hiding timeout
+    
     if (controlsTimeout) {
       clearTimeout(controlsTimeout);
       setControlsTimeout(null);
     }
   };
 
-  const toggleBookmark = () => {
-    const savedBookmarks = JSON.parse(localStorage.getItem('readingBookmarks') || '[]');
-
-    if (bookmarked) {
-      const updatedBookmarks = savedBookmarks.filter(b => b.slug !== slug);
-      localStorage.setItem('readingBookmarks', JSON.stringify(updatedBookmarks));
-    } else {
-      const newBookmark = {
-        slug,
-        title: comicTitle,
-        timestamp: new Date().toISOString()
-      };
-      localStorage.setItem('readingBookmarks', JSON.stringify([...savedBookmarks, newBookmark]));
-    }
-
-    setBookmarked(!bookmarked);
-  };
-
   const handleKeyDown = (e) => {
     if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
-      if (readingMode === 'single-page' || readingMode === 'horizontal') {
+      if (readingMode === 'single-page') {
         if (currentPage < pages.length - 1) {
           setCurrentPage(currentPage + 1);
         } else {
@@ -250,7 +219,7 @@ const ReadingPage = () => {
         }
       }
     } else if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
-      if (readingMode === 'single-page' || readingMode === 'horizontal') {
+      if (readingMode === 'single-page') {
         if (currentPage > 0) {
           setCurrentPage(currentPage - 1);
         } else {
@@ -291,17 +260,13 @@ const ReadingPage = () => {
   const changeReadingMode = (mode) => {
     setReadingMode(mode);
     setCurrentPage(0); // Reset to first page when changing modes
-
+    
     // If switching to vertical, always show controls
     if (mode === 'vertical') {
       setShowControls(true);
     }
-
+    
     setIsSettingsOpen(false);
-  };
-
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   if (loading) {
@@ -341,7 +306,7 @@ const ReadingPage = () => {
   return (
     <div 
       ref={readerRef}
-      className={`${isFullscreen ? 'reading-fullscreen' : ''} reading-page bg-black min-h-screen`}
+      className={`${isFullscreen ? 'reading-fullscreen' : ''} reading-page bg-black text-white`}
       onMouseMove={() => setShowControls(true)}
     >
       {/* Top Controls */}
@@ -352,14 +317,14 @@ const ReadingPage = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.2 }}
-            className="fixed top-0 left-0 right-0 z-50 bg-black/70 text-white p-3 backdrop-blur-md border-b border-gray-800/50"
+            className="fixed top-0 left-0 right-0 z-50 bg-black/80 text-white p-3 backdrop-blur-md border-b border-gray-800/50"
           >
             <div className="container-custom flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <motion.button 
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
-                  className="btn-icon bg-primary/80 hover:bg-primary transition-colors p-2.5 rounded-full backdrop-blur-sm"
+                  className="btn-icon bg-primary/90 hover:bg-primary transition-colors p-2.5 rounded-full backdrop-blur-sm"
                   onClick={() => navigate(-1)}
                 >
                   <FaArrowLeft />
@@ -369,18 +334,8 @@ const ReadingPage = () => {
                   <p className="text-xs text-gray-300 truncate">Chapter {currentChapter || ''}</p>
                 </div>
               </div>
-
+              
               <div className="flex items-center gap-2">
-                <motion.button 
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  className="btn-icon"
-                  onClick={toggleBookmark}
-                  title={bookmarked ? "Remove Bookmark" : "Add Bookmark"}
-                >
-                  {bookmarked ? <FaBookmark className="text-yellow-400" /> : <FaRegBookmark />}
-                </motion.button>
-
                 <motion.button 
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
@@ -389,7 +344,7 @@ const ReadingPage = () => {
                 >
                   <FaCog />
                 </motion.button>
-
+                
                 <motion.button 
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
@@ -400,7 +355,7 @@ const ReadingPage = () => {
                 </motion.button>
               </div>
             </div>
-
+            
             {/* Settings Panel */}
             <AnimatePresence>
               {isSettingsOpen && (
@@ -413,7 +368,7 @@ const ReadingPage = () => {
                 >
                   <div className="bg-gray-800/90 backdrop-blur-md rounded-lg p-4">
                     <h3 className="text-lg font-medium mb-3">Reading Settings</h3>
-
+                    
                     <div className="mb-4">
                       <p className="text-sm text-gray-300 mb-2">Reading Mode</p>
                       <div className="flex flex-wrap gap-2">
@@ -431,7 +386,7 @@ const ReadingPage = () => {
                         </button>
                       </div>
                     </div>
-
+                    
                     <div className="text-sm text-gray-400">
                       <p>Keyboard Controls: ←/→ or A/D to navigate pages, F for fullscreen</p>
                     </div>
@@ -462,7 +417,7 @@ const ReadingPage = () => {
             ))}
           </div>
         )}
-
+        
         {readingMode === 'single-page' && (
           <div className="single-page-reader flex items-center justify-center min-h-screen">
             <div className="relative w-full max-w-3xl mx-auto h-full flex items-center">
@@ -477,7 +432,7 @@ const ReadingPage = () => {
                   <FaChevronLeft />
                 </motion.button>
               )}
-
+              
               {/* Current Page */}
               <motion.div 
                 className="page-container max-h-[90vh] px-4"
@@ -497,7 +452,7 @@ const ReadingPage = () => {
                   }}
                 />
               </motion.div>
-
+              
               {/* Next Page Button */}
               {currentPage < pages.length - 1 && (
                 <motion.button 
@@ -521,7 +476,7 @@ const ReadingPage = () => {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 20 }}
           transition={{ duration: 0.2 }}
-          className="fixed bottom-0 left-0 right-0 z-40 bg-black/70 text-white p-4 backdrop-blur-md border-t border-gray-800/50 reading-controls"
+          className="fixed bottom-0 left-0 right-0 z-40 bg-black/80 text-white p-4 backdrop-blur-md border-t border-gray-800/50"
         >
           <div className="container-custom flex justify-between items-center">
             <div>
@@ -531,7 +486,7 @@ const ReadingPage = () => {
                 </span>
               )}
             </div>
-
+            
             <div className="flex items-center gap-3">
               <button 
                 onClick={goToPrevChapter}
@@ -540,7 +495,7 @@ const ReadingPage = () => {
               >
                 <FaArrowLeft /> Previous Chapter
               </button>
-
+              
               <button 
                 onClick={goToNextChapter}
                 className={`btn-nav ${!nextChapter ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -556,7 +511,7 @@ const ReadingPage = () => {
       {/* Scroll to top button */}
       {readingMode === 'vertical' && (
         <button 
-          onClick={scrollToTop}
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           className="fixed bottom-20 right-8 p-4 rounded-full bg-primary text-white shadow-lg hover:bg-primary-dark transition-colors z-30"
         >
           <FaArrowUp />

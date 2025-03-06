@@ -1,61 +1,60 @@
 
-import React from 'react';
+import React, { useContext } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FaHome, FaSearch, FaHeart, FaBookmark } from 'react-icons/fa';
+import { FaHome, FaSearch, FaBookmark, FaDonate, FaCog } from 'react-icons/fa';
+import { ThemeContext } from '../App';
+import ThemeToggle from './ThemeToggle';
 
 const BottomNav = () => {
   const location = useLocation();
-  const currentPath = location.pathname;
+  const { darkMode, toggleDarkMode } = useContext(ThemeContext);
   
-  // Define navigation items
-  const navItems = [
-    { path: '/', icon: <FaHome />, label: 'Home' },
-    { path: '/search', icon: <FaSearch />, label: 'Search' },
-    { path: '/bookmarks', icon: <FaBookmark />, label: 'Bookmarks' },
-    { path: '/donate', icon: <FaHeart />, label: 'Donate' },
-  ];
-  
-  // Check if we're on the reading page, where we might want to hide this
-  const isReadingPage = currentPath.includes('/read/');
-  
-  if (isReadingPage) {
-    return null; // Don't show nav on reading pages
+  // Don't show bottom nav on reading page for immersive experience
+  if (location.pathname.includes('/read/')) {
+    return null;
   }
-  
+
+  const isActive = (path) => {
+    if (path === '/' && location.pathname === '/') return true;
+    if (path !== '/' && location.pathname.startsWith(path)) return true;
+    return false;
+  };
+
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-black border-t border-gray-200 dark:border-gray-800 z-40">
-      <div className="flex justify-around items-center h-16">
-        {navItems.map((item) => {
-          const isActive = currentPath === item.path || 
-                          (item.path !== '/' && currentPath.startsWith(item.path));
-                          
-          return (
-            <Link to={item.path} key={item.path} className="relative w-full h-full">
-              <motion.div 
-                className={`flex flex-col items-center justify-center h-full ${
-                  isActive 
-                    ? 'text-primary dark:text-primary-light' 
-                    : 'text-gray-500 dark:text-gray-400'
-                }`}
-                whileTap={{ scale: 0.9 }}
-              >
-                <div className="text-lg">{item.icon}</div>
-                <span className="text-xs mt-1">{item.label}</span>
-                
-                {isActive && (
-                  <motion.div
-                    className="absolute bottom-0 left-0 right-0 h-1 bg-primary dark:bg-primary-light"
-                    layoutId="bottomNavIndicator"
-                    transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                  />
-                )}
-              </motion.div>
-            </Link>
-          );
-        })}
+    <motion.div 
+      className="fixed bottom-0 left-0 right-0 bg-white dark:bg-black border-t border-gray-200 dark:border-gray-800 z-40"
+      initial={{ y: 100 }}
+      animate={{ y: 0 }}
+      transition={{ type: "spring", stiffness: 500, damping: 30 }}
+    >
+      <div className="container-custom max-w-lg mx-auto flex items-center justify-between py-2">
+        <Link to="/" className={`bottom-nav-item ${isActive('/') ? 'text-primary' : ''}`}>
+          <FaHome className="text-xl" />
+          <span className="text-xs mt-1">Home</span>
+        </Link>
+        
+        <Link to="/search" className={`bottom-nav-item ${isActive('/search') ? 'text-primary' : ''}`}>
+          <FaSearch className="text-xl" />
+          <span className="text-xs mt-1">Search</span>
+        </Link>
+        
+        <Link to="/bookmarks" className={`bottom-nav-item ${isActive('/bookmarks') ? 'text-primary' : ''}`}>
+          <FaBookmark className="text-xl" />
+          <span className="text-xs mt-1">Bookmarks</span>
+        </Link>
+        
+        <Link to="/donate" className={`bottom-nav-item ${isActive('/donate') ? 'text-primary' : ''}`}>
+          <FaDonate className="text-xl" />
+          <span className="text-xs mt-1">Donate</span>
+        </Link>
+        
+        <div className="bottom-nav-item">
+          <ThemeToggle darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
+          <span className="text-xs mt-1">Theme</span>
+        </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

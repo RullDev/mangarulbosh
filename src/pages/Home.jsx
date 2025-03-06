@@ -1,10 +1,12 @@
 
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { FaExclamationTriangle, FaStar, FaBookOpen, FaFire, FaClock } from 'react-icons/fa';
+import React, { useState, useEffect, useRef, useContext } from 'react';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import { FaSpinner, FaExclamationTriangle, FaFire, FaClock, FaBookOpen, FaStar } from 'react-icons/fa';
 import Comic from '../api/comicApi';
 import ComicGrid from '../components/ComicGrid';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { Link } from 'react-router-dom';
+import { ThemeContext } from '../App';
 
 const categories = [
   { id: 'all', name: 'All', icon: '🌐' },
@@ -13,7 +15,7 @@ const categories = [
   { id: 'manhwa', name: 'Manhwa', icon: '🇰🇷' }
 ];
 
-const Home = ({ darkMode }) => {
+const Home = () => {
   const [latestComics, setLatestComics] = useState([]);
   const [popularComics, setPopularComics] = useState([]);
   const [seriesComics, setSeriesComics] = useState([]);
@@ -21,19 +23,20 @@ const Home = ({ darkMode }) => {
   const [error, setError] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [featuredIndex, setFeaturedIndex] = useState(0);
-  const [isHeroVisible, setIsHeroVisible] = useState(true);
+  const { darkMode } = useContext(ThemeContext);
+
+  const heroRef = useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ["start start", "end start"],
+    layoutEffect: false
+  });
+
+  const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
+  const bgY = useTransform(scrollYProgress, [0, 1], ['0%', '10%']);
 
   useEffect(() => {
     fetchComics();
-    
-    // Hide hero section when scrolling down
-    const handleScroll = () => {
-      const scrollPosition = window.scrollY;
-      setIsHeroVisible(scrollPosition < 300);
-    };
-    
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   // Auto shifting interval for featured comic
@@ -65,7 +68,6 @@ const Home = ({ darkMode }) => {
       setPopularComics(popular);
 
       // For series, we're using the same data but imagine it's different
-      // In a real app, you'd likely have a separate API call
       const series = [...latest].sort(() => 0.5 - Math.random());
       setSeriesComics(series);
 
@@ -119,128 +121,124 @@ const Home = ({ darkMode }) => {
 
   return (
     <>
-      {/* Hero Section */}
-      <AnimatePresence>
-        {isHeroVisible && featuredComic && (
-          <motion.div 
-            className="bg-black text-white"
-            initial={{ height: 400 }}
-            animate={{ height: 400 }}
-            exit={{ height: 0 }}
+      {/* Hero section with featured comic */}
+      <div ref={heroRef} className="relative bg-gradient-to-b from-gray-900 to-black dark:from-black dark:to-black text-white overflow-hidden">
+        {/* Logo and welcome message */}
+        <div className="container-custom pt-6 pb-2 flex flex-col items-center relative z-10">
+          <motion.img 
+            src="https://i.imgur.com/aFqV5yM.png" 
+            alt="AnimaVers Logo" 
+            className="w-24 h-24 mb-2"
+            initial={{ y: -50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.5 }}
+          />
+          
+          <motion.div 
+            className="bg-gray-800/60 backdrop-blur-md rounded-xl p-4 mb-4 w-full max-w-md text-center"
+            initial={{ y: 30, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
           >
-            {/* Logo and welcome message */}
-            <motion.div 
-              className="container-custom py-6 flex flex-col items-center"
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-            >
-              <img 
-                src="https://i.imgur.com/aFqV5yM.png" 
-                alt="AnimaVers Logo" 
-                className="w-32 h-32 mb-4"
-              />
-              
+            <h2 className="text-xl font-bold mb-1 flex items-center justify-center">
+              <FaStar className="mr-2 text-yellow-400" /> 
+              Welcome to AnimaVers!
+            </h2>
+            <p className="text-gray-300 text-sm">
+              Version <span className="font-bold">3.3.1</span> • Your ultimate comics experience
+            </p>
+          </motion.div>
+        </div>
+        
+        {/* Featured comic carousel */}
+        {featuredComic && (
+          <motion.div 
+            className="w-full relative pb-4"
+            style={{ opacity }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+          >
+            <div className="w-full h-[280px] relative overflow-hidden">
+              {/* Background Image with Parallax */}
               <motion.div 
-                className="bg-gray-900 rounded-lg p-6 mb-6 w-full max-w-2xl text-center"
-                whileHover={{ scale: 1.02 }}
-                transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                className="absolute inset-0"
+                style={{ y: bgY }}
               >
-                <h2 className="text-2xl font-bold mb-2 flex items-center justify-center">
-                  <FaStar className="mr-2 text-white" /> 
-                  Selamat Datang di AnimaVers!
-                </h2>
-                <p className="text-gray-300">
-                  Saat ini, kami berada di versi <span className="font-bold">3.3.1</span>. Jika 
-                  Anda memiliki keluhan atau saran, jangan ragu untuk melaporkannya kepada kami.
-                </p>
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent z-10"></div>
+                <img 
+                  src={featuredComic.cover} 
+                  alt={featuredComic.title}
+                  className="w-full h-full object-cover object-center"
+                />
               </motion.div>
-            </motion.div>
-            
-            {/* Featured comic carousel */}
-            <motion.div 
-              className="relative w-full"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-            >
-              <div className="w-full h-[300px] relative overflow-hidden">
-                {/* Background Image */}
-                <div className="absolute inset-0">
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent z-10"></div>
-                  <motion.img 
-                    src={featuredComic.cover} 
-                    alt={featuredComic.title}
-                    className="w-full h-full object-cover"
-                    initial={{ scale: 1 }}
-                    animate={{ scale: 1.05 }}
-                    transition={{ duration: 8, repeat: Infinity, repeatType: "reverse" }}
-                  />
-                </div>
-                
-                {/* Content - positioned at bottom */}
-                <motion.div 
-                  className="absolute bottom-0 left-0 right-0 z-20 p-6"
+              
+              {/* Content - positioned at bottom */}
+              <div className="absolute bottom-0 left-0 right-0 z-20 p-6">
+                <motion.div
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.7 }}
+                  transition={{ duration: 0.5, delay: 0.6 }}
                 >
-                  <h2 className="text-3xl lg:text-4xl font-bold text-white">
-                    {featuredComic.title}
-                  </h2>
-                  
-                  <p className="text-gray-300 mt-1">
-                    {featuredComic.chapter || 'Latest Chapter'}
-                  </p>
+                  <Link to={`/comic/${featuredComic.slug}`} className="block">
+                    <h2 className="text-2xl lg:text-3xl font-bold text-white">
+                      {featuredComic.title}
+                    </h2>
+                    
+                    <div className="flex items-center mt-2 text-sm text-gray-300">
+                      <span className="px-2 py-0.5 bg-primary/20 rounded-full mr-2">
+                        {featuredComic.type}
+                      </span>
+                      <span className="flex items-center">
+                        <FaStar className="text-yellow-400 mr-1" /> 
+                        {featuredComic.score || "N/A"}
+                      </span>
+                    </div>
+                  </Link>
                 </motion.div>
               </div>
-              
-              {/* Carousel Indicators */}
-              <div className="flex justify-center gap-2 py-3">
-                {latestComics.slice(0, 8).map((_, idx) => (
-                  <motion.button 
-                    key={idx}
-                    onClick={() => setFeaturedIndex(idx)}
-                    className={`w-3 h-3 rounded-full transition-all ${
-                      idx === featuredIndex 
-                        ? 'bg-white w-6' 
-                        : 'bg-gray-500'
-                    }`}
-                    whileHover={{ scale: 1.2 }}
-                    whileTap={{ scale: 0.9 }}
-                    aria-label={`Go to slide ${idx + 1}`}
-                  />
-                ))}
-              </div>
-            </motion.div>
+            </div>
+            
+            {/* Carousel Indicators */}
+            <div className="flex justify-center gap-2 py-3">
+              {latestComics.slice(0, 5).map((_, idx) => (
+                <button 
+                  key={idx}
+                  onClick={() => setFeaturedIndex(idx)}
+                  className={`w-2 h-2 rounded-full transition-all ${
+                    idx === featuredIndex 
+                      ? 'bg-primary w-5' 
+                      : 'bg-gray-500'
+                  }`}
+                  aria-label={`Go to slide ${idx + 1}`}
+                />
+              ))}
+            </div>
           </motion.div>
         )}
-      </AnimatePresence>
+      </div>
 
       <div className="container-custom py-4">
         {/* Categories Filter - horizontal scrollable */}
         <motion.div 
-          className="flex items-center gap-2 overflow-x-auto py-4 hide-scrollbar mt-4"
+          className="flex items-center gap-2 overflow-x-auto py-4 hide-scrollbar mb-4"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
+          transition={{ duration: 0.4 }}
         >
           {categories.map(category => (
-            <motion.div 
+            <div 
               key={category.id}
-              className={`category-pill cursor-pointer ${
-                selectedCategory === category.id 
-                ? 'bg-gray-700 text-white dark:bg-gray-600' 
-                : 'bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-white'
-              }`}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
               onClick={() => setSelectedCategory(category.id)}
+              className={`px-4 py-2 rounded-full text-sm flex items-center gap-2 cursor-pointer transition-all ${
+                selectedCategory === category.id 
+                ? 'bg-primary text-white' 
+                : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-white'
+              }`}
             >
-              <span className="w-5 h-5 flex items-center justify-center">{category.icon}</span>
+              <span className="text-lg">{category.icon}</span>
               <span>{category.name}</span>
-            </motion.div>
+            </div>
           ))}
         </motion.div>
 
@@ -251,13 +249,12 @@ const Home = ({ darkMode }) => {
           transition={{ duration: 0.5 }}
           viewport={{ once: true }}
           className="mb-10"
-          id="popular"
         >
           <div className="flex items-center mb-4">
-            <div className={darkMode ? "bg-gray-800" : "bg-blue-500"} className="p-1.5 rounded-full mr-2">
-              <FaFire className="text-white" />
+            <div className="bg-primary/20 p-2 rounded-full mr-2">
+              <FaFire className="text-primary" />
             </div>
-            <h2 className="text-xl font-bold text-gray-800 dark:text-white">Populer</h2>
+            <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">Popular</h2>
           </div>
           
           <ComicGrid comics={filterComicsByCategory(popularComics)} />
@@ -269,14 +266,13 @@ const Home = ({ darkMode }) => {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
           viewport={{ once: true }}
-          className="mb-20"
-          id="latest"
+          className="mb-10"
         >
           <div className="flex items-center mb-4">
-            <div className="bg-white p-1.5 rounded-full mr-2 dark:bg-gray-700">
+            <div className="bg-blue-500/20 p-2 rounded-full mr-2">
               <FaClock className="text-blue-500" />
             </div>
-            <h2 className="text-xl font-bold text-gray-800 dark:text-white">Last Update</h2>
+            <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">Latest Updates</h2>
           </div>
           
           <ComicGrid comics={filterComicsByCategory(latestComics)} />
@@ -289,13 +285,12 @@ const Home = ({ darkMode }) => {
           transition={{ duration: 0.5 }}
           viewport={{ once: true }}
           className="mb-20"
-          id="series"
         >
           <div className="flex items-center mb-4">
-            <div className="bg-white p-1.5 rounded-full mr-2 dark:bg-gray-700">
+            <div className="bg-green-500/20 p-2 rounded-full mr-2">
               <FaBookOpen className="text-green-500" />
             </div>
-            <h2 className="text-xl font-bold text-gray-800 dark:text-white">Series Collection</h2>
+            <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">Series Collection</h2>
           </div>
           
           <ComicGrid comics={filterComicsByCategory(seriesComics)} />
