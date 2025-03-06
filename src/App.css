@@ -16,7 +16,7 @@
   --secondary-light: #a78bfa;
   --secondary-dark: #7c3aed;
   --background-light: #f9fafb;
-  --background-dark: #111827;
+  --background-dark: #000000;
   --text-light: #1f2937;
   --text-dark: #f9fafb;
 }
@@ -733,7 +733,7 @@ body {
 }
 
 .comic-card {
-  @apply bg-gray-800 dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transition-all duration-300;
+  @apply bg-white dark:bg-gray-900 rounded-lg shadow-md overflow-hidden transition-all duration-300;
 }
 
 .comic-card:hover {
