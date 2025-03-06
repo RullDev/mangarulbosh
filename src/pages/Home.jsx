@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { FaSpinner, FaExclamationTriangle, FaFire, FaClock, FaBookOpen, FaStar } from 'react-icons/fa';
+import { FaSpinner, FaExclamationTriangle, FaFire, FaClock, FaBookOpen, FaStar, FaGlobe } from 'react-icons/fa';
 import Comic from '../api/comicApi';
 import ComicGrid from '../components/ComicGrid';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -9,7 +9,7 @@ import { Link } from 'react-router-dom';
 import { ThemeContext } from '../App';
 
 const categories = [
-  { id: 'all', name: 'All', icon: '🌐' },
+  { id: 'all', name: 'All', icon: <FaGlobe /> },
   { id: 'manga', name: 'Manga', icon: '🇯🇵' },
   { id: 'manhua', name: 'Manhua', icon: '🇨🇳' },
   { id: 'manhwa', name: 'Manhwa', icon: '🇰🇷' }

@@ -12,7 +12,7 @@ const BottomNav = () => {
 
   return (
     <motion.nav 
-      className="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-800 bg-gray-900 py-2 px-4"
+      className="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-800 bg-gray-900/90 py-2 px-4 backdrop-blur-md shadow-lg"
       initial={{ y: 100 }}
       animate={{ y: 0 }}
       transition={{ delay: 0.2 }}

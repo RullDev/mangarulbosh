@@ -299,7 +299,7 @@ const ComicInfo = () => {
             transition={{ duration: 0.4, delay: 0.6 }}
             className="md:col-span-2 order-1 md:order-2"
           >
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-md">
+            <div className="bg-gray-900/90 backdrop-blur-sm rounded-xl p-5 shadow-md">
               <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-4">Chapters</h2>
 
               {comic.chapters && comic.chapters.length > 0 ? (
