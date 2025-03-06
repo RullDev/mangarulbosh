@@ -1,11 +1,10 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaSpinner, FaExclamationTriangle, FaArrowDown, FaBookReader, FaStar, FaBookOpen, FaFire, FaClock } from 'react-icons/fa';
+import { FaExclamationTriangle, FaStar, FaBookOpen, FaFire, FaClock } from 'react-icons/fa';
 import Comic from '../api/comicApi';
 import ComicGrid from '../components/ComicGrid';
 import LoadingSpinner from '../components/LoadingSpinner';
-import { Link } from 'react-router-dom';
 
 const categories = [
   { id: 'all', name: 'All', icon: '🌐' },
@@ -14,7 +13,7 @@ const categories = [
   { id: 'manhwa', name: 'Manhwa', icon: '🇰🇷' }
 ];
 
-const Home = () => {
+const Home = ({ darkMode }) => {
   const [latestComics, setLatestComics] = useState([]);
   const [popularComics, setPopularComics] = useState([]);
   const [seriesComics, setSeriesComics] = useState([]);
@@ -191,11 +190,9 @@ const Home = () => {
                     {featuredComic.title}
                   </h2>
                   
-                  {featuredComic.chapters && featuredComic.chapters.length > 0 && (
-                    <p className="text-gray-300 mt-1">
-                      Chapter {featuredComic.chapters[0].number || '??'}
-                    </p>
-                  )}
+                  <p className="text-gray-300 mt-1">
+                    {featuredComic.chapter || 'Latest Chapter'}
+                  </p>
                 </motion.div>
               </div>
               
@@ -257,10 +254,10 @@ const Home = () => {
           id="popular"
         >
           <div className="flex items-center mb-4">
-            <div className="bg-blue-500 p-1.5 rounded-full mr-2">
+            <div className={darkMode ? "bg-gray-800" : "bg-blue-500"} className="p-1.5 rounded-full mr-2">
               <FaFire className="text-white" />
             </div>
-            <h2 className="text-xl font-bold text-gray-800 dark:text-blue-300">Populer</h2>
+            <h2 className="text-xl font-bold text-gray-800 dark:text-white">Populer</h2>
           </div>
           
           <ComicGrid comics={filterComicsByCategory(popularComics)} />
