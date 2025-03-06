@@ -30,14 +30,23 @@ const Home = () => {
   });
 
   const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
-  // Removed scale and y transforms to reduce lag
-  
   // Simplified parallax for better performance
   const bgY = useTransform(scrollYProgress, [0, 1], ['0%', '10%']);
 
   useEffect(() => {
     fetchComics();
   }, []);
+
+  // Auto shifting interval for featured comic
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (latestComics.length > 0) {
+        setFeaturedIndex(prev => (prev === latestComics.length - 1 ? 0 : prev + 1));
+      }
+    }, 5000); // Every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [latestComics.length]);
 
   const fetchComics = async () => {
     setLoading(true);
@@ -141,189 +150,148 @@ const Home = () => {
 
   return (
     <>
-      {/* Enhanced Hero Section with fixed height and better layout */}
-      <motion.div 
-        ref={heroRef}
-        className="relative bg-gradient-to-b from-primary/5 via-primary/10 to-transparent dark:from-primary-dark/10 dark:via-primary-dark/5 dark:to-black overflow-hidden"
-        style={{ opacity: 1 }}
-      >
+      {/* AnimaVers style hero section with welcome message and featured comic */}
+      <div className="bg-black text-white">
+        {/* Logo and welcome message */}
+        <div className="container-custom py-6 flex flex-col items-center">
+          <img 
+            src="https://i.imgur.com/aFqV5yM.png" 
+            alt="AnimaVers Logo" 
+            className="w-32 h-32 mb-4"
+          />
+          
+          <div className="bg-gray-900 rounded-lg p-6 mb-6 w-full max-w-2xl text-center">
+            <h2 className="text-2xl font-bold mb-2 flex items-center justify-center">
+              <FaStar className="mr-2 text-white" /> 
+              Selamat Datang di AnimaVers!
+            </h2>
+            <p className="text-gray-300">
+              Saat ini, kami berada di versi <span className="font-bold">3.3.1</span>. Jika 
+              Anda memiliki keluhan atau saran, jangan ragu untuk melaporkannya kepada kami.
+            </p>
+          </div>
+        </div>
+        
+        {/* Featured comic carousel */}
         {featuredComic && (
-          <div className="container-custom py-8">
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5 }}
-              className="relative mx-auto overflow-hidden rounded-xl shadow-2xl"
-              style={{ maxWidth: "1200px", height: "500px" }} // Fixed height for consistency
-            >
-              {/* Sliding Animation */}
-              <motion.div
-                className="absolute inset-0 overflow-hidden"
-                initial={{ x: 0 }}
-                animate={{ x: 0 }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
-              >
-                {/* Background Image with Overlay */}
-                <div className="absolute inset-0">
-                  <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-black/50 z-10"></div>
-                  <img 
-                    src={featuredComic.cover} 
-                    alt={featuredComic.title}
-                    className="w-full h-full object-cover object-center"
-                    style={{ objectPosition: '50% 30%' }} // Better positioning for comic covers
-                  />
-                </div>
+          <div className="relative w-full">
+            <div className="w-full h-[300px] relative overflow-hidden">
+              {/* Background Image */}
+              <div className="absolute inset-0">
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent z-10"></div>
+                <img 
+                  src={featuredComic.cover} 
+                  alt={featuredComic.title}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              
+              {/* Content - positioned at bottom */}
+              <div className="absolute bottom-0 left-0 right-0 z-20 p-6">
+                <h2 className="text-3xl lg:text-4xl font-bold text-white">
+                  {featuredComic.title}
+                </h2>
                 
-                {/* Content */}
-                <div className="absolute inset-0 z-20 flex items-center">
-                  <div className="container-custom">
-                    <div className="max-w-lg pl-4 md:pl-8">
-                      <motion.div
-                        className="mb-6"
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.2, duration: 0.5 }}
-                      >
-                        
-                        <div className="inline-block px-3 py-1 bg-red-500 text-white text-sm font-semibold rounded-md mb-3">
-                          Recommended
-                        </div>
-                        <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 drop-shadow-lg line-clamp-2">
-                          {featuredComic.title}
-                        </h2>
-                      </motion.div>
-                      
-                      {/* Rating badges in flex row with consistent sizing */}
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.4, duration: 0.5 }}
-                        className="flex flex-wrap items-center gap-3 mb-6"
-                      >
-                        {featuredComic.score && (
-                          <div className="bg-yellow-500 text-white px-3 py-1.5 rounded-md font-bold flex items-center gap-1 shadow-md">
-                            <FaStar className="text-yellow-300" /> 
-                            <span className="text-sm md:text-base">{featuredComic.score}</span>
-                          </div>
-                        )}
-                        {featuredComic.type && (
-                          <div className="bg-primary/90 text-white px-3 py-1.5 rounded-md font-semibold text-sm md:text-base shadow-md">
-                            {featuredComic.type}
-                          </div>
-                        )}
-                        {featuredComic.status && (
-                          <div className="bg-green-500/90 text-white px-3 py-1.5 rounded-md font-semibold text-sm md:text-base shadow-md">
-                            {featuredComic.status}
-                          </div>
-                        )}
-                      </motion.div>
-                      
-                      {/* Navigation buttons with consistent sizing and better spacing */}
-                      <motion.div
-                        className="flex flex-wrap items-center gap-3"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.6, duration: 0.5 }}
-                      >
-                        <div className="flex space-x-2">
-                          <motion.button
-                            onClick={handlePrevFeatured}
-                            className="p-3 rounded-full bg-black/40 text-white backdrop-blur-sm hover:bg-primary/80 shadow-lg"
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                          >
-                            <FaChevronLeft />
-                          </motion.button>
-                          <motion.button
-                            onClick={handleNextFeatured}
-                            className="p-3 rounded-full bg-black/40 text-white backdrop-blur-sm hover:bg-primary/80 shadow-lg"
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                          >
-                            <FaChevronRight />
-                          </motion.button>
-                        </div>
-                        
-                        <motion.div
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                        >
-                          <Link 
-                            to={featuredComic.chapters && featuredComic.chapters.length > 0 
-                              ? `/read/${featuredComic.chapters[0].slug}` 
-                              : `/info/${featuredComic.slug}`
-                            }
-                  className="btn btn-primary shadow-xl px-4 py-2.5 text-base"
-                          >
-                            Read Now <FaBookReader className="ml-2" />          
-                          </Link>
-                        </motion.div>
-                      </motion.div>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            </motion.div>
+                {featuredComic.chapters && featuredComic.chapters.length > 0 && (
+                  <p className="text-gray-300 mt-1">
+                    Chapter {featuredComic.chapters[0].number || '??'}
+                  </p>
+                )}
+              </div>
+            </div>
+            
+            {/* Carousel Indicators */}
+            <div className="flex justify-center gap-2 py-3">
+              {latestComics.slice(0, 8).map((_, idx) => (
+                <button 
+                  key={idx}
+                  onClick={() => setFeaturedIndex(idx)}
+                  className={`w-3 h-3 rounded-full transition-all ${
+                    idx === featuredIndex 
+                      ? 'bg-white w-6' 
+                      : 'bg-gray-500'
+                  }`}
+                  aria-label={`Go to slide ${idx + 1}`}
+                />
+              ))}
+            </div>
           </div>
         )}
-      </motion.div>
+      </div>
 
-      <div className="container-custom py-8">
-        {/* Categories Filter */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.5 }}
-          className="mb-12"
-        >
-          <div className="flex flex-wrap justify-center gap-3 py-4">
-            {categories.map(category => (
-              <motion.button
-                key={category.id}
-                onClick={() => setSelectedCategory(category.id)}
-                className={`category-pill ${
-                  selectedCategory === category.id 
-                    ? 'bg-primary dark:bg-primary-dark text-white shadow-lg shadow-primary/20 dark:shadow-primary-dark/20' 
-                    : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
-                } px-6 py-2 rounded-full font-medium transition-all duration-300`}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                {category.name}
-              </motion.button>
-            ))}
-          </div>
-        </motion.div>
-
+      <div className="container-custom py-4">
         {/* Popular Section */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
           viewport={{ once: true }}
-          className="mb-16"
+          className="mb-10"
         >
-          <SectionHeading 
-            title="Popular Comics" 
-            icon={<FaFire className="text-orange-500" />} 
-            id="popular"
-          />
+          <div className="flex items-center mb-4">
+            <div className="bg-blue-500 p-1.5 rounded-full mr-2">
+              <FaFire className="text-white" />
+            </div>
+            <h2 className="text-xl font-bold text-gray-800 dark:text-blue-300">Populer</h2>
+          </div>
+          
           <ComicGrid comics={filterComicsByCategory(popularComics)} />
+          
+          {/* Categories Filter - horizontal scrollable */}
+          <div className="flex items-center gap-2 overflow-x-auto py-4 hide-scrollbar mt-4">
+            <div className={`px-4 py-2 rounded-full text-sm flex items-center gap-1 ${
+              selectedCategory === 'all' 
+              ? 'bg-gray-700 text-white' 
+              : 'bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-white'
+            }`}>
+              <span className="w-5 h-5 flex items-center justify-center">🌐</span>
+              <span onClick={() => setSelectedCategory('all')}>All</span>
+            </div>
+            
+            <div className={`px-4 py-2 rounded-full text-sm flex items-center gap-1 ${
+              selectedCategory === 'manga' 
+              ? 'bg-gray-700 text-white' 
+              : 'bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-white'
+            }`}>
+              <span className="w-5 h-5 flex items-center justify-center">🇯🇵</span>
+              <span onClick={() => setSelectedCategory('manga')}>Manga</span>
+            </div>
+            
+            <div className={`px-4 py-2 rounded-full text-sm flex items-center gap-1 ${
+              selectedCategory === 'manhwa' 
+              ? 'bg-gray-700 text-white' 
+              : 'bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-white'
+            }`}>
+              <span className="w-5 h-5 flex items-center justify-center">🇰🇷</span>
+              <span onClick={() => setSelectedCategory('manhwa')}>Manhwa</span>
+            </div>
+            
+            <div className={`px-4 py-2 rounded-full text-sm flex items-center gap-1 ${
+              selectedCategory === 'manhua' 
+              ? 'bg-gray-700 text-white' 
+              : 'bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-white'
+            }`}>
+              <span className="w-5 h-5 flex items-center justify-center">🇨🇳</span>
+              <span onClick={() => setSelectedCategory('manhua')}>Manhua</span>
+            </div>
+          </div>
         </motion.section>
 
-        {/* Latest Section */}
+        {/* Latest Updates Section */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
           viewport={{ once: true }}
-          className="mb-16"
+          className="mb-20"
         >
-          <SectionHeading 
-            title="Latest Updates" 
-            icon={<FaClock className="text-blue-500" />} 
-            id="latest"
-          />
+          <div className="flex items-center mb-4">
+            <div className="bg-white p-1.5 rounded-full mr-2">
+              <FaClock className="text-blue-500" />
+            </div>
+            <h2 className="text-xl font-bold text-gray-800 dark:text-white">Last Update</h2>
+          </div>
+          
           <ComicGrid comics={filterComicsByCategory(latestComics)} />
         </motion.section>
 
@@ -333,38 +301,17 @@ const Home = () => {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
           viewport={{ once: true }}
-          className="mb-16"
+          className="mb-20"
         >
-          <SectionHeading 
-            title="Series Collection" 
-            icon={<FaBookOpen className="text-green-500" />} 
-            id="series"
-          />
+          <div className="flex items-center mb-4">
+            <div className="bg-white p-1.5 rounded-full mr-2">
+              <FaBookOpen className="text-green-500" />
+            </div>
+            <h2 className="text-xl font-bold text-gray-800 dark:text-white">Series Collection</h2>
+          </div>
+          
           <ComicGrid comics={filterComicsByCategory(seriesComics)} />
         </motion.section>
-
-        {/* Featured Comic Navigation */}
-        <div className="mt-16 mb-8 text-center">
-          <h3 className="text-xl font-bold mb-4 text-gray-800 dark:text-gray-200">Featured Comics</h3>
-          <div className="flex items-center justify-center gap-4">
-            <motion.button
-              onClick={handlePrevFeatured}
-              className="btn bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 flex items-center gap-2"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <FaChevronLeft /> Previous
-            </motion.button>
-            <motion.button
-              onClick={handleNextFeatured}
-              className="btn bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 flex items-center gap-2"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              Next <FaChevronRight />
-            </motion.button>
-          </div>
-        </div>
       </div>
     </>
   );

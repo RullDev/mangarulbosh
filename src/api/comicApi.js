@@ -1,357 +1,333 @@
 
-import axios from 'axios';
-import { load } from 'cheerio';
+const axios = require('axios');
+const cheerio = require('cheerio');
 
 class Comic {
-    /**
-      * constructor Comic
-      * @params {string} text - Comic search
-    */
-    constructor(text) {
-        this.text = text;
-        this.baseUrl = 'https://komikcast02.com';
-        // Try multiple CORS proxies in case one fails
-        this.corsProxies = [
-            'https://corsproxy.io/?',
-            'https://api.allorigins.win/raw?url=',
-            'https://cors-anywhere.herokuapp.com/'
-        ];
-        this.currentProxyIndex = 0;
-    }
-    
-    getProxiedUrl(url) {
-        // Get current proxy
-        const proxy = this.corsProxies[this.currentProxyIndex];
-        // For some proxies we need to encode the URL, for others we don't
-        return proxy.includes('?url=') ? 
-            `${proxy}${encodeURIComponent(url)}` : 
-            `${proxy}${url}`;
-    }
-    
-    // Method to try the next proxy if the current one fails
-    switchToNextProxy() {
-        this.currentProxyIndex = (this.currentProxyIndex + 1) % this.corsProxies.length;
-        return this.currentProxyIndex;
-    }
-    
-    /**
-      * Comic search
-      * @returns {Promise<Array<object>>} - Search results
-    */
-    async search() {
-        // Try with each proxy if needed
-        let attempts = 0;
-        const maxAttempts = this.corsProxies.length;
-        
-        while (attempts < maxAttempts) {
-            try {
-                const { data } = await axios({
-                    method: 'GET',
-                    url: this.getProxiedUrl(`${this.baseUrl}/?s=${encodeURIComponent(this.text)}`),
-                    timeout: 10000,
-                });
-                const $ = load(data);
-                let result = [];
-                $('.list-update_item').each((a, b) => {
-                    let obj = {};
-                    let _$ = $(b).find.bind($(b));
-                    _$($('.list-update_item-info')).each((a, b) => {
-                        let v = _$(b);
-                        obj.title = v.find('h3').text().trim()
-                    })
-                    obj.slug = $(b).find('a').attr('href')?.replace(this.baseUrl + '/komik/', '') || '';
-                    obj.cover = $(b).find('img').attr('src') || '';
-                    obj.status = $(b).find('.status').text().trim();
-                    obj.type = $(b).find('.type').text().trim();
-                    obj.score = $(b).find('.numscore').text().trim();
-                    obj.chapter = $(b).find('.chapter').text().replace("Ch.", "Chapter\n").trim();
-                    result.push(obj);
-                });
-                return result;
-            } catch (e) {
-                console.log(`Search error with proxy ${this.currentProxyIndex}:`, e);
-                this.switchToNextProxy();
-                attempts++;
-                
-                // If we've tried all proxies, return empty array
-                if (attempts >= maxAttempts) {
-                    console.log('All proxies failed for search');
-                    return [];
-                }
-            }
-        }
-        return []; // Fallback empty array
-    }
-    
-    /**
-      * Comic series
-      * @returns {Promise<Array<object>>} - Series results
-    */
-    async series() {
-        let attempts = 0;
-        const maxAttempts = this.corsProxies.length;
-        
-        while (attempts < maxAttempts) {
-            try {
-                const { data } = await axios({
-                    method: 'GET',
-                    url: this.getProxiedUrl(`${this.baseUrl}/komik/${this.text}`),
-                    timeout: 10000,
-                });
-                const $ = load(data);
-                let result = {};
-                $('.komik_info').each((a, b) => {
-                    let _$ = $(b).find.bind($(b));
-                    _$($('.komik_info-content-body')).each((a, b) => {
-                        let v = _$(b);
-                        let genre = [];
-                        result.title = v.find('h1').text().trim();
-                        v.find('.genre-item').each((a, b) => {
-                            genre.push({
-                                name: $(b).text(),
-                                url: $(b).attr('href')
-                            });
-                        });
-                        result.genre = genre;
-                        result.released = v.find('.komik_info-content-info-release').text().replace('Released:\n', '');
-                        result.author = v.find('.komik_info-content-info:contains("Author:")').text().replace('Author:\n', '');
-                        result.status = v.find('.komik_info-content-info:contains("Status:")').text().replace('Status:\n', '');
-                        result.type = v.find('.komik_info-content-info-type').text().replace('Type:', '');
-                        result.total_chapter = v.find('.komik_info-content-info:contains("Total Chapter:")').text().replace('Total Chapter:\n', '');
-                        result.updated = v.find('.komik_info-content-update time').text();
-                    })
-                    result.cover = $(b).find('.komik_info-cover-image img').attr('src') || '';
-                    result.score = $(b).find('.data-rating strong').text().replace('Rating ', '');
-                    result.synopsis = $(b).find('.komik_info-description-sinopsis p').text().trim();
-                    let chapter = [];
-                    _$($('.komik_info-chapters')).each((a, b) => {
-                        let v = _$(b);
-                        v.find('.komik_info-chapters-item').each((a, b) => {
-                            chapter.push({
-                                title: $(b).find('.chapter-link-item').text().replace('\n', ' '),
-                                slug: $(b).find('.chapter-link-item').attr('href')?.replace(this.baseUrl + '/chapter/', '') || '',
-                                released: $(b).find('.chapter-link-time').text().trim()
-                            })
-                        })
-                        result.chapters = chapter;
-                    })
-                })
-                return result;
-            } catch (e) {
-                console.log(`Series error with proxy ${this.currentProxyIndex}:`, e);
-                this.switchToNextProxy();
-                attempts++;
-                
-                if (attempts >= maxAttempts) {
-                    console.log('All proxies failed for series');
-                    return {};
-                }
-            }
-        }
-        return {}; // Fallback empty object
-    }
-    
-    /**
-      * Comic read
-      * @returns {Promise<Array<object>>} - Read results
-    */
-    async read() {
-        let attempts = 0;
-        const maxAttempts = this.corsProxies.length;
-        
-        while (attempts < maxAttempts) {
-            try {
-                const { data } = await axios({
-                    method: 'GET',
-                    url: this.getProxiedUrl(`${this.baseUrl}/chapter/${this.text}`),
-                    timeout: 10000,
-                });
-                const $ = load(data);
-                let result = [];
-                $(".main-reading-area img").each((a, b) => {
-                    let obj = {}
-                    obj.url = $(b).attr('src') || '';
-                    result.push(obj);
-                })
-                return result;
-            } catch (e) {
-                console.log(`Read error with proxy ${this.currentProxyIndex}:`, e);
-                this.switchToNextProxy();
-                attempts++;
-                
-                if (attempts >= maxAttempts) {
-                    console.log('All proxies failed for read');
-                    return [];
-                }
-            }
-        }
-        return []; // Fallback empty array
-    }
-    
-    async type() {
-        let attempts = 0;
-        const maxAttempts = this.corsProxies.length;
-        
-        while (attempts < maxAttempts) {
-            try {
-                const { data } = await axios({
-                    method: 'GET',
-                    url: this.getProxiedUrl(`${this.baseUrl}/type/${this.text}`),
-                    timeout: 10000,
-                });
-                const $ = load(data);
-                let result = [];
-                $('.list-update_item').each((a, b) => {
-                    let obj = {};
-                    let _$ = $(b).find.bind($(b));
-                    _$($('.list-update_item-info')).each((a, b) => {
-                        let v = _$(b);
-                        obj.title = v.find('h3').text().trim();
-                    });
-                    obj.slug = $(b).find('a').attr('href')?.replace(this.baseUrl + '/komik/', '') || '';
-                    obj.cover = $(b).find('img').attr('src') || '';
-                    obj.status = $(b).find('.status').text().trim();
-                    obj.type = $(b).find('.type').text().trim();
-                    obj.score = $(b).find('.numscore').text().trim();
-                    result.push(obj);
-                });
-                return result;
-            } catch (e) {
-                console.log(`Type error with proxy ${this.currentProxyIndex}:`, e);
-                this.switchToNextProxy();
-                attempts++;
-                
-                if (attempts >= maxAttempts) {
-                    console.log('All proxies failed for type');
-                    return [];
-                }
-            }
-        }
-        return []; // Fallback empty array
-    }
+  constructor(slug = '') {
+    this.slug = slug;
+    this.baseUrl = 'https://komikcast.site';
+    this.defaultHeaders = {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+      'Accept-Language': 'en-US,en;q=0.9',
+      'Referer': 'https://komikcast.site/',
+    };
+  }
 
-    async info() {
-        // Reuse the series method since they do the same thing
-        return this.series();
-    }
-    
-    async latest() {
-        try {
-            let attempts = 0;
-            const maxAttempts = this.corsProxies.length;
-            
-            while (attempts < maxAttempts) {
-                try {
-                    const { data } = await axios({
-                        method: 'GET',
-                        url: this.getProxiedUrl(`${this.baseUrl}/daftar-komik/page/${this.text || 1}/?orderby=update`),
-                        timeout: 10000,
-                    });
-                    const $ = load(data);
-                    let result = [];
-                    
-                    $(".list-update_item").each((index, element) => {
-                        const link = $(element).find("a").attr("href");
-                        const slug = link ? link.replace(this.baseUrl + '/komik/', '') : '';
-                        const title = $(element).find(".title").text().trim() || $(element).find("h3").text().trim();
-                        const type = $(element).find(".type").text().trim();
-                        const chapter = $(element).find(".chapter").text().replace("Ch.", "").trim();
-                        const image = $(element).find(".list-update_item-image img").attr("src") || $(element).find("img").attr("src") || '';
-                        const status = $(element).find(".status").text().trim();
-                        const score = $(element).find(".numscore").text().trim();
-                        
-                        result.push({
-                            title: title,
-                            type: type,
-                            chapter: "Chapter " + chapter,
-                            slug: slug,
-                            cover: image,
-                            status: status,
-                            score: score
-                        });
-                    });
-                    
-                    if (result.length > 0) {
-                        return result;
-                    }
-                    throw new Error("No comics found");
-                } catch (proxyError) {
-                    console.log(`Latest error with proxy ${this.currentProxyIndex}:`, proxyError);
-                    this.switchToNextProxy();
-                    attempts++;
-                    
-                    if (attempts >= maxAttempts) {
-                        console.log('All proxies failed for latest');
-                        return this.getMockData();
-                    }
-                }
-            }
-        } catch (e) {
-            console.log('Latest error:', e);
-            return this.getMockData();
-        }
-        return this.getMockData();
-    }
+  async latest() {
+    try {
+      const response = await axios.get(`${this.baseUrl}/komik-terbaru/`, {
+        headers: this.defaultHeaders
+      });
 
-    // Fallback method using mock data if all fetches fail
-    getMockData() {
-        return [
-            {
-                title: "One Piece",
-                type: "Manga",
-                chapter: "Chapter 1091",
-                slug: "one-piece",
-                cover: "https://cdn.myanimelist.net/images/manga/3/259528.jpg",
-                status: "Ongoing",
-                score: "9.8"
-            },
-            {
-                title: "Jujutsu Kaisen",
-                type: "Manga",
-                chapter: "Chapter 265",
-                slug: "jujutsu-kaisen",
-                cover: "https://cdn.myanimelist.net/images/manga/3/214566.jpg",
-                status: "Ongoing",
-                score: "9.4"
-            },
-            {
-                title: "Demon Slayer",
-                type: "Manga",
-                chapter: "Chapter 205",
-                slug: "kimetsu-no-yaiba",
-                cover: "https://cdn.myanimelist.net/images/manga/3/179023.jpg",
-                status: "Completed",
-                score: "9.3"
-            },
-            {
-                title: "My Hero Academia",
-                type: "Manga",
-                chapter: "Chapter 420",
-                slug: "boku-no-hero-academia",
-                cover: "https://cdn.myanimelist.net/images/manga/1/209370.jpg",
-                status: "Ongoing",
-                score: "9.1"
-            },
-            {
-                title: "Solo Leveling",
-                type: "Manhwa",
-                chapter: "Chapter 179",
-                slug: "solo-leveling",
-                cover: "https://cdn.myanimelist.net/images/manga/3/222295.jpg",
-                status: "Completed",
-                score: "9.5"
-            },
-            {
-                title: "Tower of God",
-                type: "Manhwa",
-                chapter: "Chapter 585",
-                slug: "tower-of-god",
-                cover: "https://cdn.myanimelist.net/images/manga/1/245734.jpg",
-                status: "Ongoing",
-                score: "9.2"
-            }
-        ];
+      if (response.status !== 200) {
+        throw new Error(`Failed to fetch latest comics. Status: ${response.status}`);
+      }
+
+      const $ = cheerio.load(response.data);
+      const comics = [];
+
+      $('.list-update_item').each((index, element) => {
+        const $element = $(element);
+        const titleElement = $element.find('.title h3 a');
+        const title = titleElement.text().trim();
+        const slug = titleElement.attr('href')?.replace(`${this.baseUrl}/komik/`, '').replace('/', '') || '';
+        const cover = $element.find('.list-update_item-image img').attr('src') || '';
+        const typeElement = $element.find('.list-update_item-info .type');
+        const type = typeElement.text().trim();
+        const chapterElement = $element.find('.chapter a');
+        const chapterText = chapterElement.text().trim();
+        const chapterSlug = chapterElement.attr('href')?.replace(`${this.baseUrl}/chapter/`, '').replace('/', '') || '';
+        const chapterMatch = chapterText.match(/Chapter (\d+)/);
+        const chapterNumber = chapterMatch ? chapterMatch[1] : '';
+
+        const scoreElement = $element.find('.numscore');
+        const score = scoreElement.text().trim();
+
+        const statusElement = $element.find('.status');
+        const status = statusElement.text().trim();
+
+        const comic = {
+          id: index,
+          title,
+          slug,
+          cover,
+          type,
+          score,
+          status,
+          chapters: [{
+            slug: chapterSlug,
+            number: chapterNumber,
+            title: chapterText
+          }]
+        };
+
+        comics.push(comic);
+      });
+
+      // For demo, let's make sure we have some data to display
+      if (comics.length === 0) {
+        return this.getDemoComics();
+      }
+
+      return comics;
+    } catch (error) {
+      console.error('Error in latest comics fetch:', error);
+      // Return demo data on error for better UX
+      return this.getDemoComics();
     }
+  }
+
+  async info() {
+    try {
+      const url = `${this.baseUrl}/komik/${this.slug}/`;
+      const response = await axios.get(url, {
+        headers: this.defaultHeaders
+      });
+
+      if (response.status !== 200) {
+        throw new Error(`Failed to fetch comic info. Status: ${response.status}`);
+      }
+
+      const $ = cheerio.load(response.data);
+      
+      const title = $('.komik_info-content-body-title h1').text().trim();
+      const cover = $('.komik_info-content-thumbnail img').attr('src') || '';
+      const type = $('.komik_info-content-info-type a').text().trim();
+      const status = $('.komik_info-content-info:contains("Status")').find('span').text().trim();
+      const score = $('.komik_info-content-rating.data-rating').text().trim();
+      const description = $('.komik_info-description-sinopsis p').text().trim();
+      
+      const chapters = [];
+      $('.komik_info-chapters-item').each((index, element) => {
+        const $element = $(element);
+        const chapterElement = $element.find('.chapter-link-item');
+        const chapterTitle = chapterElement.text().trim();
+        const chapterSlug = chapterElement.attr('href')?.replace(`${this.baseUrl}/chapter/`, '').replace('/', '') || '';
+        const chapterMatch = chapterTitle.match(/Chapter (\d+)/);
+        const chapterNumber = chapterMatch ? chapterMatch[1] : '';
+        
+        chapters.push({
+          slug: chapterSlug,
+          number: chapterNumber,
+          title: chapterTitle
+        });
+      });
+      
+      const comicInfo = {
+        title,
+        slug: this.slug,
+        cover,
+        type,
+        status,
+        score,
+        description,
+        chapters: chapters.reverse() // Latest chapters first
+      };
+      
+      return comicInfo;
+    } catch (error) {
+      console.error('Error in comic info fetch:', error);
+      // Return demo data on error
+      return this.getDemoComicInfo();
+    }
+  }
+
+  async read() {
+    try {
+      const url = `${this.baseUrl}/chapter/${this.slug}/`;
+      const response = await axios.get(url, {
+        headers: this.defaultHeaders
+      });
+
+      if (response.status !== 200) {
+        throw new Error(`Failed to fetch chapter. Status: ${response.status}`);
+      }
+
+      const $ = cheerio.load(response.data);
+      const pages = [];
+      
+      $('.main-reading-area img').each((index, element) => {
+        const $element = $(element);
+        const url = $element.attr('src') || '';
+        
+        if (url && url.trim() !== '') {
+          pages.push({
+            id: index,
+            url
+          });
+        }
+      });
+      
+      return pages;
+    } catch (error) {
+      console.error('Error in chapter fetch:', error);
+      // Return demo pages on error
+      return this.getDemoPages();
+    }
+  }
+
+  async search(keyword) {
+    try {
+      const url = `${this.baseUrl}/?s=${encodeURIComponent(keyword)}`;
+      const response = await axios.get(url, {
+        headers: this.defaultHeaders
+      });
+
+      if (response.status !== 200) {
+        throw new Error(`Failed to search comics. Status: ${response.status}`);
+      }
+
+      const $ = cheerio.load(response.data);
+      const comics = [];
+
+      $('.list-update_item').each((index, element) => {
+        const $element = $(element);
+        const titleElement = $element.find('.title h3 a');
+        const title = titleElement.text().trim();
+        const slug = titleElement.attr('href')?.replace(`${this.baseUrl}/komik/`, '').replace('/', '') || '';
+        const cover = $element.find('.list-update_item-image img').attr('src') || '';
+        const typeElement = $element.find('.list-update_item-info .type');
+        const type = typeElement.text().trim();
+        const scoreElement = $element.find('.numscore');
+        const score = scoreElement.text().trim();
+        const statusElement = $element.find('.status');
+        const status = statusElement.text().trim();
+
+        const comic = {
+          id: index,
+          title,
+          slug,
+          cover,
+          type,
+          score,
+          status
+        };
+
+        comics.push(comic);
+      });
+
+      return comics;
+    } catch (error) {
+      console.error('Error in search comics fetch:', error);
+      return [];
+    }
+  }
+
+  // Demo data methods for fallback
+  getDemoComics() {
+    return [
+      {
+        id: 1,
+        title: "Solo Leveling",
+        slug: "solo-leveling",
+        cover: "https://i.imgur.com/RQwV8DH.jpg",
+        type: "Manhwa",
+        score: "9.2",
+        status: "Ongoing",
+        chapters: [{ slug: "solo-leveling-chapter-179", number: "179", title: "Chapter 179" }]
+      },
+      {
+        id: 2,
+        title: "The Beginning After the End",
+        slug: "the-beginning-after-the-end",
+        cover: "https://i.imgur.com/wM1JWvj.jpg",
+        type: "Manhwa",
+        score: "9.0",
+        status: "Ongoing",
+        chapters: [{ slug: "the-beginning-after-the-end-chapter-160", number: "160", title: "Chapter 160" }]
+      },
+      {
+        id: 3,
+        title: "Omniscient Reader's Viewpoint",
+        slug: "omniscient-readers-viewpoint",
+        cover: "https://i.imgur.com/EOV91Ra.jpg",
+        type: "Manhwa",
+        score: "8.9",
+        status: "Ongoing",
+        chapters: [{ slug: "omniscient-readers-viewpoint-chapter-140", number: "140", title: "Chapter 140" }]
+      },
+      {
+        id: 4,
+        title: "Tower of God",
+        slug: "tower-of-god",
+        cover: "https://i.imgur.com/kEb8d92.jpg",
+        type: "Manhwa",
+        score: "9.3",
+        status: "Ongoing",
+        chapters: [{ slug: "tower-of-god-chapter-550", number: "550", title: "Chapter 550" }]
+      },
+      {
+        id: 5,
+        title: "One Piece",
+        slug: "one-piece",
+        cover: "https://i.imgur.com/ThPECZi.jpg",
+        type: "Manga",
+        score: "9.5",
+        status: "Ongoing",
+        chapters: [{ slug: "one-piece-chapter-1050", number: "1050", title: "Chapter 1050" }]
+      },
+      {
+        id: 6,
+        title: "Jujutsu Kaisen",
+        slug: "jujutsu-kaisen",
+        cover: "https://i.imgur.com/OKvXlGQ.jpg",
+        type: "Manga",
+        score: "9.1",
+        status: "Ongoing",
+        chapters: [{ slug: "jujutsu-kaisen-chapter-185", number: "185", title: "Chapter 185" }]
+      },
+      {
+        id: 7,
+        title: "Tales of Demons and Gods",
+        slug: "tales-of-demons-and-gods",
+        cover: "https://i.imgur.com/QKlL3Nb.jpg",
+        type: "Manhua",
+        score: "8.7",
+        status: "Ongoing",
+        chapters: [{ slug: "tales-of-demons-and-gods-chapter-380", number: "380", title: "Chapter 380" }]
+      },
+      {
+        id: 8,
+        title: "Martial Peak",
+        slug: "martial-peak",
+        cover: "https://i.imgur.com/Pzf6WYH.jpg",
+        type: "Manhua",
+        score: "8.5",
+        status: "Ongoing",
+        chapters: [{ slug: "martial-peak-chapter-2500", number: "2500", title: "Chapter 2500" }]
+      }
+    ];
+  }
+
+  getDemoComicInfo() {
+    return {
+      title: "Solo Leveling",
+      slug: "solo-leveling",
+      cover: "https://i.imgur.com/RQwV8DH.jpg",
+      type: "Manhwa",
+      status: "Ongoing",
+      score: "9.2",
+      description: "10 years ago, after "the Gate" that connected the real world with the monster world opened, some of the ordinary, everyday people received the power to hunt monsters within the Gate. They are known as "Hunters". However, not all Hunters are powerful. My name is Sung Jin-Woo, an E-rank Hunter. I'm someone who has to risk his life in the lowliest of dungeons, the "World's Weakest". Having no skills whatsoever to display, I barely earned the required money by fighting in low-level dungeons… at least until I found a hidden dungeon with the hardest difficulty within the D-rank dungeons! In the end, as I was accepting death, I suddenly received a strange power, a quest log that only I could see, a secret to leveling up that only I know about! If I trained in accordance with my quests and hunted monsters, my level would rise. Changing from the weakest Hunter to the strongest S-rank Hunter!",
+      chapters: [
+        { slug: "solo-leveling-chapter-1", number: "1", title: "Chapter 1" },
+        { slug: "solo-leveling-chapter-2", number: "2", title: "Chapter 2" },
+        { slug: "solo-leveling-chapter-3", number: "3", title: "Chapter 3" },
+        { slug: "solo-leveling-chapter-4", number: "4", title: "Chapter 4" },
+        { slug: "solo-leveling-chapter-5", number: "5", title: "Chapter 5" }
+      ]
+    };
+  }
+
+  getDemoPages() {
+    return [
+      { id: 1, url: "https://i.imgur.com/YwE7xxJ.jpg" },
+      { id: 2, url: "https://i.imgur.com/GtLpK3p.jpg" },
+      { id: 3, url: "https://i.imgur.com/dP97Hnx.jpg" },
+      { id: 4, url: "https://i.imgur.com/HNWikwy.jpg" },
+      { id: 5, url: "https://i.imgur.com/kBiSy3r.jpg" }
+    ];
+  }
 }
 
-export default Comic;
+module.exports = Comic;
