@@ -25,7 +25,7 @@ const Donate = () => {
                 }}
                 className="h-16 w-16 flex items-center justify-center rounded-full bg-pink-100 dark:bg-pink-900/30 text-pink-500"
               >
-                <FaHeart size={28} />
+                <img src="icon2.jpg" alt="Ikontol" className="h-full w-full rounded-full border-2 border-white shadow-lg"/>
               </motion.div>
             </div>
 
