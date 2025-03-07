@@ -383,7 +383,7 @@ const ReadingPage = () => {
                           onClick={() => changeReadingMode('single-page')}
                           className={`px-3 py-1.5 rounded-lg text-sm ${readingMode === 'single-page' ? 'bg-primary text-white' : 'bg-gray-700 text-gray-300'}`}
                         >
-                          Single Page
+                          Single Page (Beta)
                         </button>
                       </div>
                     </div>

@@ -12,7 +12,7 @@ const categories = [
   { id: 'all', name: 'All', icon: <FaGlobe /> },
   { id: 'manga', name: 'Manga', icon: <FaBookOpen /> },
   { id: 'manhua', name: 'Manhua', icon: <FaFire /> },
-  { id: 'manhwa', name: 'Manhwa', icon: <FaStar /> },n: '🇰🇷' }
+  { id: 'manhwa', name: 'Manhwa', icon: <FaStar /> }
 ];
 
 const Home = () => {

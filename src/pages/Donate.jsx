@@ -7,10 +7,7 @@ const Donate = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background-light to-primary/5 dark:from-background-dark dark:to-primary/10">
       <div className="container-custom py-6">
-        <Link to="/" className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary mb-6">
-          <FaArrowLeft size={14} />
-          <span>Back to Home</span>
-        </Link>
+        
 
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -41,13 +38,16 @@ const Donate = () => {
               high-quality manga content to our readers. Thank you for your support!
             </p>
 
-            <motion.button
+            <motion.a
+              href="https://saweria.co/RullZY"
+              target="_blank"
+              rel="noopener noreferrer"
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
-              className="w-full py-4 rounded-lg bg-gradient-to-r from-pink-500 to-primary text-white font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300"
+              className="w-full py-4 rounded-lg bg-gradient-to-r from-pink-500 to-primary text-white font-bold text-center text-lg shadow-lg hover:shadow-xl transition-all duration-300 inline-block" // Added inline-block
             >
               Donate Now
-            </motion.button>
+            </motion.a>
 
             <div className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
               <p>100% of your donation goes directly toward server costs and development.</p>
