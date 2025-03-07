@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { FaSpinner, FaExclamationTriangle, FaFire, FaClock, FaBookOpen, FaStar, FaGlobe } from 'react-icons/fa';
+import { FaSpinner, FaExclamationTriangle, FaFire, FaClock, FaBookOpen, FaStar, FaGlobe, FaBookReader } from 'react-icons/fa';
 import Comic from '../api/comicApi';
 import ComicGrid from '../components/ComicGrid';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -50,9 +49,10 @@ const Home = () => {
     return () => clearInterval(interval);
   }, [latestComics.length]);
 
-const randomNum = async (min, max) => { Math.floor(Math.random() * (max - min + 1)) + min;
-}
-  
+  const randomNum = async (min, max) => { 
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  };
+
   const fetchComics = async () => {
     setLoading(true);
     setError(null);
@@ -70,12 +70,8 @@ const randomNum = async (min, max) => { Math.floor(Math.random() * (max - min + 
       }
 
       setLatestComics(latest);
-
-      // For demo purposes, let's clone and shuffle the array to use as popular comics
-      
       setPopularComics(popularr);
 
-      // For series, we're using the same data but imagine it's different
       const series = [...latest, ...popularr].sort(() => 0.5 - Math.random());
       setSeriesComics(series);
 
@@ -103,7 +99,7 @@ const randomNum = async (min, max) => { Math.floor(Math.random() * (max - min + 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <LoadingSpinner size="large" message="Loading amazing comics..." />
+        <LoadingSpinner size="large" message="Loading amazing comics..." pulse /> {/* Added pulse prop */}
       </div>
     );
   }
@@ -129,9 +125,52 @@ const randomNum = async (min, max) => { Math.floor(Math.random() * (max - min + 
 
   return (
     <>
-      {/* Hero section with featured comic */}
+      {/* Hero section with featured comic and landing page description */}
       <div ref={heroRef} className="relative bg-black text-white overflow-hidden">
-        {/* Featured comic carousel */}
+        <motion.div 
+          className="hero-section bg-gradient-to-br from-primary/80 to-gray-900 text-white mb-6"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8 }}
+        >
+          <div className="container-custom py-10 md:py-16">
+            <div className="text-center md:text-left mb-8 md:mb-0">
+              <motion.div 
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.2, duration: 0.5 }}
+                className="flex items-center justify-center md:justify-start mb-4"
+              >
+                <div className="logo-container mr-3 bg-white/10 p-3 rounded-full">
+                  <FaBookReader className="text-3xl text-white" />
+                </div>
+                <h1 className="text-2xl md:text-4xl font-bold">MangaRul</h1>
+              </motion.div>
+              <motion.p 
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.4, duration: 0.5 }}
+                className="text-lg md:text-xl text-gray-200 max-w-xl"
+              >
+                Your ultimate destination for manga, manhwa, and manhua. Read your favorite comics anytime, anywhere.
+              </motion.p>
+              <motion.div 
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.6, duration: 0.5 }}
+                className="mt-6 flex flex-wrap gap-3 justify-center md:justify-start"
+              >
+                <button className="bg-white text-primary hover:bg-gray-100 px-6 py-2 rounded-full font-medium transition-all">
+                  Explore Now
+                </button>
+                <button className="bg-transparent border border-white text-white hover:bg-white/10 px-6 py-2 rounded-full font-medium transition-all">
+                  Latest Updates
+                </button>
+              </motion.div>
+            </div>
+          </div>
+        </motion.div>
+
         {featuredComic && (
           <motion.div 
             className="w-full relative pb-4"
@@ -141,7 +180,6 @@ const randomNum = async (min, max) => { Math.floor(Math.random() * (max - min + 
             transition={{ duration: 0.5, delay: 0.4 }}
           >
             <div className="w-full h-[320px] relative overflow-hidden">
-              {/* Background Image with Parallax */}
               <motion.div 
                 className="absolute inset-0"
                 style={{ y: bgY }}
@@ -153,11 +191,9 @@ const randomNum = async (min, max) => { Math.floor(Math.random() * (max - min + 
                   className="w-full h-full object-cover object-center blur-sm opacity-60"
                 />
               </motion.div>
-              
-              {/* Content - centered with comic image */}
+
               <div className="absolute inset-0 z-20 flex items-center p-6">
                 <div className="container-custom flex flex-row items-center gap-4">
-                  {/* Comic cover */}
                   <motion.div
                     initial={{ y: 20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
@@ -170,8 +206,7 @@ const randomNum = async (min, max) => { Math.floor(Math.random() * (max - min + 
                       className="w-full h-full object-cover object-center"
                     />
                   </motion.div>
-                  
-                  {/* Comic info */}
+
                   <motion.div
                     initial={{ y: 20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
@@ -182,7 +217,7 @@ const randomNum = async (min, max) => { Math.floor(Math.random() * (max - min + 
                       <h2 className="text-2xl lg:text-3xl font-bold text-white mb-2">
                         {featuredComic.title}
                       </h2>
-                      
+
                       <div className="flex items-center mb-2 text-sm text-gray-300">
                         <span className="px-2 py-0.5 bg-primary/30 rounded-full mr-2">
                           {featuredComic.type}
@@ -192,18 +227,21 @@ const randomNum = async (min, max) => { Math.floor(Math.random() * (max - min + 
                           {featuredComic.score || "N/A"}
                         </span>
                       </div>
-                      
+
                       <p className="text-sm text-gray-300 line-clamp-2">
                         {featuredComic.status ? `Status: ${featuredComic.status}` : ''} 
                         {featuredComic.chapter ? ` • Latest: ${featuredComic.chapter}` : ''}
                       </p>
                     </Link>
+                    {/* Placeholder for "See More Chapters" button */}
+                    {featuredComic.chapters && featuredComic.chapters.length > 5 && (
+                      <button className="mt-2 text-sm text-blue-500 hover:underline">See More Chapters</button>
+                    )}
                   </motion.div>
                 </div>
               </div>
             </div>
-            
-            {/* Carousel Indicators - moved to the bottom of the hero */}
+
             <div className="flex justify-center gap-2 py-3">
               {latestComics.slice(0, 5).map((_, idx) => (
                 <button 
@@ -266,7 +304,7 @@ const randomNum = async (min, max) => { Math.floor(Math.random() * (max - min + 
             </div>
             <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">Popular</h2>
           </div>
-          
+
           <ComicGrid comics={filterComicsByCategory(popularComics)} />
         </motion.section>
 
@@ -284,7 +322,7 @@ const randomNum = async (min, max) => { Math.floor(Math.random() * (max - min + 
             </div>
             <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">Latest Updates</h2>
           </div>
-          
+
           <ComicGrid comics={filterComicsByCategory(latestComics)} />
         </motion.section>
 
@@ -302,7 +340,7 @@ const randomNum = async (min, max) => { Math.floor(Math.random() * (max - min + 
             </div>
             <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">Series Collection</h2>
           </div>
-          
+
           <ComicGrid comics={filterComicsByCategory(seriesComics)} />
         </motion.section>
       </div>

@@ -1031,6 +1031,79 @@ body {
   animation: pulse 1.5s infinite ease-in-out;
 }
 
+/* Animation delays for staggered animations */
+.animation-delay-100 {
+  animation-delay: 0.1s;
+}
+
+.animation-delay-200 {
+  animation-delay: 0.2s;
+}
+
+.animation-delay-300 {
+  animation-delay: 0.3s;
+}
+
+.animation-delay-400 {
+  animation-delay: 0.4s;
+}
+
+.animation-delay-500 {
+  animation-delay: 0.5s;
+}
+
+/* Hero section styles */
+.hero-section {
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-section::before {
+  content: '';
+  position: absolute;
+  top: -10%;
+  right: -10%;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(var(--primary-rgb), 0.3) 0%, rgba(var(--primary-rgb), 0) 70%);
+  z-index: 0;
+}
+
+.hero-section::after {
+  content: '';
+  position: absolute;
+  bottom: -10%;
+  left: -10%;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(var(--primary-rgb), 0.2) 0%, rgba(var(--primary-rgb), 0) 70%);
+  z-index: 0;
+}
+
+.logo-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.logo-container::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  animation: shine 2s infinite;
+}
+
+@keyframes shine {
+  0% { left: -100%; }
+  20% { left: 100%; }
+  100% { left: 100%; }
+}
+
 /* Reading page spacing for bottom nav */
 .comic-reader {
   padding-bottom: 80px;
@@ -1038,4 +1111,20 @@ body {
 
 .comic-reader.vertical {
   padding-bottom: 80px;
+}
+
+/* Chapter list styles */
+.chapter-list {
+  max-height: 800px;
+  overflow-y: auto;
+}
+
+/* Chapter hover effect */
+.chapter-item {
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.chapter-item:hover {
+  background-color: rgba(var(--primary-rgb), 0.05);
 }

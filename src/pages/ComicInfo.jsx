@@ -1,19 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaArrowLeft, FaStar, FaBookmark, FaRegBookmark, FaExclamationTriangle, FaCalendarAlt, FaUser, FaListUl, FaEye } from 'react-icons/fa';
 import Comic from '../api/comicApi';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { ThemeContext } from '../context/ThemeContext';
 
 const ComicInfo = () => {
   const { slug } = useParams();
-  const navigate = useNavigate();
-
-  const [comic, setComic] = useState(null);
+  const [comic, setComic] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isBookmarked, setIsBookmarked] = useState(false);
-  const [expandedSynopsis, setExpandedSynopsis] = useState(false);
+  const [showAllChapters, setShowAllChapters] = useState(false);
+  const { darkMode } = useContext(ThemeContext);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchComicInfo();
@@ -315,22 +315,48 @@ const ComicInfo = () => {
 
               {comic.chapters && comic.chapters.length > 0 ? (
                 <div className="divide-y divide-gray-100 dark:divide-gray-700">
-                  {comic.chapters.map((chapter, index) => (
-                    <Link 
-                      key={index}
-                      to={`/read/${chapter.slug}`}
-                      className="block py-3 px-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition-colors"
-                    >
-                      <div className="flex justify-between items-center">
-                        <span className="font-medium text-gray-800 dark:text-white">
-                          {chapter.title}
-                        </span>
-                        <span className="text-sm text-gray-500 dark:text-gray-400">
-                          {chapter.released}
-                        </span>
-                      </div>
-                    </Link>
-                  ))}
+                  {showAllChapters ? (
+                    comic.chapters.map((chapter, index) => (
+                      <Link 
+                        key={index}
+                        to={`/read/${chapter.slug}`}
+                        className="block py-3 px-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition-colors"
+                      >
+                        <div className="flex justify-between items-center">
+                          <span className="font-medium text-gray-800 dark:text-white">
+                            {chapter.title}
+                          </span>
+                          <span className="text-sm text-gray-500 dark:text-gray-400">
+                            {chapter.released}
+                          </span>
+                        </div>
+                      </Link>
+                    ))
+                  ) : (
+                    <>
+                      {comic.chapters.slice(0, 5).map((chapter, index) => (
+                        <Link 
+                          key={index}
+                          to={`/read/${chapter.slug}`}
+                          className="block py-3 px-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition-colors"
+                        >
+                          <div className="flex justify-between items-center">
+                            <span className="font-medium text-gray-800 dark:text-white">
+                              {chapter.title}
+                            </span>
+                            <span className="text-sm text-gray-500 dark:text-gray-400">
+                              {chapter.released}
+                            </span>
+                          </div>
+                        </Link>
+                      ))}
+                      {comic.chapters.length > 5 && (
+                        <button onClick={() => setShowAllChapters(true)} className="block w-full text-center py-2 mt-2 bg-blue-500 hover:bg-blue-700 text-white rounded">
+                          See More Chapters
+                        </button>
+                      )}
+                    </>
+                  )}
                 </div>
               ) : (
                 <div className="py-6 text-center text-gray-500 dark:text-gray-400">
