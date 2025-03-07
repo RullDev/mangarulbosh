@@ -515,30 +515,6 @@ html {
   opacity: 0;
 }
 
-/* Search page animations */
-@keyframes floatingCat {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-8px); }
-  100% { transform: translateY(0px); }
-}
-
-.cat-animation {
-  animation: floatingCat 3s ease-in-out infinite;
-}
-
-.search-form {
-  transition: all 0.3s ease;
-}
-
-.search-form:focus-within {
-  transform: translateY(-2px);
-}
-
-/* Improved search input focus */
-.search-input:focus {
-  box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.3);
-}
-
 .hamburger-open .hamburger-line:nth-child(3) {
   transform: translateY(-8px) rotate(-45deg);
 }
