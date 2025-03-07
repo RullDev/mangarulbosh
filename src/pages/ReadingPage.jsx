@@ -447,8 +447,7 @@ const ReadingPage = () => {
                 <img 
                   src={pages[currentPage]?.url} 
                   alt={`Page ${currentPage + 1}`} 
-                  className="max-h-[85vh] max-w-full md:max-w-[90%] object-contain mx-auto shadow-xl rounded-md border border-gray-800/30"
-                  style={{ height: 'auto', width: 'auto' }}
+                  className="max-h-[85vh] max-w-[95%] md:max-w-[85%] object-contain mx-auto shadow-xl"
                   onError={(e) => {
                     e.target.onerror = null;
                     e.target.src = 'https://via.placeholder.com/800x1200?text=Image+Not+Available';
