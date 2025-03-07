@@ -1,40 +1,61 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 
 const LoadingSpinner = ({ size = 'medium', message = 'Loading...' }) => {
-  const sizeClass = {
-    small: 'w-4 h-4 border-2',
-    medium: 'w-8 h-8 border-3',
-    large: 'w-12 h-12 border-4'
-  };
-
-  const bounce = {
-    animate: {
-      y: [0, -10, 0],
-      transition: {
-        duration: 1,
-        repeat: Infinity,
-        repeatType: "loop",
-        ease: "easeInOut"
-      }
-    }
+  const sizes = {
+    small: 'w-5 h-5',
+    medium: 'w-8 h-8',
+    large: 'w-12 h-12'
   };
 
   return (
-    <div className="flex flex-col items-center justify-center">
+    <div className="flex flex-col items-center justify-center p-4">
       <div className="relative">
+        {/* Outer pulse effect */}
         <motion.div
-          className={`${sizeClass[size]} rounded-full border-gray-300 border-t-primary animate-spin`}
-          style={{ borderTopColor: 'var(--primary)' }}
+          className={`absolute inset-0 ${sizes[size]} rounded-full bg-primary/20`}
+          animate={{ 
+            scale: [1, 1.5, 1],
+            opacity: [0.3, 0.1, 0.3]
+          }}
+          transition={{ 
+            duration: 2, 
+            repeat: Infinity, 
+            ease: "easeInOut" 
+          }}
+        />
+
+        {/* Inner spinner */}
+        <motion.div
+          className={`${sizes[size]} border-4 border-gray-200 dark:border-gray-700 border-t-primary dark:border-t-primary rounded-full`}
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+        />
+
+        {/* Dot in center */}
+        <motion.div
+          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-primary rounded-full"
+          style={{ 
+            width: size === 'small' ? '4px' : size === 'medium' ? '6px' : '8px',
+            height: size === 'small' ? '4px' : size === 'medium' ? '6px' : '8px'
+          }}
+          animate={{ 
+            scale: [1, 1.5, 1],
+          }}
+          transition={{ 
+            duration: 1, 
+            repeat: Infinity, 
+            ease: "easeInOut" 
+          }}
         />
       </div>
-      
+
       {message && (
         <motion.p 
-          className="mt-4 text-gray-600 dark:text-gray-300 text-center"
-          variants={bounce}
-          animate="animate"
+          className="mt-4 text-gray-600 dark:text-gray-300 text-center font-medium"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
         >
           {message}
         </motion.p>
