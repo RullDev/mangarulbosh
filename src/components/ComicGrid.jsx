@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
@@ -29,64 +30,66 @@ const ComicGrid = ({ comics }) => {
   };
 
   return (
-    <motion.div
-      className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"
+    <motion.div 
+      className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4"
       variants={container}
       initial="hidden"
       animate="show"
     >
       {comics.map((comic, index) => (
-        <motion.div
-          key={index}
-          variants={item}
-          whileHover={{ y: -5 }}
-          className="comic-card overflow-hidden"
-        >
+        <motion.div key={comic.slug + index} variants={item}>
           <Link to={`/comic/${comic.slug}`} className="block">
-            <div className="relative aspect-[2/3] overflow-hidden">
-              {comic.cover ? (
-                <img
-                  src={comic.cover}
-                  alt={comic.title}
-                  className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+            <div className="comic-card h-full flex flex-col">
+              <div className="relative overflow-hidden rounded-t-lg aspect-[3/4]">
+                <img 
+                  src={comic.cover || 'https://via.placeholder.com/300x400?text=No+Image'} 
+                  alt={comic.title} 
+                  className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
                   loading="lazy"
                   onError={(e) => {
                     e.target.onerror = null;
-                    e.target.src = 'https://via.placeholder.com/300x450?text=No+Image';
+                    e.target.src = 'https://via.placeholder.com/300x400?text=Error+Loading';
                   }}
                 />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gray-800">
-                  <div className="text-center p-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    <p className="text-xs mt-2 text-gray-400">No image available</p>
+                {comic.status && (
+                  <div className={`absolute top-2 left-2 px-2 py-0.5 rounded-full text-xs font-medium ${
+                    comic.status.toLowerCase().includes('ongoing') 
+                      ? 'bg-green-500/80 text-white' 
+                      : 'bg-blue-500/80 text-white'
+                  }`}>
+                    {comic.status}
                   </div>
-                </div>
-              )}
-
-              <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent p-2">
-                <div className="flex justify-between items-center">
-                  <div className="px-2 py-0.5 text-xs rounded-full bg-primary/80 text-white">
+                )}
+              </div>
+              
+              <div className="p-2 flex-grow flex flex-col justify-between">
+                <h3 className="font-medium text-sm text-gray-800 dark:text-white line-clamp-1">
+                  {comic.title}
+                </h3>
+                
+                <div className="mt-2 flex items-center justify-between">
+                  <div className={`px-1.5 py-0.5 text-2xs rounded ${
+                    comic.type?.toLowerCase().includes('manga') 
+                      ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200' 
+                      : comic.type?.toLowerCase().includes('manhwa')
+                        ? 'bg-purple-100 dark:bg-purple-900/50 text-purple-800 dark:text-purple-200'
+                        : 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200'
+                  }`}>
                     {comic.type || 'Unknown'}
                   </div>
-
-                  {comic.score && (
-                    <div className="flex items-center text-xs text-yellow-400">
-                      <FaStar className="mr-1" />
-                      {comic.score}
-                    </div>
-                  )}
+                  
+                  <div className="flex items-center text-xs text-yellow-500">
+                    <FaStar className="mr-0.5" />
+                    {comic.score || 'N/A'}
+                  </div>
                 </div>
+                
+                {comic.chapter && (
+                  <div className="mt-1.5 text-2xs text-gray-600 dark:text-gray-400">
+                    {comic.chapter}
+                  </div>
+                )}
               </div>
-            </div>
-
-            <div className="p-3">
-              <h3 className="text-sm font-medium text-gray-800 dark:text-white line-clamp-2">{comic.title}</h3>
-              {comic.chapter && (
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{comic.chapter}</p>
-              )}
             </div>
           </Link>
         </motion.div>

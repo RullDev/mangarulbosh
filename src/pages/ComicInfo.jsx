@@ -114,8 +114,8 @@ const ComicInfo = () => {
     <div className="min-h-screen bg-gray-50 dark:bg-black">
       {/* Back button */}
       <motion.button 
-        className="fixed top-4 left-4 z-50 bg-gray-800/70 dark:bg-gray-800/90 text-white p-2 rounded-full backdrop-blur-sm hover:bg-primary transition-colors"
-        onClick={() => window.history.back()}
+        className="fixed top-4 left-4 z-10 bg-gray-800/70 dark:bg-gray-800/90 text-white p-2 rounded-full backdrop-blur-sm hover:bg-primary transition-colors"
+        onClick={() => navigate(-1)}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
         aria-label="Go back"
