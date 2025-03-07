@@ -13,8 +13,7 @@ import {
   FaChevronLeft,
   FaChevronRight,
   FaBook,
-  FaNewspaper,
-  FaComic
+  FaNewspaper
 } from 'react-icons/fa';
 import Comic from '../api/comicApi';
 import LoadingSpinner from '../components/LoadingSpinner';
