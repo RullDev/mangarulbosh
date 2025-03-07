@@ -1,5 +1,5 @@
 
-import React, { createContext, useEffect } from 'react';
+import React, { createContext, useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import './App.css';
@@ -17,18 +17,24 @@ import Donate from './pages/Donate';
 export const ThemeContext = createContext();
 
 export default function App() {
-  // Always use dark mode
-  const darkMode = true;
+  // Check if dark mode is saved in localStorage, default to true
+  const [darkMode, setDarkMode] = useState(() => {
+    const saved = localStorage.getItem('darkMode');
+    return saved ? JSON.parse(saved) : true;
+  });
 
   useEffect(() => {
-    // Always apply dark mode to body
-    document.documentElement.classList.add('dark');
-    localStorage.setItem('darkMode', 'true');
-  }, []);
+    // Apply dark mode to body based on state
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem('darkMode', JSON.stringify(darkMode));
+  }, [darkMode]);
 
-  // Keep this function for compatibility but it doesn't do anything now
   const toggleDarkMode = () => {
-    // Do nothing as we're always in dark mode
+    setDarkMode(!darkMode);
   };
 
   return (

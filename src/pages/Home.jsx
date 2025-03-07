@@ -1,312 +1,100 @@
-
-import React, { useState, useEffect, useRef, useContext } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
-import { FaSpinner, FaExclamationTriangle, FaFire, FaClock, FaBookOpen, FaStar, FaGlobe } from 'react-icons/fa';
-import Comic from '../api/comicApi';
-import ComicGrid from '../components/ComicGrid';
-import LoadingSpinner from '../components/LoadingSpinner';
+import React, { useState, useEffect, useContext } from 'react';
+import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { FaBars } from 'react-icons/fa';
+import ComicCard from '../components/ComicCard';
+import LoadingSpinner from '../components/LoadingSpinner';
+import ThemeToggle from '../components/ThemeToggle';
 import { ThemeContext } from '../App';
+import Comic from '../api/comicApi';
 
-const categories = [
-  { id: 'all', name: 'All', icon: <FaGlobe /> },
-  { id: 'manga', name: 'Manga', icon: '🇯🇵' },
-  { id: 'manhua', name: 'Manhua', icon: '🇨🇳' },
-  { id: 'manhwa', name: 'Manhwa', icon: '🇰🇷' }
-];
 
 const Home = () => {
-  const [latestComics, setLatestComics] = useState([]);
-  const [popularComics, setPopularComics] = useState([]);
-  const [seriesComics, setSeriesComics] = useState([]);
+  const [comics, setComics] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [featuredIndex, setFeaturedIndex] = useState(0);
   const { darkMode } = useContext(ThemeContext);
 
-  const heroRef = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: heroRef,
-    offset: ["start start", "end start"],
-    layoutEffect: false
-  });
-
-  const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
-  const bgY = useTransform(scrollYProgress, [0, 1], ['0%', '10%']);
-
   useEffect(() => {
+    const fetchComics = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const comicApi = new Comic();
+        const RandomItel = await (async () => Math.floor(Math.random() * (10 - 1 + 1)) + 1)(); //Fixed randomNum function
+        const latest = await comicApi.latest(RandomItel);
+
+        if (!latest || !Array.isArray(latest)) {
+          throw new Error('Failed to fetch comics data');
+        }
+        setComics(latest);
+      } catch (err) {
+        console.error("Error fetching comics:", err);
+        setError("Failed to load comics. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchComics();
   }, []);
 
-  // Auto shifting interval for featured comic
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (latestComics.length > 0) {
-        setFeaturedIndex(prev => (prev === latestComics.length - 1 ? 0 : prev + 1));
-      }
-    }, 5000); // Every 5 seconds
-
-    return () => clearInterval(interval);
-  }, [latestComics.length]);
-
-const randomNum = async (min, max) => { Math.floor(Math.random() * (max - min + 1)) + min;
-}
-  
-  const fetchComics = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const comicApi = new Comic();
-      const RandomItel = await randomNum(1, 10);
-      const latest = await comicApi.latest(RandomItel);
-      const popularr = await comicApi.popular(RandomItel);
-      if (!latest || !Array.isArray(latest)) {
-        throw new Error('Failed to fetch comics data');
-      }
-
-      if (!popularr || !Array.isArray(popularr)) {
-        throw new Error('Failed to fetch comics data');
-      }
-
-      setLatestComics(latest);
-
-      // For demo purposes, let's clone and shuffle the array to use as popular comics
-      
-      setPopularComics(popularr);
-
-      // For series, we're using the same data but imagine it's different
-      const series = [...latest, ...popularr].sort(() => 0.5 - Math.random());
-      setSeriesComics(series);
-
-    } catch (err) {
-      console.error("Error fetching comics:", err);
-      setError("Failed to load comics. Please try again later.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const filterComicsByCategory = (comicsArray) => {
-    if (selectedCategory === 'all') {
-      return comicsArray;
-    }
-
-    return comicsArray.filter(comic => {
-      const type = comic.type ? comic.type.toLowerCase() : '';
-      return type.includes(selectedCategory.toLowerCase());
-    });
-  };
-
-  const featuredComic = latestComics[featuredIndex];
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <LoadingSpinner size="large" message="Loading amazing comics..." />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="container-custom py-20 text-center"
-      >
-        <FaExclamationTriangle className="mx-auto text-red-500 text-5xl mb-4" />
-        <p className="text-xl text-gray-700 dark:text-gray-300">{error}</p>
-        <button 
-          onClick={fetchComics}
-          className="mt-4 btn btn-primary"
-        >
-          Retry
-        </button>
-      </motion.div>
-    );
-  }
-
   return (
-    <>
-      {/* Hero section with featured comic */}
-      <div ref={heroRef} className="relative bg-black text-white overflow-hidden">
-        {/* Featured comic carousel */}
-        {featuredComic && (
-          <motion.div 
-            className="w-full relative pb-4"
-            style={{ opacity }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-          >
-            <div className="w-full h-[320px] relative overflow-hidden">
-              {/* Background Image with Parallax */}
-              <motion.div 
-                className="absolute inset-0"
-                style={{ y: bgY }}
-              >
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/90 to-black/70 z-10"></div>
-                <img 
-                  src={featuredComic.cover} 
-                  alt={featuredComic.title}
-                  className="w-full h-full object-cover object-center blur-sm opacity-60"
-                />
-              </motion.div>
-              
-              {/* Content - centered with comic image */}
-              <div className="absolute inset-0 z-20 flex items-center p-6">
-                <div className="container-custom flex flex-row items-center gap-4">
-                  {/* Comic cover */}
-                  <motion.div
-                    initial={{ y: 20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ duration: 0.5, delay: 0.6 }}
-                    className="w-[120px] h-[180px] flex-shrink-0 rounded-lg overflow-hidden shadow-lg shadow-black/50"
-                  >
-                    <img 
-                      src={featuredComic.cover} 
-                      alt={featuredComic.title}
-                      className="w-full h-full object-cover object-center"
-                    />
-                  </motion.div>
-                  
-                  {/* Comic info */}
-                  <motion.div
-                    initial={{ y: 20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ duration: 0.5, delay: 0.7 }}
-                    className="flex-1"
-                  >
-                    <Link to={`/comic/${featuredComic.slug}`} className="block">
-                      <h2 className="text-2xl lg:text-3xl font-bold text-white mb-2">
-                        {featuredComic.title}
-                      </h2>
-                      
-                      <div className="flex items-center mb-2 text-sm text-gray-300">
-                        <span className="px-2 py-0.5 bg-primary/30 rounded-full mr-2">
-                          {featuredComic.type}
-                        </span>
-                        <span className="flex items-center">
-                          <FaStar className="text-yellow-400 mr-1" /> 
-                          {featuredComic.score || "N/A"}
-                        </span>
-                      </div>
-                      
-                      <p className="text-sm text-gray-300 line-clamp-2">
-                        {featuredComic.status ? `Status: ${featuredComic.status}` : ''} 
-                        {featuredComic.chapter ? ` • Latest: ${featuredComic.chapter}` : ''}
-                      </p>
-                    </Link>
-                  </motion.div>
-                </div>
-              </div>
+    <div className={`min-h-screen ${darkMode ? 'bg-black text-white' : 'bg-white text-gray-800'}`}>
+      {/* Header */}
+      <header className={`fixed top-0 left-0 right-0 z-10 ${darkMode ? 'bg-black' : 'bg-white'} border-b ${darkMode ? 'border-gray-800' : 'border-gray-200'}`}>
+        <div className="container-custom flex items-center justify-between py-4">
+          <div className="flex items-center">
+            <button className="mr-4">
+              <FaBars />
+            </button>
+            <h1 className="text-2xl font-bold">MANGARUL</h1>
+          </div>
+          <ThemeToggle />
+        </div>
+      </header>
+
+      {/* Main content */}
+      <main className="container-custom pt-20 pb-20">
+        {/* Welcome Section */}
+        <section className="mb-8">
+          <h2 className="text-2xl font-bold mb-3">Welcome To MangaRul</h2>
+          <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-6`}>
+            Dive into the world of manga with MangaRul, your ultimate destination for the latest and
+            greatest in comic reading. Enjoy high-quality mirror scans of your favorite manga, and
+            discover new manga to read.
+          </p>
+          <div className="border-b border-gray-700 mb-6"></div>
+        </section>
+
+        {/* Latest Releases */}
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold">Latest Release</h2>
+            <Link to="/releases" className="text-sm text-blue-500">View All</Link>
+          </div>
+          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-4`}>
+            Discover the latest manga releases on MangaRul
+          </p>
+
+          {loading ? (
+            <div className="flex items-center justify-center py-20">
+              <LoadingSpinner />
             </div>
-            
-            {/* Carousel Indicators - moved to the bottom of the hero */}
-            <div className="flex justify-center gap-2 py-3">
-              {latestComics.slice(0, 5).map((_, idx) => (
-                <button 
-                  key={idx}
-                  onClick={() => setFeaturedIndex(idx)}
-                  className={`w-2 h-2 rounded-full transition-all ${
-                    idx === featuredIndex 
-                      ? 'bg-primary w-8' 
-                      : 'bg-gray-700 hover:bg-gray-600'
-                  }`}
-                  aria-label={`Go to slide ${idx + 1}`}
-                />
+          ) : error ? (
+            <div className="text-center">
+              <p className={`text-xl text-red-500`}>{error}</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {comics.map((comic) => (
+                <ComicCard key={comic.id} comic={comic} />
               ))}
             </div>
-          </motion.div>
-        )}
-      </div>
-
-      <div className="container-custom py-4">
-        {/* Categories Filter - horizontal scrollable */}
-        <motion.div 
-          className="flex items-center gap-2 overflow-x-auto py-4 hide-scrollbar mb-4"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-        >
-          {categories.map(category => (
-            <div 
-              key={category.id}
-              onClick={() => setSelectedCategory(category.id)}
-              className={`px-4 py-2 rounded-full text-sm flex items-center gap-2 cursor-pointer transition-all shadow-md hover:shadow-lg hover:scale-105 active:scale-95 ${
-                selectedCategory === category.id 
-                ? 'bg-primary text-white' 
-                : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-white'
-              }`}
-            >
-              <div className={`w-6 h-6 flex items-center justify-center rounded-full ${
-                selectedCategory === category.id 
-                ? 'bg-white/20' 
-                : 'bg-primary/10'
-              }`}>
-                <span className="text-base">{category.icon}</span>
-              </div>
-              <span className="font-medium">{category.name}</span>
-            </div>
-          ))}
-        </motion.div>
-
-        {/* Popular Section */}
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          viewport={{ once: true }}
-          className="mb-10"
-        >
-          <div className="flex items-center mb-4">
-            <div className="bg-primary/20 p-2 rounded-full mr-2">
-              <FaFire className="text-primary" />
-            </div>
-            <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">Popular</h2>
-          </div>
-          
-          <ComicGrid comics={filterComicsByCategory(popularComics)} />
-        </motion.section>
-
-        {/* Latest Updates Section */}
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          viewport={{ once: true }}
-          className="mb-10"
-        >
-          <div className="flex items-center mb-4">
-            <div className="bg-blue-500/20 p-2 rounded-full mr-2">
-              <FaClock className="text-blue-500" />
-            </div>
-            <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">Latest Updates</h2>
-          </div>
-          
-          <ComicGrid comics={filterComicsByCategory(latestComics)} />
-        </motion.section>
-
-        {/* Series Section */}
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          viewport={{ once: true }}
-          className="mb-20"
-        >
-          <div className="flex items-center mb-4">
-            <div className="bg-green-500/20 p-2 rounded-full mr-2">
-              <FaBookOpen className="text-green-500" />
-            </div>
-            <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">Series Collection</h2>
-          </div>
-          
-          <ComicGrid comics={filterComicsByCategory(seriesComics)} />
-        </motion.section>
-      </div>
-    </>
+          )}
+        </section>
+      </main>
+    </div>
   );
 };
 
