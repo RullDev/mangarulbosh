@@ -234,14 +234,20 @@ const randomNum = async (min, max) => { Math.floor(Math.random() * (max - min + 
             <div 
               key={category.id}
               onClick={() => setSelectedCategory(category.id)}
-              className={`px-4 py-2 rounded-full text-sm flex items-center gap-2 cursor-pointer transition-all ${
+              className={`px-4 py-2 rounded-full text-sm flex items-center gap-2 cursor-pointer transition-all shadow-md hover:shadow-lg hover:scale-105 active:scale-95 ${
                 selectedCategory === category.id 
                 ? 'bg-primary text-white' 
                 : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-white'
               }`}
             >
-              <span className="text-lg">{category.icon}</span>
-              <span>{category.name}</span>
+              <div className={`w-6 h-6 flex items-center justify-center rounded-full ${
+                selectedCategory === category.id 
+                ? 'bg-white/20' 
+                : 'bg-primary/10'
+              }`}>
+                <span className="text-base">{category.icon}</span>
+              </div>
+              <span className="font-medium">{category.name}</span>
             </div>
           ))}
         </motion.div>
