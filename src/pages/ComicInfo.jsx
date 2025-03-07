@@ -311,42 +311,6 @@ const ComicInfo = () => {
                   </span>
                   Chapters <span className="ml-2 text-sm font-normal text-gray-500 dark:text-gray-400">({comic.chapters?.length || 0})</span>
                 </h2>
-                
-                {/* Enhanced chapter display */}
-                <div className="overflow-y-auto max-h-[400px] pr-2 hide-scrollbar">
-                  {comic.chapters && comic.chapters.length > 0 ? (
-                    <div className="space-y-2">
-                      {comic.chapters.map((chapter, index) => (
-                        <div 
-                          key={index}
-                          className="chapter-item bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 transition-all duration-300 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer relative overflow-hidden group"
-                          onClick={() => navigate(`/read/${chapter.slug}`)}
-                        >
-                          <div className="flex justify-between items-center">
-                            <div className="flex items-center">
-                              <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                                {chapter.title || `Chapter ${chapter.number || index + 1}`}
-                              </span>
-                            </div>
-                            <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
-                              <span className="text-xs text-primary font-medium bg-primary/10 px-2 py-1 rounded-full">
-                                Read &rarr;
-                              </span>
-                            </div>
-                          </div>
-                          <div className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-primary/20 to-primary scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center p-6 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                      </svg>
-                      <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">No chapters available</p>
-                    </div>
-                  )}
-                </div>
               </div>
 
               {comic.chapters && comic.chapters.length > 0 ? (

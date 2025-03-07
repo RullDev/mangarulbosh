@@ -8,61 +8,55 @@ const LoadingSpinner = ({ size = 'medium', message }) => {
     large: 'w-16 h-16'
   };
 
-  const pulseVariants = {
-    animate: {
-      scale: [1, 1.2, 1],
-      opacity: [0.7, 0.3, 0.7],
-      transition: {
-        duration: 1.8,
-        repeat: Infinity,
-        repeatType: "loop",
-        ease: "easeInOut",
-        times: [0, 0.5, 1]
-      }
+  const circleVariants = {
+    initial: { scale: 0, opacity: 0 },
+    animate: { 
+      scale: 1, 
+      opacity: 1,
+      transition: { duration: 0.5 }
     }
   };
 
-  const spinTransition = {
-    repeat: Infinity,
-    ease: "linear",
-    duration: 1
+  const textVariants = {
+    initial: { opacity: 0, y: 10 },
+    animate: { 
+      opacity: 1, 
+      y: 0,
+      transition: { delay: 0.3, duration: 0.5 }
+    }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center p-4">
-      <div className="relative">
-        {/* Outer pulse ring */}
-        <motion.div
-          className={`absolute -inset-3 ${spinnerSizes[size]} rounded-full bg-primary/10`}
-          variants={pulseVariants}
-          animate="animate"
-        />
-
-        {/* Main spinner */}
-        <div className="relative">
-          <motion.div
-            className={`${spinnerSizes[size]} border-3 border-gray-200/30 dark:border-gray-700/50 border-t-primary dark:border-t-primary border-b-primary/40 dark:border-b-primary/40 rounded-full`}
-            animate={{ rotate: 360 }}
-            transition={spinTransition}
-          />
-
-          {/* Center dot */}
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-primary rounded-full" />
-        </div>
-      </div>
+    <motion.div 
+      className="flex flex-col items-center justify-center"
+      initial="initial"
+      animate="animate"
+    >
+      <motion.div className="relative" variants={circleVariants}>
+        <div className={`${spinnerSizes[size]} border-4 border-gray-300 dark:border-gray-700 border-t-primary rounded-full animate-spin`}></div>
+        <motion.div 
+          className={`absolute inset-0 rounded-full border-2 border-primary/20`}
+          animate={{ 
+            scale: [1, 1.1, 1],
+            opacity: [0.5, 0.2, 0.5] 
+          }}
+          transition={{
+            duration: 1.5,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        ></motion.div>
+      </motion.div>
 
       {message && (
-        <motion.div
-          initial={{ opacity: 0, y: 5 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="mt-4"
+        <motion.p 
+          className="mt-4 text-sm text-gray-600 dark:text-gray-300 font-medium"
+          variants={textVariants}
         >
-          <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{message}</p>
-          <div className="mt-1 h-0.5 w-16 mx-auto bg-gradient-to-r from-transparent via-primary/50 to-transparent rounded-full loading-pulse"></div>
-        </motion.div>
+          {message}
+        </motion.p>
       )}
-    </div>
+    </motion.div>
   );
 };
 

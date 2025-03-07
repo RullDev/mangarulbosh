@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { FaSpinner, FaExclamationTriangle, FaFire, FaClock, FaBookOpen, FaStar, FaGlobe, FaSearch, FaTimes } from 'react-icons/fa';
+import { FaSpinner, FaExclamationTriangle, FaFire, FaClock, FaBookOpen, FaStar, FaGlobe } from 'react-icons/fa';
 import Comic from '../api/comicApi';
 import ComicGrid from '../components/ComicGrid';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -22,7 +23,6 @@ const Home = () => {
   const [error, setError] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [featuredIndex, setFeaturedIndex] = useState(0);
-  const [searchTerm, setSearchTerm] = useState(''); // Added searchTerm state
   const { darkMode } = useContext(ThemeContext);
 
   const heroRef = useRef(null);
@@ -50,8 +50,9 @@ const Home = () => {
     return () => clearInterval(interval);
   }, [latestComics.length]);
 
-  const randomNum = async (min, max) => { Math.floor(Math.random() * (max - min + 1)) + min; };
-
+const randomNum = async (min, max) => { Math.floor(Math.random() * (max - min + 1)) + min;
+}
+  
   const fetchComics = async () => {
     setLoading(true);
     setError(null);
@@ -69,8 +70,12 @@ const Home = () => {
       }
 
       setLatestComics(latest);
+
+      // For demo purposes, let's clone and shuffle the array to use as popular comics
+      
       setPopularComics(popularr);
 
+      // For series, we're using the same data but imagine it's different
       const series = [...latest, ...popularr].sort(() => 0.5 - Math.random());
       setSeriesComics(series);
 
@@ -105,14 +110,14 @@ const Home = () => {
 
   if (error) {
     return (
-      <motion.div
+      <motion.div 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         className="container-custom py-20 text-center"
       >
         <FaExclamationTriangle className="mx-auto text-red-500 text-5xl mb-4" />
         <p className="text-xl text-gray-700 dark:text-gray-300">{error}</p>
-        <button
+        <button 
           onClick={fetchComics}
           className="mt-4 btn btn-primary"
         >
@@ -128,7 +133,7 @@ const Home = () => {
       <div ref={heroRef} className="relative bg-black text-white overflow-hidden">
         {/* Featured comic carousel */}
         {featuredComic && (
-          <motion.div
+          <motion.div 
             className="w-full relative pb-4"
             style={{ opacity }}
             initial={{ opacity: 0 }}
@@ -137,18 +142,18 @@ const Home = () => {
           >
             <div className="w-full h-[320px] relative overflow-hidden">
               {/* Background Image with Parallax */}
-              <motion.div
+              <motion.div 
                 className="absolute inset-0"
                 style={{ y: bgY }}
               >
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/90 to-black/70 z-10"></div>
-                <img
-                  src={featuredComic.cover}
+                <img 
+                  src={featuredComic.cover} 
                   alt={featuredComic.title}
                   className="w-full h-full object-cover object-center blur-sm opacity-60"
                 />
               </motion.div>
-
+              
               {/* Content - centered with comic image */}
               <div className="absolute inset-0 z-20 flex items-center p-6">
                 <div className="container-custom flex flex-row items-center gap-4">
@@ -159,13 +164,13 @@ const Home = () => {
                     transition={{ duration: 0.5, delay: 0.6 }}
                     className="w-[120px] h-[180px] flex-shrink-0 rounded-lg overflow-hidden shadow-lg shadow-black/50"
                   >
-                    <img
-                      src={featuredComic.cover}
+                    <img 
+                      src={featuredComic.cover} 
                       alt={featuredComic.title}
                       className="w-full h-full object-cover object-center"
                     />
                   </motion.div>
-
+                  
                   {/* Comic info */}
                   <motion.div
                     initial={{ y: 20, opacity: 0 }}
@@ -177,19 +182,19 @@ const Home = () => {
                       <h2 className="text-2xl lg:text-3xl font-bold text-white mb-2">
                         {featuredComic.title}
                       </h2>
-
+                      
                       <div className="flex items-center mb-2 text-sm text-gray-300">
                         <span className="px-2 py-0.5 bg-primary/30 rounded-full mr-2">
                           {featuredComic.type}
                         </span>
                         <span className="flex items-center">
-                          <FaStar className="text-yellow-400 mr-1" />
+                          <FaStar className="text-yellow-400 mr-1" /> 
                           {featuredComic.score || "N/A"}
                         </span>
                       </div>
-
+                      
                       <p className="text-sm text-gray-300 line-clamp-2">
-                        {featuredComic.status ? `Status: ${featuredComic.status}` : ''}
+                        {featuredComic.status ? `Status: ${featuredComic.status}` : ''} 
                         {featuredComic.chapter ? ` • Latest: ${featuredComic.chapter}` : ''}
                       </p>
                     </Link>
@@ -197,16 +202,16 @@ const Home = () => {
                 </div>
               </div>
             </div>
-
+            
             {/* Carousel Indicators - moved to the bottom of the hero */}
             <div className="flex justify-center gap-2 py-3">
               {latestComics.slice(0, 5).map((_, idx) => (
-                <button
+                <button 
                   key={idx}
                   onClick={() => setFeaturedIndex(idx)}
                   className={`w-2 h-2 rounded-full transition-all ${
-                    idx === featuredIndex
-                      ? 'bg-primary w-8'
+                    idx === featuredIndex 
+                      ? 'bg-primary w-8' 
                       : 'bg-gray-700 hover:bg-gray-600'
                   }`}
                   aria-label={`Go to slide ${idx + 1}`}
@@ -218,53 +223,27 @@ const Home = () => {
       </div>
 
       <div className="container-custom py-4">
-        {/* Search */}
-        <div className="relative w-full max-w-md mx-auto mb-8">
-          <div className="group">
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search for manga..."
-              className="w-full bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm px-4 py-3 pl-12 pr-10 rounded-xl border border-gray-300/20 dark:border-gray-700/50 shadow-lg focus:outline-none focus:ring-2 focus:ring-primary transition-all duration-300 font-medium"
-            />
-            <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors duration-300">
-              <FaSearch />
-            </div>
-            {searchTerm && (
-              <button
-                onClick={() => setSearchTerm('')}
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors duration-300"
-              >
-                <FaTimes />
-              </button>
-            )}
-          </div>
-          <div className="h-1 w-0 group-focus-within:w-full bg-gradient-to-r from-primary/50 to-primary mx-auto mt-0.5 transition-all duration-500 rounded-full"></div>
-        </div>
-
-
         {/* Categories Filter - horizontal scrollable */}
-        <motion.div
+        <motion.div 
           className="flex items-center gap-2 overflow-x-auto py-4 hide-scrollbar mb-4"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
           {categories.map(category => (
-            <div
+            <div 
               key={category.id}
               onClick={() => setSelectedCategory(category.id)}
               className={`px-4 py-2 rounded-full text-sm flex items-center gap-2 cursor-pointer transition-all shadow-md hover:shadow-lg hover:scale-105 active:scale-95 ${
-                selectedCategory === category.id
-                  ? 'bg-primary text-white'
-                  : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-white'
+                selectedCategory === category.id 
+                ? 'bg-primary text-white' 
+                : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-white'
               }`}
             >
               <div className={`w-6 h-6 flex items-center justify-center rounded-full ${
-                selectedCategory === category.id
-                  ? 'bg-white/20'
-                  : 'bg-primary/10'
+                selectedCategory === category.id 
+                ? 'bg-white/20' 
+                : 'bg-primary/10'
               }`}>
                 <span className="text-base">{category.icon}</span>
               </div>
@@ -287,7 +266,7 @@ const Home = () => {
             </div>
             <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">Popular</h2>
           </div>
-
+          
           <ComicGrid comics={filterComicsByCategory(popularComics)} />
         </motion.section>
 
@@ -305,7 +284,7 @@ const Home = () => {
             </div>
             <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">Latest Updates</h2>
           </div>
-
+          
           <ComicGrid comics={filterComicsByCategory(latestComics)} />
         </motion.section>
 
@@ -323,7 +302,7 @@ const Home = () => {
             </div>
             <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">Series Collection</h2>
           </div>
-
+          
           <ComicGrid comics={filterComicsByCategory(seriesComics)} />
         </motion.section>
       </div>
