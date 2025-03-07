@@ -477,7 +477,7 @@ const ReadingPage = () => {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 20 }}
           transition={{ duration: 0.2 }}
-          className="fixed bottom-0 left-0 right-0 z-40 bg-black/80 text-white p-4 backdrop-blur-md border-t border-gray-800/50"
+          className="fixed bottom-0 left-0 right-0 z-50 bg-black/90 text-white p-4 backdrop-blur-md border-t border-gray-800/50 mb-16"
         >
           <div className="container-custom flex justify-between items-center">
             <div>
