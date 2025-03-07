@@ -421,22 +421,23 @@ const ReadingPage = () => {
 
         {readingMode === 'single-page' && (
           <div className="single-page-reader flex items-center justify-center min-h-screen">
-            <div className="relative w-full max-w-3xl mx-auto h-full flex items-center">
+            <div className="relative w-full h-full flex items-center justify-center">
               {/* Previous Page Button */}
               {currentPage > 0 && (
                 <motion.button 
-                  className="absolute left-2 z-20 p-3 rounded-full bg-black/40 text-white hover:bg-black/60 transition-colors"
+                  className="absolute left-4 md:left-8 z-20 p-4 rounded-full bg-primary/70 text-white hover:bg-primary/90 transition-colors shadow-lg backdrop-blur-sm"
                   onClick={() => setCurrentPage(currentPage - 1)}
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
+                  aria-label="Previous page"
                 >
-                  <FaChevronLeft />
+                  <FaChevronLeft size={20} />
                 </motion.button>
               )}
 
               {/* Current Page */}
               <motion.div 
-                className="page-container max-h-[90vh] px-4"
+                className="page-container h-full flex items-center justify-center px-4 py-8"
                 key={currentPage}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -446,23 +447,25 @@ const ReadingPage = () => {
                 <img 
                   src={pages[currentPage]?.url} 
                   alt={`Page ${currentPage + 1}`} 
-                  className="max-h-[90vh] max-w-full object-contain mx-auto"
+                  className="max-h-[85vh] max-w-[95%] md:max-w-[85%] object-contain mx-auto shadow-xl"
                   onError={(e) => {
                     e.target.onerror = null;
                     e.target.src = 'https://via.placeholder.com/800x1200?text=Image+Not+Available';
                   }}
+                  loading="lazy"
                 />
               </motion.div>
 
               {/* Next Page Button */}
               {currentPage < pages.length - 1 && (
                 <motion.button 
-                  className="absolute right-2 z-20 p-3 rounded-full bg-black/40 text-white hover:bg-black/60 transition-colors"
+                  className="absolute right-4 md:right-8 z-20 p-4 rounded-full bg-primary/70 text-white hover:bg-primary/90 transition-colors shadow-lg backdrop-blur-sm"
                   onClick={() => setCurrentPage(currentPage + 1)}
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
+                  aria-label="Next page"
                 >
-                  <FaChevronRight />
+                  <FaChevronRight size={20} />
                 </motion.button>
               )}
             </div>
