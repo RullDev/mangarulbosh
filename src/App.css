@@ -546,6 +546,35 @@ html {
   }
 }
 
+/* Enhanced loading spinner */
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+.loading-ring {
+  position: relative;
+}
+
+.loading-ring::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  background-color: var(--primary);
+  animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+  z-index: -1;
+}
+
 /* Fix focus styles for accessibility */
 button:focus-visible, a:focus-visible, input:focus-visible {
   @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-white dark:ring-offset-gray-900;
@@ -636,10 +665,12 @@ body {
 
 .comic-reader {
   padding-top: 60px;
+  padding-bottom: 80px;
 }
 
 .comic-reader.vertical {
   @apply bg-black;
+  padding-bottom: 80px;
 }
 
 .comic-reader.single-page {
@@ -996,7 +1027,7 @@ body {
 
 .comic-info-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
 }
 
 /* Chapter hover effect */
@@ -1038,4 +1069,35 @@ body {
 
 .comic-reader.vertical {
   padding-bottom: 80px;
+}
+
+/* Single page reader improvements */
+.single-page-reader img {
+  max-width: 100%;
+  height: auto;
+  transition: transform 0.3s ease;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+.single-page-reader img:hover {
+  transform: scale(1.02);
+}
+
+/* Improved navigation buttons */
+.comic-reader .nav-button {
+  background: linear-gradient(145deg, var(--primary), var(--primary-dark));
+  transition: all 0.3s ease;
+  opacity: 0.8;
+}
+
+.comic-reader .nav-button:hover {
+  opacity: 1;
+  transform: scale(1.1);
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+}
+
+@media (max-width: 640px) {
+  .single-page-reader img {
+    max-height: 80vh;
+  }
 }

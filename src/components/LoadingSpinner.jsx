@@ -1,62 +1,74 @@
+
 import React from 'react';
 import { motion } from 'framer-motion';
+import { FaSpinner } from 'react-icons/fa';
 
-const LoadingSpinner = ({ size = 'medium', message }) => {
-  const spinnerSizes = {
-    small: 'w-6 h-6',
-    medium: 'w-10 h-10',
-    large: 'w-16 h-16'
+const LoadingSpinner = ({ size = 'medium', message = 'Loading...' }) => {
+  // Define size classes
+  const sizeClasses = {
+    small: 'text-xl',
+    medium: 'text-3xl',
+    large: 'text-5xl'
   };
 
-  const circleVariants = {
-    initial: { scale: 0, opacity: 0 },
-    animate: { 
-      scale: 1, 
-      opacity: 1,
-      transition: { duration: 0.5 }
+  // Define container classes based on size
+  const containerClasses = {
+    small: 'py-2',
+    medium: 'py-4',
+    large: 'py-8'
+  };
+  
+  // Define text size classes
+  const textSizeClasses = {
+    small: 'text-sm',
+    medium: 'text-base',
+    large: 'text-xl'
+  };
+
+  // Animation variants for the spinner
+  const spinnerVariants = {
+    animate: {
+      rotate: 360,
+      transition: {
+        repeat: Infinity,
+        duration: 1,
+        ease: "linear"
+      }
     }
   };
 
+  // Animation variants for the text
   const textVariants = {
-    initial: { opacity: 0, y: 10 },
-    animate: { 
-      opacity: 1, 
-      y: 0,
-      transition: { delay: 0.3, duration: 0.5 }
+    animate: {
+      opacity: [0.5, 1, 0.5],
+      transition: {
+        repeat: Infinity,
+        duration: 1.5,
+        ease: "easeInOut"
+      }
     }
   };
 
   return (
-    <motion.div 
-      className="flex flex-col items-center justify-center"
-      initial="initial"
-      animate="animate"
-    >
-      <motion.div className="relative" variants={circleVariants}>
-        <div className={`${spinnerSizes[size]} border-4 border-gray-300 dark:border-gray-700 border-t-primary rounded-full animate-spin`}></div>
-        <motion.div 
-          className={`absolute inset-0 rounded-full border-2 border-primary/20`}
-          animate={{ 
-            scale: [1, 1.1, 1],
-            opacity: [0.5, 0.2, 0.5] 
-          }}
-          transition={{
-            duration: 1.5,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        ></motion.div>
+    <div className={`flex flex-col items-center justify-center ${containerClasses[size]}`}>
+      <motion.div
+        className={`text-primary ${sizeClasses[size]}`}
+        variants={spinnerVariants}
+        animate="animate"
+      >
+        <FaSpinner />
       </motion.div>
-
+      
       {message && (
         <motion.p 
-          className="mt-4 text-sm text-gray-600 dark:text-gray-300 font-medium"
+          className={`mt-3 text-gray-300 font-medium ${textSizeClasses[size]}`}
           variants={textVariants}
+          animate="animate"
         >
           {message}
         </motion.p>
       )}
-    </motion.div>
+    </div>
   );
 };
 
