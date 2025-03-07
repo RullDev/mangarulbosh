@@ -293,6 +293,64 @@ class Comic {
         return this.getMockData();
     }
 
+    async popular() {
+        try {
+            let attempts = 0;
+            const maxAttempts = this.corsProxies.length;
+
+            while (attempts < maxAttempts) {
+                try {
+                    const { data } = await axios({
+                        method: 'GET',
+                        url: this.getProxiedUrl(`${this.baseUrl}/daftar-komik/page/${this.text || 1}/?orderby=popular`),
+                        timeout: 10000,
+                    });
+                    const $ = load(data);
+                    let result = [];
+
+                    $(".list-update_item").each((index, element) => {
+                        const link = $(element).find("a").attr("href");
+                        const slug = link ? link.replace(this.baseUrl + '/komik/', '') : '';
+                        const title = $(element).find(".title").text().trim() || $(element).find("h3").text().trim();
+                        const type = $(element).find(".type").text().trim();
+                        const chapter = $(element).find(".chapter").text().replace("Ch.", "").trim();
+                        const image = $(element).find(".list-update_item-image img").attr("src") || $(element).find("img").attr("src") || '';
+                        const status = $(element).find(".status").text().trim();
+                        const score = $(element).find(".numscore").text().trim();
+
+                        result.push({
+                            title: title,
+                            type: type,
+                            chapter: "Chapter " + chapter,
+                            slug: slug,
+                            cover: image,
+                            status: status,
+                            score: score
+                        });
+                    });
+
+                    if (result.length > 0) {
+                        return result;
+                    }
+                    throw new Error("No comics found");
+                } catch (proxyError) {
+                    console.log(`Popular error with proxy ${this.currentProxyIndex}:`, proxyError);
+                    this.switchToNextProxy();
+                    attempts++;
+
+                    if (attempts >= maxAttempts) {
+                        console.log('All proxies failed for Popular');
+                        return this.getMockData();
+                    }
+                }
+            }
+        } catch (e) {
+            console.log('Popular error:', e);
+            return this.getMockData();
+        }
+        return this.getMockData();
+    }
+
     // Fallback method using mock data if all fetches fail
     getMockData() {
         return [

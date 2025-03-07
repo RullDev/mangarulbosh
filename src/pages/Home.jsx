@@ -50,25 +50,33 @@ const Home = () => {
     return () => clearInterval(interval);
   }, [latestComics.length]);
 
+const randomNum = async (min, max) => { Math.floor(Math.random() * (max - min + 1)) + min;
+}
+  
   const fetchComics = async () => {
     setLoading(true);
     setError(null);
     try {
       const comicApi = new Comic();
-      const latest = await comicApi.latest();
-
+      const RandomItel = await randomNum(1, 10);
+      const latest = await comicApi.latest(RandomItel);
+      const popularr = await comicApi.popular(RandomItel);
       if (!latest || !Array.isArray(latest)) {
+        throw new Error('Failed to fetch comics data');
+      }
+
+      if (!popularr || !Array.isArray(popularr)) {
         throw new Error('Failed to fetch comics data');
       }
 
       setLatestComics(latest);
 
       // For demo purposes, let's clone and shuffle the array to use as popular comics
-      const popular = [...latest].sort(() => 0.5 - Math.random());
-      setPopularComics(popular);
+      
+      setPopularComics(popularr);
 
       // For series, we're using the same data but imagine it's different
-      const series = [...latest].sort(() => 0.5 - Math.random());
+      const series = [...latest, ...popularr].sort(() => 0.5 - Math.random());
       setSeriesComics(series);
 
     } catch (err) {
