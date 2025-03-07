@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaArrowLeft, FaStar, FaBookmark, FaRegBookmark, FaExclamationTriangle, FaCalendarAlt, FaUser, FaListUl, FaEye } from 'react-icons/fa';
+import { FaArrowLeft, FaStar, FaBookmark, FaRegBookmark, FaExclamationTriangle, FaCalendarAlt, FaUser, FaListUl, FaEye, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import Comic from '../api/comicApi';
 import LoadingSpinner from '../components/LoadingSpinner';
 
@@ -14,6 +14,7 @@ const ComicInfo = () => {
   const [error, setError] = useState(null);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [expandedSynopsis, setExpandedSynopsis] = useState(false);
+  const [showAllChapters, setShowAllChapters] = useState(false);
 
   useEffect(() => {
     fetchComicInfo();
@@ -313,30 +314,31 @@ const ComicInfo = () => {
                 </h2>
               </div>
 
-              {comic.chapters && comic.chapters.length > 0 ? (
-                <div className="divide-y divide-gray-100 dark:divide-gray-700">
-                  {comic.chapters.map((chapter, index) => (
-                    <Link 
-                      key={index}
-                      to={`/read/${chapter.slug}`}
-                      className="block py-3 px-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition-colors"
-                    >
-                      <div className="flex justify-between items-center">
-                        <span className="font-medium text-gray-800 dark:text-white">
-                          {chapter.title}
-                        </span>
-                        <span className="text-sm text-gray-500 dark:text-gray-400">
-                          {chapter.released}
-                        </span>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              ) : (
-                <div className="py-6 text-center text-gray-500 dark:text-gray-400">
-                  No chapters available
-                </div>
-              )}
+              {/* Chapter list */}
+              <div className="space-y-1 mt-6">
+                {comic.chapters && comic.chapters.slice(0, showAllChapters ? comic.chapters.length : 10).map((chapter, index) => (
+                  <Link 
+                    to={`/read/${chapter.slug}`} 
+                    key={index}
+                    className="chapter-item flex items-center justify-between p-3 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    <span className="font-medium">{chapter.title}</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">{chapter.released}</span>
+                  </Link>
+                ))}
+
+                {comic.chapters && comic.chapters.length > 10 && (
+                  <motion.button
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => setShowAllChapters(!showAllChapters)}
+                    className="w-full py-3 mt-2 rounded-lg bg-primary/10 hover:bg-primary/20 dark:bg-primary/20 dark:hover:bg-primary/30 text-primary font-medium transition-colors flex items-center justify-center gap-2"
+                  >
+                    {showAllChapters ? "Show Less Chapters" : "See More Chapters..."}
+                    {showAllChapters ? <FaChevronUp /> : <FaChevronDown />}
+                  </motion.button>
+                )}
+              </div>
             </div>
           </motion.div>
         </div>

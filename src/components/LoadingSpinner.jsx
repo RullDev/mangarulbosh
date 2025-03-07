@@ -1,69 +1,57 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
-import { FaSpinner } from 'react-icons/fa';
 
-const LoadingSpinner = ({ size = 'medium', message = 'Loading...' }) => {
-  // Define size classes
-  const sizeClasses = {
-    small: 'text-xl',
-    medium: 'text-3xl',
-    large: 'text-5xl'
-  };
-
-  // Define container classes based on size
-  const containerClasses = {
-    small: 'py-2',
-    medium: 'py-4',
-    large: 'py-8'
-  };
-  
-  // Define text size classes
-  const textSizeClasses = {
-    small: 'text-sm',
-    medium: 'text-base',
-    large: 'text-xl'
-  };
-
-  // Animation variants for the spinner
-  const spinnerVariants = {
-    animate: {
-      rotate: 360,
-      transition: {
-        repeat: Infinity,
-        duration: 1,
-        ease: "linear"
-      }
-    }
-  };
-
-  // Animation variants for the text
-  const textVariants = {
-    animate: {
-      opacity: [0.5, 1, 0.5],
-      transition: {
-        repeat: Infinity,
-        duration: 1.5,
-        ease: "easeInOut"
-      }
-    }
+const LoadingSpinner = ({ size = 'medium', message }) => {
+  const sizes = {
+    small: 'w-6 h-6',
+    medium: 'w-10 h-10',
+    large: 'w-16 h-16'
   };
 
   return (
-    <div className={`flex flex-col items-center justify-center ${containerClasses[size]}`}>
-      <motion.div
-        className={`text-primary ${sizeClasses[size]}`}
-        variants={spinnerVariants}
-        animate="animate"
-      >
-        <FaSpinner />
-      </motion.div>
-      
+    <div className="flex flex-col items-center justify-center p-4">
+      <div className="relative">
+        {/* Outer pulse ring */}
+        <motion.div
+          className={`absolute inset-0 ${sizes[size]} rounded-full bg-primary/20`}
+          animate={{ 
+            scale: [1, 1.5, 1],
+            opacity: [0.5, 0.2, 0.5] 
+          }}
+          transition={{ 
+            duration: 1.5, 
+            repeat: Infinity, 
+            ease: "easeInOut" 
+          }}
+        />
+
+        {/* Main spinner */}
+        <div className={`${sizes[size]} border-4 border-gray-200 dark:border-gray-700 border-t-primary dark:border-t-primary rounded-full animate-spin`}></div>
+
+        {/* Inner dot */}
+        <motion.div
+          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-primary rounded-full"
+          style={{ 
+            width: size === 'small' ? '4px' : size === 'medium' ? '6px' : '8px',
+            height: size === 'small' ? '4px' : size === 'medium' ? '6px' : '8px'
+          }}
+          animate={{ 
+            scale: [1, 1.5, 1],
+          }}
+          transition={{ 
+            duration: 1, 
+            repeat: Infinity, 
+            ease: "easeInOut" 
+          }}
+        />
+      </div>
+
       {message && (
         <motion.p 
-          className={`mt-3 text-gray-300 font-medium ${textSizeClasses[size]}`}
-          variants={textVariants}
-          animate="animate"
+          className="mt-4 text-gray-600 dark:text-gray-300 text-center font-medium text-sm md:text-base"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
         >
           {message}
         </motion.p>

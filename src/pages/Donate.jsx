@@ -1,78 +1,61 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { FaDonate, FaHeart, FaCoffee } from 'react-icons/fa';
+import { FaHeart, FaArrowLeft } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
 
 const Donate = () => {
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 }
-  };
-
   return (
-    <div className="container py-8 max-w-3xl mx-auto px-4">
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="text-center mb-10"
-      >
-        <FaDonate className="text-5xl mx-auto mb-4 text-blue-500" />
-        <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">Support MangaRul</h1>
-        <p className="text-gray-600 dark:text-gray-300 max-w-lg mx-auto">
-          Your contribution helps us maintain the server, develop new features,
-          and continue providing high-quality comics for free.
-        </p>
-      </motion.div>
+    <div className="min-h-screen bg-gradient-to-b from-background-light to-primary/5 dark:from-background-dark dark:to-primary/10">
+      <div className="container-custom py-6">
+        <Link to="/" className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary mb-6">
+          <FaArrowLeft size={14} />
+          <span>Back to Home</span>
+        </Link>
 
-      <motion.div
-        initial="hidden"
-        animate="visible"
-        className="max-w-md mx-auto"
-      >
-        <motion.div
-          variants={itemVariants}
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.98 }}
-          className="bg-white dark:bg-gray-900/90 backdrop-blur-sm rounded-xl shadow-lg overflow-hidden border border-gray-100 dark:border-gray-700"
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-xl overflow-hidden"
         >
-          <div className="bg-purple-600 p-5 text-white flex justify-between items-center">
-            <span className="text-2xl font-medium">Saweria</span>
-            <span className="text-3xl"><FaCoffee /></span>
-          </div>
-          <div className="p-6 text-center">
-            <p className="text-gray-600 dark:text-gray-300 mb-4">
-              Support us with a coffee to keep us energized and motivated!
+          <div className="p-6 md:p-8">
+            <div className="flex items-center justify-center mb-6">
+              <motion.div 
+                animate={{ scale: [1, 1.1, 1] }}
+                transition={{ 
+                  repeat: Infinity,
+                  duration: 1.5
+                }}
+                className="h-16 w-16 flex items-center justify-center rounded-full bg-pink-100 dark:bg-pink-900/30 text-pink-500"
+              >
+                <FaHeart size={28} />
+              </motion.div>
+            </div>
+
+            <h1 className="text-2xl md:text-3xl font-bold text-center text-gray-800 dark:text-white mb-4">
+              Support MangaRul
+            </h1>
+
+            <p className="text-gray-600 dark:text-gray-300 text-center mb-8">
+              Your donations help us maintain and improve MangaRul so we can continue providing 
+              high-quality manga content to our readers. Thank you for your support!
             </p>
-            <p className="text-3xl font-bold text-gray-800 dark:text-white mb-6">5,000 RP</p>
-            <button className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-1 rounded-lg transition-colors font-medium text-lg">
-              Donate via Saweria
-            </button>
+
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              className="w-full py-4 rounded-lg bg-gradient-to-r from-pink-500 to-primary text-white font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300"
+            >
+              Donate Now
+            </motion.button>
+
+            <div className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
+              <p>100% of your donation goes directly toward server costs and development.</p>
+              <p className="mt-2">MangaRul is a non-profit project made with ❤️ for manga fans.</p>
+            </div>
           </div>
         </motion.div>
-      </motion.div>
-
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.4, duration: 0.5 }}
-        className="mt-12 bg-gray-100 dark:bg-gray-900/90 backdrop-blur-xl p-6 rounded-xl max-w-xl mx-auto"
-      >
-        <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-4">Other Ways to Support</h2>
-        <ul className="space-y-3 text-gray-700 dark:text-gray-300">
-          <li className="flex items-start">
-            <FaHeart className="text-red-500 mt-1 mr-2 flex-shrink-0" />
-            <span>Share MangaRul with your friends and on social media</span>
-          </li>
-          <li className="flex items-start">
-            <FaHeart className="text-red-500 mt-1 mr-2 flex-shrink-0" />
-            <span>Report bugs and suggest improvements</span>
-          </li>
-          <li className="flex items-start">
-            <FaHeart className="text-red-500 mt-1 mr-2 flex-shrink-0" />
-            <span>Join our community and participate in discussions</span>
-          </li>
-        </ul>
-      </motion.div>
+      </div>
     </div>
   );
 };

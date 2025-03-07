@@ -10,9 +10,9 @@ import { ThemeContext } from '../App';
 
 const categories = [
   { id: 'all', name: 'All', icon: <FaGlobe /> },
-  { id: 'manga', name: 'Manga', icon: '🇯🇵' },
-  { id: 'manhua', name: 'Manhua', icon: '🇨🇳' },
-  { id: 'manhwa', name: 'Manhwa', icon: '🇰🇷' }
+  { id: 'manga', name: 'Manga', icon: <FaBookOpen /> },
+  { id: 'manhua', name: 'Manhua', icon: <FaFire /> },
+  { id: 'manhwa', name: 'Manhwa', icon: <FaStar /> },n: '🇰🇷' }
 ];
 
 const Home = () => {
