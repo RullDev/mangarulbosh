@@ -194,6 +194,27 @@ html {
   background: linear-gradient(to right, #6366f1, transparent);
 }
 
+/* Radix UI Tabs */
+[data-state="active"] {
+  position: relative;
+}
+
+[data-state="active"]::after {
+  content: '';
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(to right, var(--primary), transparent);
+}
+
+/* Enhanced chapter list */
+.chapter-hover-effect:hover {
+  transform: translateX(4px);
+  box-shadow: -4px 0 0 var(--primary);
+}
+
 /* Card styling */
 .comic-card {
   @apply bg-black dark:bg-black rounded-lg shadow-md overflow-hidden transition-all duration-300;

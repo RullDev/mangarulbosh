@@ -230,6 +230,20 @@ const ReadingPage = () => {
               />
             </div>
           ))}
+          {isMarathonMode && nextChapterSlug && (
+            <div className="py-12 flex justify-center items-center flex-col">
+              <div className="text-white text-opacity-60 text-sm mb-3">
+                End of chapter
+              </div>
+              <div className="w-16 h-1 bg-primary rounded-full mb-6 animate-pulse"></div>
+              <div className="text-white text-sm">
+                {showNextChapterNotification ?
+                  "Loading next chapter..." :
+                  "Scroll to continue to next chapter"
+                }
+              </div>
+            </div>
+          )}
         </div>
       </ScrollArea.Viewport>
       <ScrollArea.Scrollbar
@@ -303,6 +317,20 @@ const ReadingPage = () => {
           {currentPage + 1} / {comicPages.length}
         </div>
       </div>
+      {isMarathonMode && nextChapterSlug && (
+        <div className="py-12 flex justify-center items-center flex-col">
+          <div className="text-white text-opacity-60 text-sm mb-3">
+            End of chapter
+          </div>
+          <div className="w-16 h-1 bg-primary rounded-full mb-6 animate-pulse"></div>
+          <div className="text-white text-sm">
+            {showNextChapterNotification ?
+              "Loading next chapter..." :
+              "Scroll to continue to next chapter"
+            }
+          </div>
+        </div>
+      )}
     </div>
   );
 
@@ -325,6 +353,20 @@ const ReadingPage = () => {
               loading={index < 10 ? "eager" : "lazy"}
             />
           ))}
+          {isMarathonMode && nextChapterSlug && (
+            <div className="py-12 flex justify-center items-center flex-col">
+              <div className="text-white text-opacity-60 text-sm mb-3">
+                End of chapter
+              </div>
+              <div className="w-16 h-1 bg-primary rounded-full mb-6 animate-pulse"></div>
+              <div className="text-white text-sm">
+                {showNextChapterNotification ?
+                  "Loading next chapter..." :
+                  "Scroll to continue to next chapter"
+                }
+              </div>
+            </div>
+          )}
         </div>
       </ScrollArea.Viewport>
       <ScrollArea.Scrollbar
