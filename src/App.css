@@ -1178,52 +1178,6 @@ body {
   padding-bottom: 80px;
 }
 
-/* Animation utilities for modal */
-.animate-in {
-  animation-duration: 150ms;
-  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: transform, opacity;
-}
-
-.fade-in {
-  animation-name: fadeIn;
-}
-
-.slide-in-from-bottom {
-  animation-name: slideInFromBottom;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes slideInFromBottom {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
-}
-
-/* Bottom Sheet style for mobile dialog */
-@media (max-width: 768px) {
-  [data-state="open"] .dialog-content {
-    animation: slideInFromBottom 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  
-  [data-state="closed"] .dialog-content {
-    animation: slideOutToBottom 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  
-  @keyframes slideInFromBottom {
-    from { transform: translateY(100%); }
-    to { transform: translateY(0); }
-  }
-  
-  @keyframes slideOutToBottom {
-    from { transform: translateY(0); }
-    to { transform: translateY(100%); }
-  }
-}
-
 /* Single page reader improvements */
 .single-page-reader img {
   max-width: 100%;
