@@ -1,17 +1,18 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { FaSpinner, FaExclamationTriangle, FaFire, FaClock, FaBookOpen, FaStar, FaGlobe } from 'react-icons/fa';
+import React, { useState, useEffect } from 'react';
+import { FaExclamationTriangle, FaFire, FaClock, FaBookOpen, FaStar, FaGlobe, FaSearch } from 'react-icons/fa';
+import { motion, AnimatePresence } from 'framer-motion';
 import Comic from '../api/comicApi';
 import ComicGrid from '../components/ComicGrid';
 import LoadingSpinner from '../components/LoadingSpinner';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import * as Separator from '@radix-ui/react-separator';
 import * as ScrollArea from '@radix-ui/react-scroll-area';
 
 const categories = [
-  { id: 'all', name: 'All', icon: <FaGlobe /> },
-  { id: 'manga', name: 'Manga', icon: <FaBookOpen /> },
-  { id: 'manhua', name: 'Manhua', icon: <FaFire /> },
-  { id: 'manhwa', name: 'Manhwa', icon: <FaStar /> }
+  { id: 'all', name: 'All', icon: <FaGlobe />, color: 'from-blue-500 to-purple-600' },
+  { id: 'manga', name: 'Manga', icon: <FaBookOpen />, color: 'from-blue-500 to-cyan-400' },
+  { id: 'manhua', name: 'Manhua', icon: <FaFire />, color: 'from-green-500 to-emerald-400' },
+  { id: 'manhwa', name: 'Manhwa', icon: <FaStar />, color: 'from-purple-500 to-pink-500' }
 ];
 
 const Home = () => {
@@ -104,35 +105,89 @@ const Home = () => {
           </ScrollArea.Root>
         </section>
 
-        {isLoading ? (
-          <div className="flex justify-center items-center py-20">
-            <LoadingSpinner />
+        {/* Search bar */}
+      <div className="container-custom pt-4 pb-6">
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="relative w-full md:w-3/4 lg:w-1/2 mx-auto"
+        >
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            const searchQuery = e.target.search.value;
+            if (searchQuery.trim()) {
+              navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+            }
+          }}>
+            <div className="relative">
+              <input
+                type="text"
+                name="search"
+                placeholder="Search for manga, manhwa or manhua..."
+                className="w-full pl-12 pr-4 py-3 bg-gray-800/80 border border-gray-700/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-light/50"
+              />
+              <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">
+                <FaSearch />
+              </div>
+              <button
+                type="submit"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-primary-dark hover:bg-primary px-4 py-1.5 rounded-lg text-white text-sm transition-colors"
+              >
+                Search
+              </button>
+            </div>
+          </form>
+        </motion.div>
+      </div>
+
+      {isLoading ? (
+        <div className="flex justify-center items-center py-20">
+          <LoadingSpinner />
+        </div>
+      ) : error ? (
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="container-custom py-6"
+        >
+          <div className="bg-red-900/30 border border-red-900/50 text-red-200 p-6 rounded-lg flex flex-col items-center gap-4">
+            <FaExclamationTriangle className="text-red-400 text-3xl" />
+            <p className="text-center max-w-lg">{error}</p>
+            <button 
+              onClick={() => window.location.reload()}
+              className="mt-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md transition-colors"
+            >
+              Try Again
+            </button>
           </div>
-        ) : error ? (
-          <div className="bg-red-900/20 border border-red-900/50 text-red-200 p-4 rounded-lg flex items-center gap-3">
-            <FaExclamationTriangle className="text-red-400" />
-            <p>{error}</p>
-          </div>
-        ) : (
-          <>
+        </motion.div>
+      ) : (
+        <AnimatePresence>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+          >
             <ComicGrid
               comics={filteredLatestComics}
               title="Latest Release"
               subtitle="Discover the latest manga releases on MangaSur"
             />
 
-            <Separator.Root className="h-px w-full bg-zinc-800 my-6" />
+            <Separator.Root className="h-px w-full bg-zinc-800 my-8" />
 
             <ComicGrid
               comics={filteredPopularComics}
               title="Popular Manga"
               subtitle="Top rated manga that readers are enjoying"
             />
-          </>
-        )}
-      </div>
+          </motion.div>
+        </AnimatePresence>
+      )}
     </div>
-  );
+  </div>
+);
 };
 
 export default Home;

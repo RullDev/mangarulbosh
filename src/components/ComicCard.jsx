@@ -60,4 +60,88 @@ const ComicCard = ({ comic }) => {
   );
 };
 
-export default ComicCard;
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { FaStar } from 'react-icons/fa';
+
+const ComicCard = ({ comic }) => {
+  if (!comic) return null;
+
+  const { id, title, cover, type, status, score } = comic;
+
+  // Determine background class based on type
+  const getTypeClass = () => {
+    switch (type?.toLowerCase()) {
+      case 'manga':
+        return 'bg-blue-900/60 text-blue-100';
+      case 'manhwa':
+        return 'bg-purple-900/60 text-purple-100';
+      case 'manhua':
+        return 'bg-green-900/60 text-green-100';
+      default:
+        return 'bg-gray-900/60 text-gray-100';
+    }
+  };
+
+  // Determine status class
+  const getStatusClass = () => {
+    switch (status?.toLowerCase()) {
+      case 'ongoing':
+        return 'bg-green-900/60 text-green-100';
+      case 'completed':
+        return 'bg-blue-900/60 text-blue-100';
+      default:
+        return 'bg-gray-900/60 text-gray-100';
+    }
+  };
+
+  return (
+    <motion.div
+      whileHover={{ y: -5 }}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      <Link to={`/comic/${id}`} className="block h-full">
+        <div className="comic-card h-full flex flex-col bg-black dark:bg-gray-800 rounded-lg overflow-hidden shadow-lg transition-all duration-300 border border-gray-800">
+          <div className="relative overflow-hidden aspect-[3/4]">
+            <img
+              src={cover || 'https://via.placeholder.com/300x450?text=No+Image'}
+              alt={title}
+              className="w-full h-full object-cover object-center transition-transform duration-500 hover:scale-110"
+              loading="lazy"
+              onError={(e) => {
+                e.target.src = 'https://via.placeholder.com/300x450?text=Error+Loading';
+              }}
+            />
+            <div className="absolute top-0 left-0 w-full p-2 flex justify-between">
+              {type && (
+                <span className={`px-2 py-0.5 text-xs rounded-full font-medium ${getTypeClass()}`}>
+                  {type}
+                </span>
+              )}
+              {score && (
+                <span className="flex items-center px-2 py-0.5 text-xs rounded-full font-medium bg-yellow-900/60 text-yellow-100">
+                  <FaStar className="mr-1" /> {score}
+                </span>
+              )}
+            </div>
+            {status && (
+              <div className="absolute bottom-0 right-0 p-2">
+                <span className={`px-2 py-0.5 text-xs rounded-full font-medium ${getStatusClass()}`}>
+                  {status}
+                </span>
+              </div>
+            )}
+          </div>
+          <div className="p-3 flex-grow flex flex-col justify-between">
+            <h3 className="text-md font-semibold text-white line-clamp-2 mb-1">{title}</h3>
+          </div>
+        </div>
+      </Link>
+    </motion.div>
+  );
+};
+
+export default ComicCard;d;
