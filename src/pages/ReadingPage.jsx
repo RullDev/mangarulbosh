@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { FaArrowLeft, FaHome, FaCog, FaChevronLeft, FaChevronRight, FaExpand, FaCompress } from 'react-icons/fa';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { FaArrowLeft, FaHome, FaCog, FaChevronLeft, FaChevronRight, FaExpand, FaCompress, FaRunning } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import Comic from '../api/comicApi';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -21,6 +21,7 @@ const ReadingPage = () => {
   const [pageGap, setPageGap] = useState(16);
   const readingContainerRef = useRef(null);
   const controlsTimeoutRef = useRef(null);
+  const navigate = useNavigate();
 
   const [isMarathonMode, setIsMarathonMode] = useState(false);
   const [currentComicInfo, setCurrentComicInfo] = useState(null);
@@ -39,7 +40,7 @@ const ReadingPage = () => {
         }
 
         setComicPages(pages);
-        
+
         // Get information about current comic for marathon mode
         if (slug.includes('-chapter-')) {
           const comicSlug = slug.split('-chapter-')[0];
@@ -47,7 +48,7 @@ const ReadingPage = () => {
           try {
             const comicInfo = await comicInstance.info();
             setCurrentComicInfo(comicInfo);
-            
+
             // Find the next chapter if it exists
             if (comicInfo && comicInfo.chapters) {
               const currentChapterIndex = comicInfo.chapters.findIndex(chapter => chapter.slug === slug);
@@ -86,6 +87,23 @@ const ReadingPage = () => {
     window.addEventListener('keydown', handleKeyDown);
     document.addEventListener('mousemove', handleMouseMove);
 
+    // Marathon mode scroll listener
+    const marathonData = JSON.parse(localStorage.getItem('marathonMode') || '{}');
+    if (marathonData.active) {
+      const handleScroll = () => {
+        if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 200) {
+          if (marathonData.active && marathonData.currentChapterIndex < marathonData.totalChapters -1) {
+            window.removeEventListener('scroll', handleScroll);
+            setTimeout(() => {
+              goToNextChapter();
+            }, 1000);
+          }
+        }
+      };
+      window.addEventListener('scroll', handleScroll);
+      return () => window.removeEventListener('scroll', handleScroll);
+    }
+
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('mousemove', handleMouseMove);
@@ -104,9 +122,18 @@ const ReadingPage = () => {
 
   const goToNextChapter = () => {
     if (nextChapterSlug) {
-      // Save marathon mode state to localStorage
       localStorage.setItem('marathonMode', 'true');
-      window.location.href = `/read/${nextChapterSlug}`;
+      navigate(`/read/${nextChapterSlug}`);
+    } else {
+      // Handle end of marathon
+      localStorage.removeItem('marathonMode');
+      const notification = document.createElement('div');
+      notification.className = 'marathon-notification';
+      notification.textContent = 'Marathon completed! You\'ve reached the latest chapter.';
+      document.body.appendChild(notification);
+      setTimeout(() => {
+        notification.remove();
+      }, 5000);
     }
   };
 
@@ -123,11 +150,11 @@ const ReadingPage = () => {
     if (e.key === 'f') {
       toggleFullscreen();
     }
-    
+
     // Space key to go to next chapter in marathon mode
     if (e.key === ' ' && isMarathonMode && nextChapterSlug) {
       // If we're at the last page and there's a next chapter available
-      if ((readingMode === 'single' && currentPage === comicPages.length - 1) || 
+      if ((readingMode === 'single' && currentPage === comicPages.length - 1) ||
           (readingMode !== 'single' && window.innerHeight + window.pageYOffset >= document.body.offsetHeight - 100)) {
         e.preventDefault(); // Prevent space from scrolling
         goToNextChapter();
@@ -181,13 +208,13 @@ const ReadingPage = () => {
 
   const renderVerticalReader = () => (
     <ScrollArea.Root className="h-screen w-full overflow-hidden">
-      <ScrollArea.Viewport 
-        className="w-full h-full pt-14 pb-10" 
+      <ScrollArea.Viewport
+        className="w-full h-full pt-14 pb-10"
         style={{ backgroundColor: backgroundColor }}
       >
         <div className="max-w-3xl mx-auto px-2 sm:px-4" ref={readingContainerRef}>
           {comicPages.map((page, index) => (
-            <div 
+            <div
               key={index}
               className="mb-4 w-full flex justify-center"
               style={{ marginBottom: `${pageGap}px` }}
@@ -215,8 +242,8 @@ const ReadingPage = () => {
   );
 
   const renderSinglePageReader = () => (
-    <div 
-      className="h-screen w-full flex items-center justify-center px-4 pt-14 pb-14" 
+    <div
+      className="h-screen w-full flex items-center justify-center px-4 pt-14 pb-14"
       style={{ backgroundColor: backgroundColor }}
       ref={readingContainerRef}
     >
@@ -281,8 +308,8 @@ const ReadingPage = () => {
 
   const renderWebtoonReader = () => (
     <ScrollArea.Root className="h-screen w-full overflow-hidden">
-      <ScrollArea.Viewport 
-        className="w-full h-full pt-14 pb-10" 
+      <ScrollArea.Viewport
+        className="w-full h-full pt-14 pb-10"
         style={{ backgroundColor: backgroundColor }}
       >
         <div className="max-w-3xl mx-auto px-0" ref={readingContainerRef}>
@@ -344,8 +371,8 @@ const ReadingPage = () => {
             transition={{ duration: 0.2 }}
             className="fixed top-0 left-0 right-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-between px-4 py-2"
           >
-            <Link 
-              to={`/comic/${slug.split('-chapter-')[0]}`} 
+            <Link
+              to={`/comic/${slug.split('-chapter-')[0]}`}
               onClick={() => localStorage.setItem('marathonMode', 'false')}
               className="flex items-center text-zinc-300 hover:text-white"
             >
@@ -359,7 +386,7 @@ const ReadingPage = () => {
                   <span>Marathon Mode</span>
                 </div>
               )}
-              
+
               <button
                 onClick={() => setSettingsOpen(true)}
                 className="p-2 text-zinc-300 hover:text-white"
@@ -377,16 +404,16 @@ const ReadingPage = () => {
           </motion.div>
         )}
       </AnimatePresence>
-      
+
       {/* Next Chapter Notification */}
       {isMarathonMode && nextChapterSlug && (readingMode === 'single' ? (currentPage === comicPages.length - 1) : true) && (
         <div className="fixed bottom-10 left-1/2 transform -translate-x-1/2 z-50">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="bg-primary text-white px-6 py-4 rounded-xl shadow-xl flex items-center gap-3"
           >
-            <button 
+            <button
               onClick={goToNextChapter}
               className="flex items-center gap-2 font-medium"
             >
