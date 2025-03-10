@@ -348,7 +348,7 @@ const ReadingPage = () => {
                     onClick={() => setReadingMode('single')}
                     className={`p-2 rounded text-center text-sm ${readingMode === 'single' ? 'bg-primary text-white' : 'bg-zinc-800 text-zinc-300'}`}
                   >
-                    Single Page
+                    Single (Beta)
                   </button>
                   <button
                     onClick={() => setReadingMode('webtoon')}
@@ -364,23 +364,23 @@ const ReadingPage = () => {
                 <div className="grid grid-cols-4 gap-2">
                   <button
                     onClick={() => setBackgroundColor('#000000')}
-                    className={`h-8 rounded-full ${backgroundColor === '#000000' ? 'ring-2 ring-primary ring-offset-2 ring-offset-zinc-900' : ''}`}
+                    className={`h-8 rounded-xl ${backgroundColor === '#000000' ? 'ring-2 ring-primary ring-offset-2 ring-offset-zinc-900' : ''}`}
                     style={{ backgroundColor: '#000000' }}
                   ></button>
                   <button
                     onClick={() => setBackgroundColor('#121212')}
-                    className={`h-8 rounded-full ${backgroundColor === '#121212' ? 'ring-2 ring-primary ring-offset-2 ring-offset-zinc-900' : ''}`}
+                    className={`h-8 rounded-xl ${backgroundColor === '#121212' ? 'ring-2 ring-primary ring-offset-2 ring-offset-zinc-900' : ''}`}
                     style={{ backgroundColor: '#121212' }}
                   ></button>
                   <button
                     onClick={() => setBackgroundColor('#1a1a1a')}
-                    className={`h-8 rounded-full ${backgroundColor === '#1a1a1a' ? 'ring-2 ring-primary ring-offset-2 ring-offset-zinc-900' : ''}`}
+                    className={`h-8 rounded-xl ${backgroundColor === '#1a1a1a' ? 'ring-2 ring-primary ring-offset-2 ring-offset-zinc-900' : ''}`}
                     style={{ backgroundColor: '#1a1a1a' }}
                   ></button>
                   <button
-                    onClick={() => setBackgroundColor('#242424')}
-                    className={`h-8 rounded-full ${backgroundColor === '#242424' ? 'ring-2 ring-primary ring-offset-2 ring-offset-zinc-900' : ''}`}
-                    style={{ backgroundColor: '#242424' }}
+                    onClick={() => setBackgroundColor('#0adaff')}
+                    className={`h-8 rounded-xl ${backgroundColor === '#0adaff' ? 'ring-2 ring-primary ring-offset-2 ring-offset-zinc-900' : ''}`}
+                    style={{ backgroundColor: '#0adaff' }}
                   ></button>
                 </div>
               </div>
