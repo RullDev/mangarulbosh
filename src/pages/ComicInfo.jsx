@@ -150,7 +150,7 @@ const ComicInfo = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black pt-16">
+    <div className="min-h-screen bg-black">
       <div className="container-custom py-8">
         {/* Comic header background effect */}
         <motion.div 

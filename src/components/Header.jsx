@@ -91,7 +91,7 @@ const Header = () => {
           {/* Logo */}
           <Link to="/" className="text-white font-bold text-2xl">
             <span className="text-primary">Manga</span>
-            <span className="text-white">Rull</span>
+            <span className="text-white">Rul</span>
           </Link>
           
           {/* Desktop Navigation */}
@@ -110,7 +110,7 @@ const Header = () => {
           
           {/* Hamburger Menu Button */}
           <button 
-            className="md:hidden flex flex-col justify-center items-center w-10 h-10 p-2 rounded-full bg-zinc-800/60 hover:bg-zinc-700/70 transition-colors"
+            className="md:hidden flex flex-col justify-center items-center w-10 h-10 p-2 transition-colors"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-label="Menu"
           >
