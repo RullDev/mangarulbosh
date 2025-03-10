@@ -1,4 +1,3 @@
-
 import React, { createContext, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
@@ -9,6 +8,7 @@ import SearchResults from './pages/SearchResults';
 import Bookmarks from './pages/Bookmarks';
 import Donate from './pages/Donate';
 import Header from './components/Header';
+import SearchPage from './pages/SearchPage'; // Added import for SearchPage
 
 // Create context for theme
 export const ThemeContext = createContext();
@@ -29,11 +29,12 @@ function App() {
                 <main className="pt-16"> {/* Add padding to account for fixed header */}
                   <Routes>
                     <Route path="/" element={<Home />} />
-                    <Route path="/search" element={<SearchResults />} />
+                    <Route path="/search" element={<SearchResults />} /> {/*Existing SearchResults route */}
                     <Route path="/comic/:id" element={<ComicInfo />} />
                     <Route path="/info/:slug" element={<ComicInfo />} />
                     <Route path="/bookmarks" element={<Bookmarks />} />
                     <Route path="/donate" element={<Donate />} />
+                    <Route path="/search" element={<SearchPage />} /> {/* Added SearchPage route */}
                   </Routes>
                 </main>
               </>

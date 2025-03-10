@@ -36,8 +36,41 @@
   }
 }
 
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
 .animate-slide-in-right {
   animation: slide-in-right 0.3s ease-out;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}
+
+/* Improved hamburger styling */
+.hamburger-line {
+  width: 20px;
+  height: 2px;
+  background-color: white;
+  transition: all 0.3s ease;
+}
+
+.hamburger-open:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+
+.hamburger-open:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger-open:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
 }
 
 /* Better fonts */

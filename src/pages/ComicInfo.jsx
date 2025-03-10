@@ -1,75 +1,75 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { FaStar, FaBookOpen, FaArrowLeft, FaClock, FaTag, FaInfoCircle } from 'react-icons/fa';
+import { motion } from 'framer-motion';
+import { FaBookmark, FaStar, FaClock, FaGlobe, FaInfoCircle, FaExclamationTriangle, FaArrowLeft, FaHistory } from 'react-icons/fa';
 import Comic from '../api/comicApi';
 import LoadingSpinner from '../components/LoadingSpinner';
+import * as ScrollArea from '@radix-ui/react-scroll-area';
 
 const ComicInfo = () => {
-  const { id } = useParams();
+  const { slug } = useParams();
   const [comic, setComic] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isFavorite, setIsFavorite] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
-    const checkIfFavorite = () => {
-      try {
-        const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-        setIsFavorite(favorites.some(fav => fav.slug === id));
-      } catch (err) {
-        console.error("Error checking favorites:", err);
-        setIsFavorite(false);
-      }
-    };
-
     const fetchComicInfo = async () => {
-      setIsLoading(true);
+      if (!slug) return;
+
+      setLoading(true);
       setError(null);
-      
+
       try {
-        const comicInstance = new Comic(id);
-        const results = await comicInstance.info();
-        
-        if (results && Object.keys(results).length > 0) {
-          setComic(results);
-        } else {
+        const comicInstance = new Comic();
+        const comicData = await comicInstance.info(slug);
+
+        if (!comicData) {
           throw new Error("Comic information not found");
         }
+
+        // Process data
+        const processedComic = {
+          ...comicData,
+          coverImage: comicData.cover,
+        };
+
+        setComic(processedComic);
+
+        // Check if comic is in favorites
+        const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+        setIsFavorite(favorites.some(fav => fav.slug === slug));
       } catch (err) {
         console.error("Error fetching comic info:", err);
-        setError("Failed to load comic information. Please try again later.");
+        setError("Failed to load comic information. Please try again.");
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     };
 
-    checkIfFavorite();
     fetchComicInfo();
-  }, [id, retryCount]);
+  }, [slug, retryCount]);
 
   const handleToggleFavorite = () => {
     try {
-      const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-      
+      let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+
       if (isFavorite) {
         // Remove from favorites
-        const updatedFavorites = favorites.filter(fav => fav.slug !== id);
-        localStorage.setItem('favorites', JSON.stringify(updatedFavorites));
+        favorites = favorites.filter(fav => fav.slug !== comic.slug);
       } else {
         // Add to favorites
-        const comicToAdd = {
+        favorites.push({
           title: comic.title,
-          slug: id,
+          slug: comic.slug,
           cover: comic.cover,
-          score: comic.score,
-          type: comic.type,
-          status: comic.status
-        };
-        localStorage.setItem('favorites', JSON.stringify([...favorites, comicToAdd]));
+          type: comic.type || 'Unknown',
+          status: comic.status || 'Ongoing',
+        });
       }
-      
+
+      localStorage.setItem('favorites', JSON.stringify(favorites));
       setIsFavorite(!isFavorite);
     } catch (err) {
       console.error("Error updating favorites:", err);
@@ -77,52 +77,30 @@ const ComicInfo = () => {
   };
 
   const handleRetry = () => {
-    setRetryCount(prevCount => prevCount + 1);
+    setRetryCount(prev => prev + 1);
   };
 
-  if (isLoading) {
-    return <LoadingSpinner fullScreen size="lg" message="Loading comic information..." />;
+  if (loading) {
+    return <LoadingSpinner fullScreen message="Loading comic details..." />;
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-black py-10 px-4">
-        <div className="max-w-2xl mx-auto">
-          <div className="bg-red-900/20 border border-red-900/50 text-red-200 p-6 rounded-xl flex flex-col items-center gap-4">
-            <FaInfoCircle className="text-red-400 text-4xl" />
-            <h2 className="text-xl font-semibold text-center">Error Loading Comic</h2>
-            <p className="text-center">{error}</p>
-            <div className="flex gap-4">
-              <button 
-                onClick={handleRetry}
-                className="px-4 py-2 rounded-lg bg-red-700 hover:bg-red-600 text-white transition-colors"
-              >
-                Try Again
-              </button>
-              <Link 
-                to="/"
-                className="px-4 py-2 rounded-lg bg-zinc-700 hover:bg-zinc-600 text-white transition-colors"
-              >
-                Back to Home
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!comic) {
-    return (
-      <div className="min-h-screen bg-black py-10 px-4">
-        <div className="max-w-2xl mx-auto">
-          <div className="bg-zinc-800/30 border border-zinc-700/30 p-6 rounded-xl flex flex-col items-center gap-4">
-            <FaInfoCircle className="text-zinc-400 text-4xl" />
-            <h2 className="text-xl font-semibold text-center text-white">Comic Not Found</h2>
-            <p className="text-center text-zinc-400">The comic you are looking for does not exist or has been removed.</p>
-            <Link 
+      <div className="min-h-screen flex items-center justify-center px-4 bg-black">
+        <div className="w-full max-w-md bg-zinc-900/80 border border-zinc-800 p-8 rounded-xl text-center">
+          <FaExclamationTriangle className="mx-auto text-5xl text-red-500 mb-4" />
+          <h2 className="text-xl font-bold text-white mb-2">Error Loading Comic</h2>
+          <p className="text-zinc-400 mb-6">{error}</p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <button
+              onClick={handleRetry}
+              className="px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary-dark transition-colors"
+            >
+              Try Again
+            </button>
+            <Link
               to="/"
-              className="px-4 py-2 rounded-lg bg-primary hover:bg-primary-dark text-white transition-colors"
+              className="px-4 py-2 bg-zinc-800 text-white rounded-xl hover:bg-zinc-700 transition-colors"
             >
               Back to Home
             </Link>
@@ -132,176 +110,161 @@ const ComicInfo = () => {
     );
   }
 
+  if (!comic) {
+    return null;
+  }
+
   return (
-    <div className="min-h-screen bg-black">
-      <div className="container-custom py-8">
-        {/* Back button */}
-        <Link to="/" className="inline-flex items-center gap-2 text-zinc-400 hover:text-white mb-6 transition-colors">
-          <FaArrowLeft />
-          <span>Back to Home</span>
-        </Link>
-        
-        {/* Comic info header */}
-        <div className="relative overflow-hidden rounded-xl bg-zinc-900/30 border border-zinc-800/50 mb-8">
-          <div className="absolute inset-0 overflow-hidden opacity-10">
-            <img 
-              src={comic.cover} 
-              alt={comic.title} 
-              className="w-full h-full object-cover object-center blur-md scale-110"
-              onError={(e) => {
-                e.target.onerror = null; 
-                e.target.src = 'https://via.placeholder.com/300x450?text=No+Image';
-              }}
-            />
+    <ScrollArea.Root className="h-screen overflow-hidden">
+      <ScrollArea.Viewport className="w-full h-full pb-12">
+        <div className="pt-16 min-h-screen bg-black">
+          {/* Header with back button and actions */}
+          <div className="fixed z-10 top-16 left-0 right-0 backdrop-blur-md bg-black/70 px-4 py-3 flex justify-between items-center">
+            <Link to="/" className="p-2 rounded-full bg-zinc-800/50 text-white hover:bg-zinc-700/70 transition-colors">
+              <FaArrowLeft />
+            </Link>
+            <button
+              onClick={handleToggleFavorite}
+              className={`p-2 rounded-full ${isFavorite ? 'bg-primary text-white' : 'bg-zinc-800/50 text-zinc-400'} hover:bg-primary/70 transition-colors`}
+            >
+              <FaBookmark />
+            </button>
           </div>
-          
-          <div className="relative z-10 p-6 flex flex-col md:flex-row gap-6">
-            {/* Comic cover */}
-            <div className="w-48 md:w-56 flex-shrink-0">
-              <div className="bg-zinc-800 p-2 rounded-lg shadow-lg">
+
+          {/* Cover image with gradient overlay */}
+          <div className="relative w-full h-[40vh] sm:h-[45vh] overflow-hidden">
+            <div 
+              className="absolute inset-0 bg-cover bg-center blur-sm opacity-30"
+              style={{ backgroundImage: `url(${comic.coverImage})` }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black" />
+
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="relative h-full flex flex-col sm:flex-row items-center justify-center sm:justify-start sm:items-end container-custom gap-6 pt-12 pb-6"
+            >
+              <div className="w-40 h-56 sm:w-48 sm:h-72 overflow-hidden rounded-xl shadow-2xl border border-zinc-800/70">
                 <img 
-                  src={comic.cover} 
+                  src={comic.coverImage} 
                   alt={comic.title} 
-                  className="w-full aspect-[2/3] object-cover object-center rounded"
-                  onError={(e) => {
-                    e.target.onerror = null; 
-                    e.target.src = 'https://via.placeholder.com/300x450?text=No+Image';
-                  }}
+                  className="w-full h-full object-cover"
+                  loading="eager"
                 />
               </div>
-              
-              {/* Action buttons */}
-              <div className="flex flex-col gap-3 mt-4">
-                <button
-                  onClick={handleToggleFavorite}
-                  className={`px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors ${
-                    isFavorite 
-                      ? 'bg-yellow-500 text-black hover:bg-yellow-600' 
-                      : 'bg-zinc-700 text-white hover:bg-zinc-600'
-                  }`}
-                >
-                  <FaStar />
-                  <span>{isFavorite ? 'Bookmarked' : 'Bookmark'}</span>
-                </button>
-                
-                {comic.chapters && comic.chapters.length > 0 && (
-                  <Link
-                    to={`/read/${comic.chapters[0].slug}`}
-                    className="px-4 py-2 rounded-lg bg-primary hover:bg-primary-dark text-white flex items-center justify-center gap-2 transition-colors"
-                  >
-                    <FaBookOpen />
-                    <span>Read First Chapter</span>
-                  </Link>
+
+              <div className="text-center sm:text-left flex-1 sm:pb-4">
+                <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">
+                  {comic.title}
+                </h1>
+
+                <div className="flex flex-wrap justify-center sm:justify-start gap-2 mb-4">
+                  {comic.type && (
+                    <span className="px-3 py-1 text-xs font-medium rounded-full bg-primary/20 text-primary border border-primary/30">
+                      {comic.type}
+                    </span>
+                  )}
+                  {comic.status && (
+                    <span className={`px-3 py-1 text-xs font-medium rounded-full ${
+                      comic.status.toLowerCase() === 'completed' 
+                        ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
+                        : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                    }`}>
+                      {comic.status}
+                    </span>
+                  )}
+                  {comic.score && (
+                    <span className="px-3 py-1 text-xs font-medium rounded-full bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 flex items-center">
+                      <FaStar className="mr-1" /> {comic.score}
+                    </span>
+                  )}
+                </div>
+
+                {comic.author && (
+                  <div className="text-zinc-400 text-sm mb-2">
+                    <span className="font-medium">Author:</span> {comic.author}
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </div>
+
+          <div className="container-custom">
+            {/* Description section */}
+            <div className="mt-8 mb-10">
+              <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+                <FaInfoCircle className="text-primary" />
+                Overview
+              </h2>
+
+              <div className="bg-zinc-900/30 border border-zinc-800/50 rounded-xl p-5">
+                {comic.description ? (
+                  <p className="text-zinc-300 leading-relaxed">
+                    {comic.description}
+                  </p>
+                ) : (
+                  <p className="text-zinc-500 italic">
+                    No description available for this manga.
+                  </p>
+                )}
+
+                {(comic.genres && comic.genres.length > 0) && (
+                  <div className="mt-6">
+                    <h3 className="text-white text-sm font-medium mb-3">Genres</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {comic.genres.map((genre, index) => (
+                        <span 
+                          key={index} 
+                          className="px-3 py-1 text-xs font-medium rounded-full bg-zinc-800 text-zinc-300"
+                        >
+                          {genre}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
-            
-            {/* Comic details */}
-            <div className="flex-1">
-              <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">{comic.title}</h1>
-              
-              {/* Meta info */}
-              <div className="flex flex-wrap gap-2 mb-4">
-                {comic.type && (
-                  <span className="px-2 py-1 text-xs rounded-full bg-blue-900/60 text-blue-100">
-                    {comic.type}
-                  </span>
-                )}
-                {comic.status && (
-                  <span className="px-2 py-1 text-xs rounded-full bg-green-900/60 text-green-100">
-                    {comic.status}
-                  </span>
-                )}
-                {comic.score && (
-                  <span className="px-2 py-1 text-xs rounded-full bg-yellow-900/60 text-yellow-100 flex items-center gap-1">
-                    <FaStar className="inline" />
-                    {comic.score}
-                  </span>
-                )}
-              </div>
-              
-              {/* Details */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-y-2 gap-x-6 mb-6">
-                {comic.author && (
-                  <div className="flex items-start gap-2">
-                    <span className="text-zinc-500 min-w-[80px]">Author:</span>
-                    <span className="text-white">{comic.author}</span>
-                  </div>
-                )}
-                {comic.released && (
-                  <div className="flex items-start gap-2">
-                    <span className="text-zinc-500 min-w-[80px]">Released:</span>
-                    <span className="text-white">{comic.released}</span>
-                  </div>
-                )}
-                {comic.updated && (
-                  <div className="flex items-start gap-2">
-                    <span className="text-zinc-500 min-w-[80px]">Updated:</span>
-                    <span className="text-white">{comic.updated}</span>
-                  </div>
-                )}
-                {comic.total_chapter && (
-                  <div className="flex items-start gap-2">
-                    <span className="text-zinc-500 min-w-[80px]">Chapters:</span>
-                    <span className="text-white">{comic.total_chapter}</span>
-                  </div>
-                )}
-              </div>
-              
-              {/* Synopsis */}
-              {comic.synopsis && (
-                <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-white mb-2">Synopsis</h3>
-                  <p className="text-zinc-400 leading-relaxed">{comic.synopsis}</p>
-                </div>
-              )}
-              
-              {/* Genres */}
-              {comic.genre && comic.genre.length > 0 && (
-                <div className="mb-4">
-                  <h3 className="text-lg font-semibold text-white mb-2 flex items-center gap-2">
-                    <FaTag className="text-zinc-500" />
-                    Genres
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {comic.genre.map((genre, index) => (
-                      <span key={index} className="px-3 py-1 rounded-full text-sm bg-zinc-800 text-zinc-300">
-                        {genre.name}
-                      </span>
+
+            {/* Chapters list */}
+            {comic.chapters && comic.chapters.length > 0 && (
+              <div className="mb-12">
+                <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+                  <FaHistory className="text-primary" />
+                  Chapters
+                </h2>
+
+                <div className="bg-zinc-900/30 border border-zinc-800/50 rounded-xl p-4">
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {comic.chapters.map((chapter, index) => (
+                      <Link
+                        key={index}
+                        to={`/read/${chapter.slug}`}
+                        className="flex justify-between items-center p-3 rounded-lg bg-zinc-800/50 hover:bg-zinc-700/70 transition-colors group"
+                      >
+                        <span className="text-white font-medium truncate group-hover:text-primary transition-colors">
+                          {chapter.title}
+                        </span>
+                        <span className="text-xs bg-zinc-700/50 text-zinc-400 shrink-0 ml-2 px-2 py-1 rounded-full">
+                          {chapter.released}
+                        </span>
+                      </Link>
                     ))}
                   </div>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
-        
-        {/* Chapters list */}
-        {comic.chapters && comic.chapters.length > 0 && (
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
-              <FaClock className="text-primary" />
-              Chapters
-            </h2>
-            
-            <div className="bg-zinc-900/30 border border-zinc-800/50 rounded-xl p-4">
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {comic.chapters.map((chapter, index) => (
-                  <Link
-                    key={index}
-                    to={`/read/${chapter.slug}`}
-                    className="flex justify-between items-center p-3 rounded-lg bg-zinc-800/50 hover:bg-zinc-700/70 transition-colors"
-                  >
-                    <span className="text-white font-medium truncate">{chapter.title}</span>
-                    <span className="text-xs text-zinc-400 shrink-0 ml-2">{chapter.released}</span>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
+      </ScrollArea.Viewport>
+      <ScrollArea.Scrollbar
+        className="flex select-none touch-none p-0.5 bg-zinc-800/50 transition-colors duration-150 ease-out hover:bg-zinc-700/50 data-[orientation=vertical]:w-2.5 data-[orientation=horizontal]:flex-col data-[orientation=horizontal]:h-2.5"
+        orientation="vertical"
+      >
+        <ScrollArea.Thumb className="flex-1 bg-zinc-600 rounded-full relative before:content-[''] before:absolute before:top-1/2 before:left-1/2 before:-translate-x-1/2 before:-translate-y-1/2 before:w-full before:h-full before:min-w-[44px] before:min-h-[44px]" />
+      </ScrollArea.Scrollbar>
+    </ScrollArea.Root>
   );
 };
 
