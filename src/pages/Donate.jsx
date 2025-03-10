@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { FaHeart, FaDollarSign, FaPaypal, FaCcVisa, FaCcMastercard, FaBitcoin, FaQrcode, FaHandHoldingHeart, FaTimes } from 'react-icons/fa';
+import { FaHeart, FaDollarSign, FaPaypal, FaCcVisa, FaCcMastercard, FaBitcoin, FaQrcode, FaHandHoldingHeart, FaTimes, FaUserCircle } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Donate = () => {
@@ -42,7 +42,7 @@ const Donate = () => {
                 transition={{ duration: 0.5, delay: 0.3 }}
                 className="text-4xl font-bold text-white mb-4"
               >
-                Support MangaSur
+                Support MangaRul
               </motion.h1>
               <motion.p 
                 initial={{ opacity: 0, y: 20 }}
@@ -50,10 +50,29 @@ const Donate = () => {
                 transition={{ duration: 0.5, delay: 0.4 }}
                 className="text-zinc-400 text-lg max-w-2xl mx-auto"
               >
-                Your donations help us maintain and improve MangaSur, ensuring we can continue to provide high-quality manga content for free.
+                Your donations help us maintain and improve MangaRul, ensuring we can continue to provide high-quality manga content for free.
               </motion.p>
             </div>
-            
+
+            <div className="space-y-6 mb-8">
+                <div className="bg-zinc-800/50 rounded-xl p-4 border border-zinc-700/30">
+                  <div className="flex items-center mb-3">
+                    <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+                      <FaUserCircle className="h-5 w-5" />
+                    </div>
+                    <div className="ml-3">
+                      <h3 className="text-white font-medium">Server Costs</h3>
+                      <p className="text-zinc-400 text-sm">Help us keep the servers running</p>
+                    </div>
+                  </div>
+                  <div className="w-full bg-zinc-700/30 rounded-full h-1.5">
+                    <div className="bg-primary h-1.5 rounded-full" style={{ width: '65%' }}></div>
+                  </div>
+                  <div className="text-right text-xs text-zinc-400 mt-1">65% of monthly goal</div>
+                </div>
+              </div>
+
+              
             {/* Donation Options */}
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
@@ -63,13 +82,13 @@ const Donate = () => {
             >
               <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
                 <FaDollarSign className="mr-3 text-primary" />
-                Donation Options
+                Donation
               </h2>
               
               <div className="grid md:grid-cols-2 gap-6">
                 {/* One-time donation */}
-                <div className="bg-zinc-800/50 rounded-xl p-6 border border-zinc-700/30 hover:border-zinc-600/50 hover:shadow-lg transition-all hover:shadow-primary/5 hover:-translate-y-1">
-                  <h3 className="text-xl font-semibold text-white mb-4">One-time Donation</h3>
+                
+                  
                   <p className="text-zinc-400 mb-6">Support us with a one-time donation of any amount. Every contribution helps!</p>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
@@ -83,50 +102,13 @@ const Donate = () => {
                 </div>
                 
                 {/* Monthly support */}
-                <div className="bg-zinc-800/50 rounded-xl p-6 border border-zinc-700/30 hover:border-zinc-600/50 hover:shadow-lg transition-all hover:shadow-primary/5 hover:-translate-y-1">
-                  <h3 className="text-xl font-semibold text-white mb-4">Monthly Support</h3>
-                  <p className="text-zinc-400 mb-6">Become a regular supporter with a monthly donation to help us plan for the future.</p>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={toggleQRCode}
-                    className="w-full bg-gradient-to-r from-secondary to-secondary-dark py-3 px-6 rounded-lg text-white font-medium flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-secondary/20 transition-all"
-                  >
-                    <FaHeart />
-                    Become a Supporter
-                  </motion.button>
-                </div>
-              </div>
+                
+                    
+              
             </motion.div>
             
             {/* Payment Methods */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.6 }}
-              className="bg-zinc-900/70 border border-zinc-800/50 rounded-xl p-8 backdrop-blur-sm shadow-xl"
-            >
-              <h2 className="text-2xl font-bold text-white mb-6">Accepted Payment Methods</h2>
-              
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-zinc-800/50 rounded-xl p-6 flex flex-col items-center justify-center text-center border border-zinc-700/30 hover:border-zinc-600/50 hover:shadow-lg transition-all">
-                  <FaPaypal className="text-4xl text-blue-400 mb-3" />
-                  <span className="text-white font-medium">PayPal</span>
-                </div>
-                <div className="bg-zinc-800/50 rounded-xl p-6 flex flex-col items-center justify-center text-center border border-zinc-700/30 hover:border-zinc-600/50 hover:shadow-lg transition-all">
-                  <FaCcVisa className="text-4xl text-blue-600 mb-3" />
-                  <span className="text-white font-medium">Visa</span>
-                </div>
-                <div className="bg-zinc-800/50 rounded-xl p-6 flex flex-col items-center justify-center text-center border border-zinc-700/30 hover:border-zinc-600/50 hover:shadow-lg transition-all">
-                  <FaCcMastercard className="text-4xl text-orange-500 mb-3" />
-                  <span className="text-white font-medium">Mastercard</span>
-                </div>
-                <div className="bg-zinc-800/50 rounded-xl p-6 flex flex-col items-center justify-center text-center border border-zinc-700/30 hover:border-zinc-600/50 hover:shadow-lg transition-all">
-                  <FaBitcoin className="text-4xl text-yellow-500 mb-3" />
-                  <span className="text-white font-medium">Bitcoin</span>
-                </div>
-              </div>
-            </motion.div>
+            
           </div>
         </motion.div>
       </div>

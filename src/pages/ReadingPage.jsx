@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { FaArrowLeft, FaHome, FaCog, FaChevronLeft, FaChevronRight, FaExpand, FaCompress } from 'react-icons/fa';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { FaArrowLeft, FaHome, FaCog, FaChevronLeft, FaChevronRight, FaExpand, FaCompress, FaRunning } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import Comic from '../api/comicApi';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -21,6 +21,12 @@ const ReadingPage = () => {
   const [pageGap, setPageGap] = useState(16);
   const readingContainerRef = useRef(null);
   const controlsTimeoutRef = useRef(null);
+  const navigate = useNavigate();
+
+  const [isMarathonMode, setIsMarathonMode] = useState(false);
+  const [currentComicInfo, setCurrentComicInfo] = useState(null);
+  const [nextChapterSlug, setNextChapterSlug] = useState(null);
+  const [showNextChapterNotification, setShowNextChapterNotification] = useState(false);
 
   useEffect(() => {
     const fetchComicPages = async () => {
@@ -34,6 +40,26 @@ const ReadingPage = () => {
         }
 
         setComicPages(pages);
+
+        // Get information about current comic for marathon mode
+        if (slug.includes('-chapter-')) {
+          const comicSlug = slug.split('-chapter-')[0];
+          const comicInstance = new Comic(comicSlug);
+          try {
+            const comicInfo = await comicInstance.info();
+            setCurrentComicInfo(comicInfo);
+
+            // Find the next chapter if it exists
+            if (comicInfo && comicInfo.chapters) {
+              const currentChapterIndex = comicInfo.chapters.findIndex(chapter => chapter.slug === slug);
+              if (currentChapterIndex !== -1 && currentChapterIndex < comicInfo.chapters.length - 1) {
+                setNextChapterSlug(comicInfo.chapters[currentChapterIndex + 1].slug);
+              }
+            }
+          } catch (err) {
+            console.error("Error fetching comic info for marathon mode:", err);
+          }
+        }
       } catch (err) {
         console.error('Error fetching comic pages:', err);
         setError('Failed to load comic pages. Please try again later.');
@@ -43,6 +69,10 @@ const ReadingPage = () => {
     };
 
     fetchComicPages();
+
+    // Check if we're in marathon mode from local storage
+    const marathonMode = localStorage.getItem('marathonMode') === 'true';
+    setIsMarathonMode(marathonMode);
 
     // Load saved reader preferences
     const savedReadingMode = localStorage.getItem('readingMode') || 'vertical';
@@ -56,6 +86,23 @@ const ReadingPage = () => {
     // Add keyboard event listeners
     window.addEventListener('keydown', handleKeyDown);
     document.addEventListener('mousemove', handleMouseMove);
+
+    // Marathon mode scroll listener
+    const marathonData = JSON.parse(localStorage.getItem('marathonMode') || '{}');
+    if (marathonData.active) {
+      const handleScroll = () => {
+        if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 200) {
+          if (marathonData.active && marathonData.currentChapterIndex < marathonData.totalChapters -1) {
+            window.removeEventListener('scroll', handleScroll);
+            setTimeout(() => {
+              goToNextChapter();
+            }, 1000);
+          }
+        }
+      };
+      window.addEventListener('scroll', handleScroll);
+      return () => window.removeEventListener('scroll', handleScroll);
+    }
 
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
@@ -73,6 +120,23 @@ const ReadingPage = () => {
     localStorage.setItem('pageGap', pageGap.toString());
   }, [readingMode, backgroundColor, pageGap]);
 
+  const goToNextChapter = () => {
+    if (nextChapterSlug) {
+      localStorage.setItem('marathonMode', 'true');
+      navigate(`/read/${nextChapterSlug}`);
+    } else {
+      // Handle end of marathon
+      localStorage.removeItem('marathonMode');
+      const notification = document.createElement('div');
+      notification.className = 'marathon-notification';
+      notification.textContent = 'Marathon completed! You\'ve reached the latest chapter.';
+      document.body.appendChild(notification);
+      setTimeout(() => {
+        notification.remove();
+      }, 5000);
+    }
+  };
+
   const handleKeyDown = (e) => {
     if (readingMode === 'single') {
       if (e.key === 'ArrowLeft' || e.key === 'a') {
@@ -85,6 +149,16 @@ const ReadingPage = () => {
     // Toggle fullscreen with 'f' key
     if (e.key === 'f') {
       toggleFullscreen();
+    }
+
+    // Space key to go to next chapter in marathon mode
+    if (e.key === ' ' && isMarathonMode && nextChapterSlug) {
+      // If we're at the last page and there's a next chapter available
+      if ((readingMode === 'single' && currentPage === comicPages.length - 1) ||
+          (readingMode !== 'single' && window.innerHeight + window.pageYOffset >= document.body.offsetHeight - 100)) {
+        e.preventDefault(); // Prevent space from scrolling
+        goToNextChapter();
+      }
     }
   };
 
@@ -134,13 +208,13 @@ const ReadingPage = () => {
 
   const renderVerticalReader = () => (
     <ScrollArea.Root className="h-screen w-full overflow-hidden">
-      <ScrollArea.Viewport 
-        className="w-full h-full pt-14 pb-10" 
+      <ScrollArea.Viewport
+        className="w-full h-full pt-14 pb-10"
         style={{ backgroundColor: backgroundColor }}
       >
         <div className="max-w-3xl mx-auto px-2 sm:px-4" ref={readingContainerRef}>
           {comicPages.map((page, index) => (
-            <div 
+            <div
               key={index}
               className="mb-4 w-full flex justify-center"
               style={{ marginBottom: `${pageGap}px` }}
@@ -168,8 +242,8 @@ const ReadingPage = () => {
   );
 
   const renderSinglePageReader = () => (
-    <div 
-      className="h-screen w-full flex items-center justify-center px-4 pt-14 pb-14" 
+    <div
+      className="h-screen w-full flex items-center justify-center px-4 pt-14 pb-14"
       style={{ backgroundColor: backgroundColor }}
       ref={readingContainerRef}
     >
@@ -234,8 +308,8 @@ const ReadingPage = () => {
 
   const renderWebtoonReader = () => (
     <ScrollArea.Root className="h-screen w-full overflow-hidden">
-      <ScrollArea.Viewport 
-        className="w-full h-full pt-14 pb-10" 
+      <ScrollArea.Viewport
+        className="w-full h-full pt-14 pb-10"
         style={{ backgroundColor: backgroundColor }}
       >
         <div className="max-w-3xl mx-auto px-0" ref={readingContainerRef}>
@@ -297,11 +371,22 @@ const ReadingPage = () => {
             transition={{ duration: 0.2 }}
             className="fixed top-0 left-0 right-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-between px-4 py-2"
           >
-            <Link to={`/comic/${slug.split('-chapter-')[0]}`} className="flex items-center text-zinc-300 hover:text-white">
+            <Link
+              to={`/comic/${slug.split('-chapter-')[0]}`}
+              onClick={() => localStorage.setItem('marathonMode', 'false')}
+              className="flex items-center text-zinc-300 hover:text-white"
+            >
               <FaArrowLeft className="mr-2" /> Back
             </Link>
 
             <div className="flex items-center gap-4">
+              {isMarathonMode && (
+                <div className="px-3 py-1 bg-primary/30 text-primary-light rounded-full text-sm flex items-center gap-1">
+                  <FaRunning size={14} />
+                  <span>Marathon Mode</span>
+                </div>
+              )}
+
               <button
                 onClick={() => setSettingsOpen(true)}
                 className="p-2 text-zinc-300 hover:text-white"
@@ -319,6 +404,24 @@ const ReadingPage = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Next Chapter Notification */}
+      {isMarathonMode && nextChapterSlug && (readingMode === 'single' ? (currentPage === comicPages.length - 1) : true) && (
+        <div className="fixed bottom-10 left-1/2 transform -translate-x-1/2 z-50">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-primary text-white px-6 py-4 rounded-xl shadow-xl flex items-center gap-3"
+          >
+            <button
+              onClick={goToNextChapter}
+              className="flex items-center gap-2 font-medium"
+            >
+              Go to Next Chapter <FaArrowLeft className="transform rotate-180" />
+            </button>
+          </motion.div>
+        </div>
+      )}
 
       {/* Reader based on mode */}
       {readingMode === 'vertical' && renderVerticalReader()}
@@ -348,7 +451,7 @@ const ReadingPage = () => {
                     onClick={() => setReadingMode('single')}
                     className={`p-2 rounded text-center text-sm ${readingMode === 'single' ? 'bg-primary text-white' : 'bg-zinc-800 text-zinc-300'}`}
                   >
-                    Single Page
+                    Single (Beta)
                   </button>
                   <button
                     onClick={() => setReadingMode('webtoon')}
@@ -364,23 +467,23 @@ const ReadingPage = () => {
                 <div className="grid grid-cols-4 gap-2">
                   <button
                     onClick={() => setBackgroundColor('#000000')}
-                    className={`h-8 rounded-full ${backgroundColor === '#000000' ? 'ring-2 ring-primary ring-offset-2 ring-offset-zinc-900' : ''}`}
+                    className={`h-8 rounded-xl ${backgroundColor === '#000000' ? 'ring-2 ring-primary ring-offset-2 ring-offset-zinc-900' : ''}`}
                     style={{ backgroundColor: '#000000' }}
                   ></button>
                   <button
                     onClick={() => setBackgroundColor('#121212')}
-                    className={`h-8 rounded-full ${backgroundColor === '#121212' ? 'ring-2 ring-primary ring-offset-2 ring-offset-zinc-900' : ''}`}
+                    className={`h-8 rounded-xl ${backgroundColor === '#121212' ? 'ring-2 ring-primary ring-offset-2 ring-offset-zinc-900' : ''}`}
                     style={{ backgroundColor: '#121212' }}
                   ></button>
                   <button
                     onClick={() => setBackgroundColor('#1a1a1a')}
-                    className={`h-8 rounded-full ${backgroundColor === '#1a1a1a' ? 'ring-2 ring-primary ring-offset-2 ring-offset-zinc-900' : ''}`}
+                    className={`h-8 rounded-xl ${backgroundColor === '#1a1a1a' ? 'ring-2 ring-primary ring-offset-2 ring-offset-zinc-900' : ''}`}
                     style={{ backgroundColor: '#1a1a1a' }}
                   ></button>
                   <button
-                    onClick={() => setBackgroundColor('#242424')}
-                    className={`h-8 rounded-full ${backgroundColor === '#242424' ? 'ring-2 ring-primary ring-offset-2 ring-offset-zinc-900' : ''}`}
-                    style={{ backgroundColor: '#242424' }}
+                    onClick={() => setBackgroundColor('#0adaff')}
+                    className={`h-8 rounded-xl ${backgroundColor === '#0adaff' ? 'ring-2 ring-primary ring-offset-2 ring-offset-zinc-900' : ''}`}
+                    style={{ backgroundColor: '#0adaff' }}
                   ></button>
                 </div>
               </div>
