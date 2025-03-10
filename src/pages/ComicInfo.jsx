@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FaBookmark, FaStar, FaClock, FaGlobe, FaInfoCircle, FaExclamationTriangle, FaArrowLeft, FaHistory } from 'react-icons/fa';
+import { FaBookmark, FaStar, FaClock, FaGlobe, FaInfoCircle, FaExclamationTriangle, FaArrowLeft, FaHistory, FaCalendarAlt } from 'react-icons/fa';
 import Comic from '../api/comicApi';
 import LoadingSpinner from '../components/LoadingSpinner';
 import * as ScrollArea from '@radix-ui/react-scroll-area';
 
 const ComicInfo = () => {
-  const { slug } = useParams();
+  const { slug, id } = useParams();
+  const comicId = slug || id; // Handle both URL patterns
   const [comic, setComic] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -16,14 +17,14 @@ const ComicInfo = () => {
 
   useEffect(() => {
     const fetchComicInfo = async () => {
-      if (!slug) return;
+      if (!comicId) return;
 
       setLoading(true);
       setError(null);
 
       try {
         const comicInstance = new Comic();
-        const comicData = await comicInstance.info(slug);
+        const comicData = await comicInstance.info(comicId);
 
         if (!comicData) {
           throw new Error("Comic information not found");
@@ -39,7 +40,7 @@ const ComicInfo = () => {
 
         // Check if comic is in favorites
         const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-        setIsFavorite(favorites.some(fav => fav.slug === slug));
+        setIsFavorite(favorites.some(fav => fav.slug === comicId || fav.id === comicId));
       } catch (err) {
         console.error("Error fetching comic info:", err);
         setError("Failed to load comic information. Please try again.");
@@ -49,23 +50,28 @@ const ComicInfo = () => {
     };
 
     fetchComicInfo();
-  }, [slug, retryCount]);
+  }, [comicId, retryCount]);
 
   const handleToggleFavorite = () => {
+    if (!comic) return;
+    
     try {
       let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
 
       if (isFavorite) {
         // Remove from favorites
-        favorites = favorites.filter(fav => fav.slug !== comic.slug);
+        favorites = favorites.filter(fav => fav.slug !== comic.slug && fav.id !== comic.id);
       } else {
         // Add to favorites
         favorites.push({
           title: comic.title,
           slug: comic.slug,
+          id: comic.id,
           cover: comic.cover,
+          coverImage: comic.coverImage,
           type: comic.type || 'Unknown',
           status: comic.status || 'Ongoing',
+          score: comic.score
         });
       }
 
@@ -145,13 +151,18 @@ const ComicInfo = () => {
               transition={{ duration: 0.5 }}
               className="relative h-full flex flex-col sm:flex-row items-center justify-center sm:justify-start sm:items-end container-custom gap-6 pt-12 pb-6"
             >
-              <div className="w-40 h-56 sm:w-48 sm:h-72 overflow-hidden rounded-xl shadow-2xl border border-zinc-800/70">
+              <div className="w-40 h-56 sm:w-48 sm:h-72 overflow-hidden rounded-xl shadow-2xl border border-zinc-800/70 relative group">
                 <img 
                   src={comic.coverImage} 
                   alt={comic.title} 
                   className="w-full h-full object-cover"
                   loading="eager"
                 />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-3">
+                  <div className="px-3 py-1 rounded-full bg-primary/80 text-white text-xs font-medium">
+                    View Details
+                  </div>
+                </div>
               </div>
 
               <div className="text-center sm:text-left flex-1 sm:pb-4">
@@ -181,11 +192,19 @@ const ComicInfo = () => {
                   )}
                 </div>
 
-                {comic.author && (
-                  <div className="text-zinc-400 text-sm mb-2">
-                    <span className="font-medium">Author:</span> {comic.author}
-                  </div>
-                )}
+                <div className="flex flex-wrap justify-center sm:justify-start gap-x-4 gap-y-2 mb-3 text-sm text-zinc-400">
+                  {comic.author && (
+                    <div className="flex items-center">
+                      <span className="font-medium mr-1">Author:</span> {comic.author}
+                    </div>
+                  )}
+                  {comic.released && (
+                    <div className="flex items-center">
+                      <FaCalendarAlt className="mr-1.5 text-zinc-500" />
+                      <span>{comic.released}</span>
+                    </div>
+                  )}
+                </div>
               </div>
             </motion.div>
           </div>
@@ -216,7 +235,7 @@ const ComicInfo = () => {
                       {comic.genres.map((genre, index) => (
                         <span 
                           key={index} 
-                          className="px-3 py-1 text-xs font-medium rounded-full bg-zinc-800 text-zinc-300"
+                          className="px-3 py-1 text-xs font-medium rounded-full bg-zinc-800 text-zinc-300 hover:bg-zinc-700 hover:text-white transition-colors cursor-pointer"
                         >
                           {genre}
                         </span>
@@ -241,12 +260,13 @@ const ComicInfo = () => {
                       <Link
                         key={index}
                         to={`/read/${chapter.slug}`}
-                        className="flex justify-between items-center p-3 rounded-lg bg-zinc-800/50 hover:bg-zinc-700/70 transition-colors group"
+                        className="flex justify-between items-center p-3 rounded-lg bg-zinc-800/50 hover:bg-zinc-700/70 transition-colors group relative overflow-hidden"
                       >
-                        <span className="text-white font-medium truncate group-hover:text-primary transition-colors">
+                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary transform scale-y-0 group-hover:scale-y-100 transition-transform origin-bottom"></div>
+                        <span className="text-white font-medium truncate group-hover:text-primary transition-colors pl-2">
                           {chapter.title}
                         </span>
-                        <span className="text-xs bg-zinc-700/50 text-zinc-400 shrink-0 ml-2 px-2 py-1 rounded-full">
+                        <span className="text-xs bg-zinc-700/50 text-zinc-400 shrink-0 ml-2 px-2 py-1 rounded-full group-hover:bg-zinc-600/50 group-hover:text-zinc-300 transition-colors">
                           {chapter.released}
                         </span>
                       </Link>
