@@ -33,6 +33,22 @@ export default {
         }
       }
     },
+    screens: {
+      'xs': '480px',
+      'sm': '640px',
+      'md': '768px',
+      'lg': '1024px',
+      'xl': '1280px',
+      '2xl': '1536px',
+    },
   },
   plugins: [],
+  safelist: [
+    {
+      pattern: /bg-(primary|secondary)(-light|-dark)?\/\d+/,
+    },
+    {
+      pattern: /hover:bg-(primary|secondary)(-light|-dark)?\/\d+/,
+    }
+  ]
 }

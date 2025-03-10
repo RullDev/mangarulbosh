@@ -16,6 +16,14 @@
   --background-dark: #000000;
   --text-light: #1f2937;
   --text-dark: #f9fafb;
+  
+  /* RGB values for opacity modifiers */
+  --primary-rgb: 59, 130, 246;
+  --primary-light-rgb: 96, 165, 250;
+  --primary-dark-rgb: 37, 99, 235;
+  --secondary-rgb: 139, 92, 246;
+  --secondary-light-rgb: 167, 139, 250;
+  --secondary-dark-rgb: 124, 58, 237;
 }
 
 body {
@@ -178,10 +186,6 @@ html {
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 /* Custom container with padding */
 .container-custom {
   @apply container mx-auto px-4;
@@ -203,6 +207,28 @@ html {
 
 /* Better fonts */
 @import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800&display=swap');
+
+/* Button with hover effect that works with opacity */
+.btn-primary {
+  @apply bg-primary text-white font-medium py-2 px-4 rounded-md transition-all duration-300;
+  box-shadow: 0 4px 14px 0 rgba(var(--primary-rgb), 0.25);
+}
+
+.btn-primary:hover {
+  background-color: rgba(var(--primary-rgb), 0.9);
+  box-shadow: 0 6px 20px 0 rgba(var(--primary-rgb), 0.35);
+  transform: translateY(-1px);
+}
+
+.dark .btn-primary {
+  background-color: rgb(var(--primary-dark-rgb));
+  box-shadow: 0 4px 14px 0 rgba(var(--primary-dark-rgb), 0.3);
+}
+
+.dark .btn-primary:hover {
+  background-color: rgba(var(--primary-dark-rgb), 0.9);
+  box-shadow: 0 6px 20px 0 rgba(var(--primary-dark-rgb), 0.4);
+}
 
 /* Global styles */
 html {
