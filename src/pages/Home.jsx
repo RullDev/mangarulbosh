@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { FaSearch, FaExclamationTriangle, FaFire, FaStar, FaClock, FaRandom, FaBookOpen } from 'react-icons/fa';
+import { FaSearch, FaExclamationTriangle, FaFire, FaStar, FaClock, FaRandom, FaBookOpen, FaTimes } from 'react-icons/fa';
 import Comic from '../api/comicApi';
 import ComicGrid from '../components/ComicGrid';
 import LoadingSpinner from '../components/LoadingSpinner';

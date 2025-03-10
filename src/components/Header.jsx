@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaSearch, FaBookmark, FaHome, FaHeart, FaUser, FaMoon, FaSun } from 'react-icons/fa';
+import { FaSearch, FaBookmark, FaHome, FaHeart, FaUser, FaMoon, FaSun, FaTimes } from 'react-icons/fa';
 import * as Dialog from '@radix-ui/react-dialog';
 import * as NavigationMenu from '@radix-ui/react-navigation-menu';
 
