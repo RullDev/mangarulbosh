@@ -191,7 +191,47 @@ html {
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(to right, #6366f1, transparent);
+  background: linear-gradient(to right, var(--primary), transparent);
+  animation: borderPulse 3s infinite alternate;
+}
+
+@keyframes borderPulse {
+  0% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+/* Radix Dialog animations */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scale-in {
+  from { transform: translate(-50%, -50%) scale(0.95); opacity: 0; }
+  to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.3s ease-out;
+}
+
+/* Comic info page enhancements */
+.glass-card {
+  background: rgba(17, 17, 17, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(99, 102, 241, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.glass-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px 0 rgba(99, 102, 241, 0.15);
 }
 
 /* Card styling */
