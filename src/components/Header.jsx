@@ -1,161 +1,202 @@
 
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { FaSearch, FaBookmark, FaHome, FaHeart, FaUser, FaMoon, FaSun, FaTimes } from 'react-icons/fa';
-import * as Dialog from '@radix-ui/react-dialog';
-import * as NavigationMenu from '@radix-ui/react-navigation-menu';
+import { Link, useLocation } from 'react-router-dom';
+import { FaHome, FaBookmark, FaHeart, FaSearch, FaBars, FaUserCircle, FaMoon, FaSun, FaTimes } from 'react-icons/fa';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [scrolled, setScrolled] = useState(false);
-  const navigate = useNavigate();
-
+  const [isScrolled, setIsScrolled] = useState(false);
+  const location = useLocation();
+  
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
+      setIsScrolled(window.scrollY > 10);
     };
-
+    
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+  
+  useEffect(() => {
+    // Close menu when route changes
+    setIsMenuOpen(false);
+  }, [location]);
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
-      setSearchQuery('');
-      setIsMenuOpen(false);
+  useEffect(() => {
+    // Prevent scrolling when menu is open on mobile
+    if (isMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+    
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, [isMenuOpen]);
+
+  const menuVariants = {
+    closed: {
+      opacity: 0,
+      y: -20,
+      transition: {
+        duration: 0.3,
+        ease: "easeInOut"
+      }
+    },
+    open: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.3,
+        ease: "easeOut",
+        staggerChildren: 0.1,
+        delayChildren: 0.1
+      }
     }
   };
 
+  const itemVariants = {
+    closed: { opacity: 0, x: -10 },
+    open: { opacity: 1, x: 0 }
+  };
+
+  const overlayVariants = {
+    closed: {
+      opacity: 0,
+      transition: {
+        duration: 0.2
+      }
+    },
+    open: {
+      opacity: 1,
+      transition: {
+        duration: 0.3
+      }
+    }
+  };
+
+  const navItems = [
+    { name: 'Home', icon: <FaHome />, path: '/' },
+    { name: 'Bookmarks', icon: <FaBookmark />, path: '/bookmarks' },
+    { name: 'Donate', icon: <FaHeart />, path: '/donate' },
+    { name: 'Search', icon: <FaSearch />, path: '/search' },
+  ];
+
   return (
-    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-black/90 backdrop-blur-md shadow-lg' : 'bg-black'}`}>
-      <div className="container-custom py-3 flex items-center justify-between">
-        {/* Logo */}
-        <Link to="/" className="flex items-center">
-          <h1 className="text-2xl font-bold text-white tracking-wider">MANGARUL</h1>
-        </Link>
-
-        {/* Mobile Menu Button */}
-        <Dialog.Root open={isMenuOpen} onOpenChange={setIsMenuOpen}>
-          <Dialog.Trigger asChild>
-            <button 
-              className="flex md:hidden flex-col justify-center items-center w-10 h-10 rounded-full text-white focus:outline-none"
-              aria-label="Open menu"
-            >
-              <div className={`hamburger-line mb-1.5 transition-all ${isMenuOpen ? 'hamburger-open' : ''}`}></div>
-              <div className={`hamburger-line mb-1.5 transition-all ${isMenuOpen ? 'hamburger-open' : ''}`}></div>
-              <div className={`hamburger-line transition-all ${isMenuOpen ? 'hamburger-open' : ''}`}></div>
-            </button>
-          </Dialog.Trigger>
-
-          <Dialog.Portal>
-            <Dialog.Overlay className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 animate-fade-in" />
-            <Dialog.Content className="fixed top-0 right-0 h-full w-[85vw] max-w-sm bg-zinc-900 z-50 p-6 shadow-xl animate-slide-in-right custom-scrollbar overflow-y-auto blackdrop-blur-xl">
-              <div className="flex flex-col h-full">
-                <div className="flex justify-between items-center mb-8">
-                  <h2 className="text-xl font-bold text-white">Menu</h2>
-                  <Dialog.Close asChild>
-                    <button className="rounded-full p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors">
-                      <FaTimes className="w-5 h-5" />
-                    </button>
-                  </Dialog.Close>
-                </div>
-
-                <form onSubmit={handleSearch} className="mb-6">
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Search manga..."
-                      className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2 pl-10 text-white focus:outline-none focus:ring-2 focus:ring-primary"
-                    />
-                    <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-500" />
-                  </div>
-                </form>
-
-                <nav className="mb-8">
-                  <ul className="space-y-4">
-                    <li>
-                      <Link 
-                        to="/" 
-                        className="flex items-center gap-3 text-lg text-white" 
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        <FaHome className="text-primary" />
-                        Home
-                      </Link>
-                    </li>
-                    <li>
-                      <Link 
-                        to="/bookmarks" 
-                        className="flex items-center gap-3 text-lg text-white" 
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        <FaBookmark className="text-primary" />
-                        Bookmarks
-                      </Link>
-                    </li>
-                    <li>
-                      <Link 
-                        to="/donate" 
-                        className="flex items-center gap-3 text-lg text-white" 
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        <FaHeart className="text-primary" />
-                        Donate
-                      </Link>
-                    </li>
-                  </ul>
-                </nav>
-              </div>
-            </Dialog.Content>
-          </Dialog.Portal>
-        </Dialog.Root>
-
-        {/* Desktop Nav */}
-        <div className="hidden md:flex items-center gap-6">
-          <NavigationMenu.Root className="relative">
-            <NavigationMenu.List className="flex items-center gap-4">
-              <NavigationMenu.Item>
-                <NavigationMenu.Link asChild>
-                  <Link to="/" className="text-zinc-400 hover:text-white transition-colors">
-                    Home
-                  </Link>
-                </NavigationMenu.Link>
-              </NavigationMenu.Item>
-              <NavigationMenu.Item>
-                <NavigationMenu.Link asChild>
-                  <Link to="/bookmarks" className="text-zinc-400 hover:text-white transition-colors">
-                    Bookmarks
-                  </Link>
-                </NavigationMenu.Link>
-              </NavigationMenu.Item>
-              <NavigationMenu.Item>
-                <NavigationMenu.Link asChild>
-                  <Link to="/donate" className="text-zinc-400 hover:text-white transition-colors">
-                    Donate
-                  </Link>
-                </NavigationMenu.Link>
-              </NavigationMenu.Item>
-            </NavigationMenu.List>
-          </NavigationMenu.Root>
-
-          {/* Search Form */}
-          <form onSubmit={handleSearch} className="relative">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search manga..."
-              className="w-full md:w-[240px] bg-zinc-800/50 border border-zinc-700/50 rounded-full px-4 py-1.5 pl-9 text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:w-[300px] transition-all"
-            />
-            <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-500" />
-          </form>
+    <header className={`fixed w-full top-0 z-50 ${isScrolled ? 'bg-black/90 backdrop-blur shadow-lg shadow-black/20' : 'bg-black/50 backdrop-blur-sm'} transition-all duration-300`}>
+      <div className="container-custom py-3">
+        <div className="flex items-center justify-between">
+          {/* Logo */}
+          <Link to="/" className="text-white font-bold text-2xl">
+            <span className="text-primary">Manga</span>
+            <span className="text-white">Rull</span>
+          </Link>
+          
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center space-x-1">
+            {navItems.map((item) => (
+              <Link
+                key={item.name}
+                to={item.path}
+                className={`flex items-center px-4 py-2 rounded-lg transition-colors ${location.pathname === item.path ? 'bg-primary/20 text-primary' : 'text-zinc-400 hover:text-white hover:bg-zinc-800/50'}`}
+              >
+                <span className="mr-2">{item.icon}</span>
+                <span>{item.name}</span>
+              </Link>
+            ))}
+          </nav>
+          
+          {/* Hamburger Menu Button */}
+          <button 
+            className="md:hidden flex flex-col justify-center items-center w-10 h-10 p-2 rounded-full bg-zinc-800/60 hover:bg-zinc-700/70 transition-colors"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            aria-label="Menu"
+          >
+            <div className={`hamburger-line ${isMenuOpen ? 'hamburger-open' : ''} mb-1.5`}></div>
+            <div className={`hamburger-line ${isMenuOpen ? 'hamburger-open' : ''} mb-1.5`}></div>
+            <div className={`hamburger-line ${isMenuOpen ? 'hamburger-open' : ''}`}></div>
+          </button>
         </div>
       </div>
+      
+      {/* Mobile Menu Overlay */}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div
+            variants={overlayVariants}
+            initial="closed"
+            animate="open"
+            exit="closed"
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 md:hidden"
+            onClick={() => setIsMenuOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+      
+      {/* Mobile Menu Drawer */}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div
+            variants={menuVariants}
+            initial="closed"
+            animate="open"
+            exit="closed"
+            className="fixed left-0 right-0 z-50 bg-zinc-900/90 backdrop-blur-md border-t border-zinc-800/50 shadow-xl shadow-black/40 md:hidden"
+          >
+            <motion.nav className="container-custom py-6 flex flex-col">
+              <motion.div 
+                variants={itemVariants} 
+                className="border-b border-zinc-800/50 pb-4 mb-4"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center">
+                      <FaUserCircle className="text-zinc-400 text-xl" />
+                    </div>
+                    <div>
+                      <h3 className="text-white font-medium">Guest</h3>
+                      <p className="text-zinc-500 text-sm">Welcome to MangaRull</p>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => setIsMenuOpen(false)}
+                    className="p-2 rounded-full bg-zinc-800/50 hover:bg-zinc-700/50 text-zinc-400 hover:text-white transition-colors"
+                  >
+                    <FaTimes />
+                  </button>
+                </div>
+              </motion.div>
+              
+              {navItems.map((item) => (
+                <motion.div key={item.name} variants={itemVariants}>
+                  <Link
+                    to={item.path}
+                    className={`flex items-center py-3.5 px-3 rounded-lg mb-2 transition-all ${location.pathname === item.path ? 'bg-primary/20 text-primary' : 'text-zinc-300 hover:bg-zinc-800/50'}`}
+                  >
+                    <span className="mr-3 text-lg">{item.icon}</span>
+                    <span className="font-medium">{item.name}</span>
+                  </Link>
+                </motion.div>
+              ))}
+              
+              <motion.div 
+                variants={itemVariants}
+                className="mt-3 pt-4 border-t border-zinc-800/50"
+              >
+                <button className="flex items-center w-full py-3.5 px-3 rounded-lg text-zinc-300 hover:bg-zinc-800/50 transition-all">
+                  <span className="mr-3 text-lg"><FaMoon /></span>
+                  <span className="font-medium">Dark Mode</span>
+                  <div className="ml-auto relative w-10 h-5 bg-zinc-700 rounded-full flex items-center px-0.5">
+                    <div className="w-4 h-4 rounded-full bg-primary absolute right-0.5 transition-all"></div>
+                  </div>
+                </button>
+              </motion.div>
+            </motion.nav>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 };
