@@ -26,6 +26,23 @@
   --secondary-dark-rgb: 124, 58, 237;
 }
 
+/* Hamburger menu animations */
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s ease-out;
+}
+
+/* Better fonts */
+@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800&display=swap');
+
 body {
   background-color: var(--color-bg-dark);
   color: var(--color-text-dark);
