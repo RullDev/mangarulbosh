@@ -24,8 +24,8 @@ const ReadingPage = () => {
   const navigate = useNavigate();
 
   const [isMarathonMode, setIsMarathonMode] = useState(false);
-  const [nextChapterSlug, setNextChapterSlug] = useState(null);
   const [currentComicInfo, setCurrentComicInfo] = useState(null);
+  const [nextChapterSlug, setNextChapterSlug] = useState(null);
   const [showNextChapterNotification, setShowNextChapterNotification] = useState(false);
 
   useEffect(() => {
