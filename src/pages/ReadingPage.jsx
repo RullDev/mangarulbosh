@@ -1,316 +1,293 @@
-import React, { useState, useEffect, useRef, useContext } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { FaArrowLeft, FaHome, FaCog, FaChevronLeft, FaChevronRight, FaExpand, FaCompress } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  FaArrowLeft, 
-  FaArrowRight, 
-  FaExpand, 
-  FaCompress, 
-  FaCog, 
-  FaHome,
-  FaArrowUp,
-  FaTimesCircle,
-  FaChevronLeft,
-  FaChevronRight,
-  FaBook,
-  FaNewspaper
-} from 'react-icons/fa';
 import Comic from '../api/comicApi';
 import LoadingSpinner from '../components/LoadingSpinner';
-import { ThemeContext } from '../App';
+import * as ScrollArea from '@radix-ui/react-scroll-area';
+import * as Dialog from '@radix-ui/react-dialog';
 
 const ReadingPage = () => {
   const { slug } = useParams();
-  const { darkMode } = useContext(ThemeContext);
-  const [pages, setPages] = useState([]);
+  const [comicPages, setComicPages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(0);
-  const [readingMode, setReadingMode] = useState('vertical'); // 'vertical', 'single-page'
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [prevChapter, setPrevChapter] = useState(null);
-  const [nextChapter, setNextChapter] = useState(null);
-  const [comicTitle, setComicTitle] = useState('');
-  const [currentChapter, setCurrentChapter] = useState('');
-  const [controlsTimeout, setControlsTimeout] = useState(null);
-
-  const readerRef = useRef(null);
-  const navigate = useNavigate();
-  const location = useLocation();
+  const [readingMode, setReadingMode] = useState('vertical'); // vertical, single, webtoon
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [backgroundColor, setBackgroundColor] = useState('#000000');
+  const [pageGap, setPageGap] = useState(16);
+  const readingContainerRef = useRef(null);
+  const controlsTimeoutRef = useRef(null);
 
   useEffect(() => {
-    // Reset state when slug changes
-    setCurrentPage(0);
-    setPages([]);
-    setLoading(true);
-    setError(null);
-
-    const fetchPages = async () => {
+    const fetchComicPages = async () => {
+      setLoading(true);
       try {
-        setLoading(true);
-        const comicApi = new Comic(slug);
-        const fetchedPages = await comicApi.read();
+        const comic = new Comic(slug);
+        const pages = await comic.read();
 
-        if (!fetchedPages || fetchedPages.length === 0) {
-          setError("No pages found for this chapter.");
-        } else {
-          // Filter out empty URLs
-          const validPages = fetchedPages.filter(page => page.url && page.url.trim() !== '');
-
-          if (validPages.length === 0) {
-            setError("No valid pages found for this chapter.");
-          } else {
-            setPages(validPages);
-
-            // Try to extract chapter info from slug
-            const chapterMatch = slug.match(/chapter[_-](\d+)/i);
-            if (chapterMatch) {
-              setCurrentChapter(chapterMatch[1]);
-            } else {
-              setCurrentChapter('Unknown');
-            }
-
-            // Extract comic title from slug
-            const titleParts = slug.split(/chapter/i)[0] || '';
-            const formattedTitle = titleParts
-              .replace(/-/g, ' ')
-              .split(' ')
-              .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-              .join(' ')
-              .trim();
-
-            setComicTitle(formattedTitle || 'Comic');
-
-            // Fetch prev/next chapters
-            try {
-              // Try to extract comic slug from chapter slug
-              const comicSlug = slug.split(/chapter/i)[0].slice(0, -1); // Remove trailing dash or underscore
-
-              if (comicSlug) {
-                const infoApi = new Comic(comicSlug);
-                const comicInfo = await infoApi.info();
-
-                if (comicInfo && Array.isArray(comicInfo.chapters)) {
-                  // Sort chapters numerically
-                  const chapters = [...comicInfo.chapters].sort((a, b) => {
-                    const getChapterNum = (slug) => {
-                      const match = slug.match(/chapter[_-](\d+)/i);
-                      return match ? parseInt(match[1]) : 0;
-                    };
-
-                    return getChapterNum(a.slug) - getChapterNum(b.slug);
-                  });
-
-                  // Find current chapter index
-                  const currentIndex = chapters.findIndex(ch => ch.slug === slug);
-
-                  if (currentIndex !== -1) {
-                    // Set previous chapter if available
-                    if (currentIndex > 0) {
-                      setPrevChapter(chapters[currentIndex - 1].slug);
-                    }
-
-                    // Set next chapter if available
-                    if (currentIndex < chapters.length - 1) {
-                      setNextChapter(chapters[currentIndex + 1].slug);
-                    }
-
-                    // Set comic title if available
-                    if (comicInfo.title) {
-                      setComicTitle(comicInfo.title);
-                    }
-                  } else {
-                    // If we can't find the chapter in the list, try a fallback approach
-                    if (chapterMatch) {
-                      const currentChapterNum = parseInt(chapterMatch[1]);
-
-                      // Look for adjacent chapters
-                      const prevCh = chapters.find(ch => {
-                        const match = ch.slug.match(/chapter[_-](\d+)/i);
-                        return match && parseInt(match[1]) === currentChapterNum - 1;
-                      });
-
-                      const nextCh = chapters.find(ch => {
-                        const match = ch.slug.match(/chapter[_-](\d+)/i);
-                        return match && parseInt(match[1]) === currentChapterNum + 1;
-                      });
-
-                      if (prevCh) setPrevChapter(prevCh.slug);
-                      if (nextCh) setNextChapter(nextCh.slug);
-                    }
-                  }
-                }
-              }
-            } catch (navErr) {
-              console.error("Error setting up navigation:", navErr);
-              // Non-blocking error, so we don't set the main error state
-            }
-          }
+        if (!pages || pages.length === 0) {
+          throw new Error('No pages found');
         }
+
+        setComicPages(pages);
       } catch (err) {
-        console.error("Error fetching pages:", err);
-        setError("Failed to load chapter. Please try again later.");
+        console.error('Error fetching comic pages:', err);
+        setError('Failed to load comic pages. Please try again later.');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchPages();
+    fetchComicPages();
 
-    // Set up fullscreen change listener
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-    };
+    // Load saved reader preferences
+    const savedReadingMode = localStorage.getItem('readingMode') || 'vertical';
+    const savedBackgroundColor = localStorage.getItem('backgroundColor') || '#000000';
+    const savedPageGap = localStorage.getItem('pageGap') || '16';
 
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    setReadingMode(savedReadingMode);
+    setBackgroundColor(savedBackgroundColor);
+    setPageGap(parseInt(savedPageGap));
 
-    // Cleanup
+    // Add keyboard event listeners
+    window.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('mousemove', handleMouseMove);
+
     return () => {
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
-      if (controlsTimeout) {
-        clearTimeout(controlsTimeout);
+      window.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('mousemove', handleMouseMove);
+      if (controlsTimeoutRef.current) {
+        clearTimeout(controlsTimeoutRef.current);
       }
     };
   }, [slug]);
 
+  // Save preferences when they change
   useEffect(() => {
-    // Set up control hiding
-    if (showControls && readingMode !== 'vertical') {
-      const timeout = setTimeout(() => {
-        setShowControls(false);
-      }, 3000);
+    localStorage.setItem('readingMode', readingMode);
+    localStorage.setItem('backgroundColor', backgroundColor);
+    localStorage.setItem('pageGap', pageGap.toString());
+  }, [readingMode, backgroundColor, pageGap]);
 
-      setControlsTimeout(timeout);
-
-      return () => {
-        clearTimeout(timeout);
-      };
+  const handleKeyDown = (e) => {
+    if (readingMode === 'single') {
+      if (e.key === 'ArrowLeft' || e.key === 'a') {
+        navigateToPreviousPage();
+      } else if (e.key === 'ArrowRight' || e.key === 'd') {
+        navigateToNextPage();
+      }
     }
-  }, [showControls, readingMode]);
+
+    // Toggle fullscreen with 'f' key
+    if (e.key === 'f') {
+      toggleFullscreen();
+    }
+  };
+
+  const handleMouseMove = () => {
+    setShowControls(true);
+
+    if (controlsTimeoutRef.current) {
+      clearTimeout(controlsTimeoutRef.current);
+    }
+
+    controlsTimeoutRef.current = setTimeout(() => {
+      setShowControls(false);
+    }, 3000);
+  };
+
+  const navigateToPreviousPage = () => {
+    if (currentPage > 0) {
+      setCurrentPage(prev => prev - 1);
+      if (readingContainerRef.current && readingMode === 'single') {
+        readingContainerRef.current.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  };
+
+  const navigateToNextPage = () => {
+    if (currentPage < comicPages.length - 1) {
+      setCurrentPage(prev => prev + 1);
+      if (readingContainerRef.current && readingMode === 'single') {
+        readingContainerRef.current.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  };
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
-      readerRef.current.requestFullscreen().catch(err => {
+      document.documentElement.requestFullscreen().catch(err => {
         console.error(`Error attempting to enable fullscreen: ${err.message}`);
       });
+      setIsFullscreen(true);
     } else {
-      document.exitFullscreen();
-    }
-  };
-
-  const toggleSettings = () => {
-    setIsSettingsOpen(!isSettingsOpen);
-    setShowControls(true);
-
-    if (controlsTimeout) {
-      clearTimeout(controlsTimeout);
-      setControlsTimeout(null);
-    }
-  };
-
-  const handleKeyDown = (e) => {
-    if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
-      if (readingMode === 'single-page') {
-        if (currentPage < pages.length - 1) {
-          setCurrentPage(currentPage + 1);
-        } else {
-          goToNextChapter();
-        }
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+        setIsFullscreen(false);
       }
-    } else if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
-      if (readingMode === 'single-page') {
-        if (currentPage > 0) {
-          setCurrentPage(currentPage - 1);
-        } else {
-          goToPrevChapter();
-        }
-      }
-    } else if (e.key === 'Home') {
-      setCurrentPage(0);
-    } else if (e.key === 'End') {
-      setCurrentPage(pages.length - 1);
-    } else if (e.key === 'f' || e.key === 'F') {
-      toggleFullscreen();
-    }
-
-    // Reset control visibility when interacting
-    setShowControls(true);
-  };
-
-  useEffect(() => {
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [currentPage, pages.length, readingMode, prevChapter, nextChapter]);
-
-  const goToPrevChapter = () => {
-    if (prevChapter) {
-      navigate(`/read/${prevChapter}`);
     }
   };
 
-  const goToNextChapter = () => {
-    if (nextChapter) {
-      navigate(`/read/${nextChapter}`);
-    }
-  };
+  const renderVerticalReader = () => (
+    <ScrollArea.Root className="h-screen w-full overflow-hidden">
+      <ScrollArea.Viewport 
+        className="w-full h-full pt-14 pb-10" 
+        style={{ backgroundColor: backgroundColor }}
+      >
+        <div className="max-w-3xl mx-auto px-2 sm:px-4" ref={readingContainerRef}>
+          {comicPages.map((page, index) => (
+            <div 
+              key={index}
+              className="mb-4 w-full flex justify-center"
+              style={{ marginBottom: `${pageGap}px` }}
+            >
+              <motion.img
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: index < 5 ? index * 0.1 : 0 }}
+                src={page.url}
+                alt={`Page ${index + 1}`}
+                className="max-w-full rounded-md shadow-lg"
+                loading={index < 10 ? "eager" : "lazy"}
+              />
+            </div>
+          ))}
+        </div>
+      </ScrollArea.Viewport>
+      <ScrollArea.Scrollbar
+        className="flex select-none touch-none p-0.5 bg-zinc-900/50 transition-colors duration-150 ease-out hover:bg-zinc-800/50 data-[orientation=vertical]:w-2.5 data-[orientation=horizontal]:flex-col data-[orientation=horizontal]:h-2.5"
+        orientation="vertical"
+      >
+        <ScrollArea.Thumb className="flex-1 bg-zinc-700 rounded-full relative before:content-[''] before:absolute before:top-1/2 before:left-1/2 before:-translate-x-1/2 before:-translate-y-1/2 before:w-full before:h-full before:min-w-[44px] before:min-h-[44px]" />
+      </ScrollArea.Scrollbar>
+    </ScrollArea.Root>
+  );
 
-  const changeReadingMode = (mode) => {
-    setReadingMode(mode);
-    setCurrentPage(0); // Reset to first page when changing modes
+  const renderSinglePageReader = () => (
+    <div 
+      className="h-screen w-full flex items-center justify-center px-4 pt-14 pb-14" 
+      style={{ backgroundColor: backgroundColor }}
+      ref={readingContainerRef}
+    >
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={currentPage}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className="max-w-full max-h-[85vh] flex justify-center items-center"
+        >
+          {comicPages[currentPage] && (
+            <img
+              src={comicPages[currentPage].url}
+              alt={`Page ${currentPage + 1}`}
+              className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl"
+            />
+          )}
+        </motion.div>
+      </AnimatePresence>
 
-    // If switching to vertical, always show controls
-    if (mode === 'vertical') {
-      setShowControls(true);
-    }
+      {/* Page navigation arrows for single mode */}
+      <AnimatePresence>
+        {showControls && (
+          <>
+            <motion.button
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+              onClick={navigateToPreviousPage}
+              disabled={currentPage === 0}
+              className={`absolute left-4 p-3 rounded-full bg-black/50 text-white backdrop-blur-sm transition-opacity ${currentPage === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-black/70'}`}
+            >
+              <FaChevronLeft />
+            </motion.button>
 
-    setIsSettingsOpen(false);
-  };
+            <motion.button
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.2 }}
+              onClick={navigateToNextPage}
+              disabled={currentPage === comicPages.length - 1}
+              className={`absolute right-4 p-3 rounded-full bg-black/50 text-white backdrop-blur-sm transition-opacity ${currentPage === comicPages.length - 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-black/70'}`}
+            >
+              <FaChevronRight />
+            </motion.button>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Page indicator */}
+      <div className="absolute bottom-20 left-0 right-0 flex justify-center">
+        <div className="bg-black/60 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm">
+          {currentPage + 1} / {comicPages.length}
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderWebtoonReader = () => (
+    <ScrollArea.Root className="h-screen w-full overflow-hidden">
+      <ScrollArea.Viewport 
+        className="w-full h-full pt-14 pb-10" 
+        style={{ backgroundColor: backgroundColor }}
+      >
+        <div className="max-w-3xl mx-auto px-0" ref={readingContainerRef}>
+          {comicPages.map((page, index) => (
+            <motion.img
+              key={index}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3, delay: index < 5 ? index * 0.1 : 0 }}
+              src={page.url}
+              alt={`Page ${index + 1}`}
+              className="w-full"
+              loading={index < 10 ? "eager" : "lazy"}
+            />
+          ))}
+        </div>
+      </ScrollArea.Viewport>
+      <ScrollArea.Scrollbar
+        className="flex select-none touch-none p-0.5 bg-zinc-900/50 transition-colors duration-150 ease-out hover:bg-zinc-800/50 data-[orientation=vertical]:w-2.5 data-[orientation=horizontal]:flex-col data-[orientation=horizontal]:h-2.5"
+        orientation="vertical"
+      >
+        <ScrollArea.Thumb className="flex-1 bg-zinc-700 rounded-full relative before:content-[''] before:absolute before:top-1/2 before:left-1/2 before:-translate-x-1/2 before:-translate-y-1/2 before:w-full before:h-full before:min-w-[44px] before:min-h-[44px]" />
+      </ScrollArea.Scrollbar>
+    </ScrollArea.Root>
+  );
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-black text-white">
-        <LoadingSpinner size="large" message="Loading pages..." />
+      <div className="h-screen w-full flex items-center justify-center bg-black">
+        <LoadingSpinner size="lg" message="Loading comic pages..." />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white p-4">
-        <div className="text-center">
-          <FaTimesCircle className="text-red-500 text-5xl mx-auto mb-4" />
-          <h2 className="text-2xl font-bold mb-4">Error Loading Chapter</h2>
-          <p className="mb-6 text-gray-300">{error}</p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <button 
-              onClick={() => navigate(-1)}
-              className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg flex items-center gap-2"
-            >
-              <FaArrowLeft /> Go Back
-            </button>
-            <button 
-              onClick={() => navigate('/')}
-              className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg flex items-center gap-2"
-            >
-              <FaHome /> Home
-            </button>
-          </div>
+      <div className="h-screen w-full flex items-center justify-center bg-black">
+        <div className="text-center p-4">
+          <div className="text-red-500 text-4xl mb-4">⚠️</div>
+          <h2 className="text-2xl font-bold text-white mb-4">Error Loading Comic</h2>
+          <p className="text-gray-300 mb-6">{error}</p>
+          <Link to="/" className="btn btn-primary">
+            <FaHome className="mr-2" /> Return Home
+          </Link>
         </div>
       </div>
     );
   }
 
   return (
-    <div 
-      ref={readerRef}
-      className={`${isFullscreen ? 'reading-fullscreen' : ''} reading-page bg-black text-white`}
-      onMouseMove={() => setShowControls(true)}
-    >
-      {/* Top Controls */}
+    <div className="h-screen w-full overflow-hidden relative">
+      {/* Top controls */}
       <AnimatePresence>
         {showControls && (
           <motion.div
@@ -318,209 +295,124 @@ const ReadingPage = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.2 }}
-            className="fixed top-0 left-0 right-0 z-50 bg-black/80 text-white p-3 backdrop-blur-md border-b border-gray-800/50"
+            className="fixed top-0 left-0 right-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-between px-4 py-2"
           >
-            <div className="container-custom flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <motion.button 
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  className="btn-icon bg-primary/90 hover:bg-primary transition-colors p-2.5 rounded-full backdrop-blur-sm"
-                  onClick={() => navigate(-1)}
-                >
-                  <FaArrowLeft />
-                </motion.button>
-                <div>
-                  <h1 className="text-lg font-medium truncate max-w-[200px] md:max-w-md">{comicTitle}</h1>
-                  <p className="text-xs text-gray-300 truncate">Chapter {currentChapter || ''}</p>
-                </div>
-              </div>
+            <Link to={`/comic/${slug.split('-chapter-')[0]}`} className="flex items-center text-zinc-300 hover:text-white">
+              <FaArrowLeft className="mr-2" /> Back
+            </Link>
 
-              <div className="flex items-center gap-2">
-                <motion.button 
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  className="btn-icon"
-                  onClick={toggleSettings}
-                >
-                  <FaCog />
-                </motion.button>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => setSettingsOpen(true)}
+                className="p-2 text-zinc-300 hover:text-white"
+              >
+                <FaCog />
+              </button>
 
-                <motion.button 
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  className="btn-icon"
-                  onClick={toggleFullscreen}
-                >
-                  {isFullscreen ? <FaCompress /> : <FaExpand />}
-                </motion.button>
-              </div>
+              <button
+                onClick={toggleFullscreen}
+                className="p-2 text-zinc-300 hover:text-white"
+              >
+                {isFullscreen ? <FaCompress /> : <FaExpand />}
+              </button>
             </div>
-
-            {/* Settings Panel */}
-            <AnimatePresence>
-              {isSettingsOpen && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="container-custom mt-3 pb-2 overflow-hidden"
-                >
-                  <div className="bg-gray-800/90 backdrop-blur-md rounded-lg p-4">
-                    <h3 className="text-lg font-medium mb-3">Reading Settings</h3>
-
-                    <div className="mb-4">
-                      <p className="text-sm text-gray-300 mb-2">Reading Mode</p>
-                      <div className="flex flex-wrap gap-2">
-                        <button 
-                          onClick={() => changeReadingMode('vertical')}
-                          className={`px-3 py-1.5 rounded-lg text-sm ${readingMode === 'vertical' ? 'bg-primary text-white' : 'bg-gray-700 text-gray-300'}`}
-                        >
-                          Vertical Scroll
-                        </button>
-                        <button 
-                          onClick={() => changeReadingMode('single-page')}
-                          className={`px-3 py-1.5 rounded-lg text-sm ${readingMode === 'single-page' ? 'bg-primary text-white' : 'bg-gray-700 text-gray-300'}`}
-                        >
-                          Single Page (Beta)
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="text-sm text-gray-400">
-                      <p>Keyboard Controls: ←/→ or A/D to navigate pages, F for fullscreen</p>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Comic Reader */}
-      <div className={`comic-reader ${readingMode} pt-16`}>
-        {readingMode === 'vertical' && (
-          <div className="vertical-reader pb-16">
-            {pages.map((page, index) => (
-              <div key={index} className="page-container">
-                <img 
-                  src={page.url} 
-                  alt={`Page ${index + 1}`} 
-                  loading="lazy"
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = 'https://via.placeholder.com/800x1200?text=Image+Not+Available';
-                  }}
-                />
+      {/* Reader based on mode */}
+      {readingMode === 'vertical' && renderVerticalReader()}
+      {readingMode === 'single' && renderSinglePageReader()}
+      {readingMode === 'webtoon' && renderWebtoonReader()}
+
+      {/* Settings dialog */}
+      <Dialog.Root open={settingsOpen} onOpenChange={setSettingsOpen}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50" />
+          <Dialog.Content className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 max-w-sm w-[90vw] bg-zinc-900 rounded-xl p-6 shadow-xl z-50 border border-zinc-800">
+            <Dialog.Title className="text-xl font-bold text-white mb-4">
+              Reader Settings
+            </Dialog.Title>
+
+            <div className="space-y-6">
+              <div>
+                <label className="block text-zinc-300 mb-2">Reading Mode</label>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    onClick={() => setReadingMode('vertical')}
+                    className={`p-2 rounded text-center text-sm ${readingMode === 'vertical' ? 'bg-primary text-white' : 'bg-zinc-800 text-zinc-300'}`}
+                  >
+                    Vertical
+                  </button>
+                  <button
+                    onClick={() => setReadingMode('single')}
+                    className={`p-2 rounded text-center text-sm ${readingMode === 'single' ? 'bg-primary text-white' : 'bg-zinc-800 text-zinc-300'}`}
+                  >
+                    Single Page
+                  </button>
+                  <button
+                    onClick={() => setReadingMode('webtoon')}
+                    className={`p-2 rounded text-center text-sm ${readingMode === 'webtoon' ? 'bg-primary text-white' : 'bg-zinc-800 text-zinc-300'}`}
+                  >
+                    Webtoon
+                  </button>
+                </div>
               </div>
-            ))}
-          </div>
-        )}
 
-        {readingMode === 'single-page' && (
-          <div className="single-page-reader flex items-center justify-center min-h-screen">
-            <div className="relative w-full h-full flex items-center justify-center">
-              {/* Previous Page Button */}
-              {currentPage > 0 && (
-                <motion.button 
-                  className="absolute left-4 md:left-8 z-20 p-4 rounded-full bg-primary/70 text-white hover:bg-primary/90 transition-colors shadow-lg backdrop-blur-sm"
-                  onClick={() => setCurrentPage(currentPage - 1)}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  aria-label="Previous page"
-                >
-                  <FaChevronLeft size={20} />
-                </motion.button>
-              )}
+              <div>
+                <label className="block text-zinc-300 mb-2">Background Color</label>
+                <div className="grid grid-cols-4 gap-2">
+                  <button
+                    onClick={() => setBackgroundColor('#000000')}
+                    className={`h-8 rounded-full ${backgroundColor === '#000000' ? 'ring-2 ring-primary ring-offset-2 ring-offset-zinc-900' : ''}`}
+                    style={{ backgroundColor: '#000000' }}
+                  ></button>
+                  <button
+                    onClick={() => setBackgroundColor('#121212')}
+                    className={`h-8 rounded-full ${backgroundColor === '#121212' ? 'ring-2 ring-primary ring-offset-2 ring-offset-zinc-900' : ''}`}
+                    style={{ backgroundColor: '#121212' }}
+                  ></button>
+                  <button
+                    onClick={() => setBackgroundColor('#1a1a1a')}
+                    className={`h-8 rounded-full ${backgroundColor === '#1a1a1a' ? 'ring-2 ring-primary ring-offset-2 ring-offset-zinc-900' : ''}`}
+                    style={{ backgroundColor: '#1a1a1a' }}
+                  ></button>
+                  <button
+                    onClick={() => setBackgroundColor('#242424')}
+                    className={`h-8 rounded-full ${backgroundColor === '#242424' ? 'ring-2 ring-primary ring-offset-2 ring-offset-zinc-900' : ''}`}
+                    style={{ backgroundColor: '#242424' }}
+                  ></button>
+                </div>
+              </div>
 
-              {/* Current Page */}
-              <motion.div 
-                className="page-container h-full flex items-center justify-center px-4 py-8"
-                key={currentPage}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
-              >
-                <img 
-                  src={pages[currentPage]?.url} 
-                  alt={`Page ${currentPage + 1}`} 
-                  className="max-h-[85vh] max-w-[95%] md:max-w-[85%] object-contain mx-auto shadow-xl"
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = 'https://via.placeholder.com/800x1200?text=Image+Not+Available';
-                  }}
-                  loading="lazy"
-                />
-              </motion.div>
-
-              {/* Next Page Button */}
-              {currentPage < pages.length - 1 && (
-                <motion.button 
-                  className="absolute right-4 md:right-8 z-20 p-4 rounded-full bg-primary/70 text-white hover:bg-primary/90 transition-colors shadow-lg backdrop-blur-sm"
-                  onClick={() => setCurrentPage(currentPage + 1)}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  aria-label="Next page"
-                >
-                  <FaChevronRight size={20} />
-                </motion.button>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Bottom Navigation for Prev/Next Chapter */}
-      {showControls && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 20 }}
-          transition={{ duration: 0.2 }}
-          className="fixed bottom-0 left-0 right-0 z-50 bg-black/90 text-white p-4 backdrop-blur-md border-t border-gray-800/50 mb-16"
-        >
-          <div className="container-custom flex justify-between items-center">
-            <div>
-              {readingMode === 'single-page' && (
-                <span className="text-sm text-gray-300">
-                  Page {currentPage + 1} of {pages.length}
-                </span>
+              {readingMode === 'vertical' && (
+                <div>
+                  <label className="block text-zinc-300 mb-2">Page Gap</label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="40"
+                    value={pageGap}
+                    onChange={(e) => setPageGap(parseInt(e.target.value))}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-xs text-zinc-400">
+                    <span>None</span>
+                    <span>Medium</span>
+                    <span>Large</span>
+                  </div>
+                </div>
               )}
             </div>
 
-            <div className="flex items-center gap-3">
-              <button 
-                onClick={goToPrevChapter}
-                className={`btn-nav ${!prevChapter ? 'opacity-50 cursor-not-allowed' : ''}`}
-                disabled={!prevChapter}
-              >
-                <FaArrowLeft /> Previous Chapter
+            <Dialog.Close asChild>
+              <button className="mt-6 w-full py-2 bg-primary text-white rounded-lg font-medium">
+                Save Settings
               </button>
-
-              <button 
-                onClick={goToNextChapter}
-                className={`btn-nav ${!nextChapter ? 'opacity-50 cursor-not-allowed' : ''}`}
-                disabled={!nextChapter}
-              >
-                Next Chapter <FaArrowRight />
-              </button>
-            </div>
-          </div>
-        </motion.div>
-      )}
-
-      {/* Scroll to top button */}
-      {readingMode === 'vertical' && (
-        <button 
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="fixed bottom-20 right-8 p-4 rounded-full bg-primary text-white shadow-lg hover:bg-primary-dark transition-colors z-30"
-        >
-          <FaArrowUp />
-        </button>
-      )}
+            </Dialog.Close>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
     </div>
   );
 };

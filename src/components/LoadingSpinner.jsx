@@ -1,27 +1,61 @@
-import React from 'react';
 
-const LoadingSpinner = ({ fullScreen = false, size = "md", message = "Loading..." }) => {
-  const sizeClasses = {
-    sm: "w-5 h-5 border-2",
-    md: "w-8 h-8 border-3",
-    lg: "w-12 h-12 border-4",
+import React from 'react';
+import { motion } from 'framer-motion';
+
+const LoadingSpinner = ({ 
+  size = "md", 
+  message = "Loading...", 
+  fullScreen = false 
+}) => {
+  const getSizeClass = () => {
+    switch (size) {
+      case 'sm': return 'w-4 h-4 border-2';
+      case 'lg': return 'w-12 h-12 border-4';
+      case 'xl': return 'w-16 h-16 border-4';
+      case 'md':
+      default: return 'w-8 h-8 border-3';
+    }
   };
 
-  const spinnerClass = `${sizeClasses[size]} rounded-full border-t-primary border-r-transparent border-b-transparent border-l-transparent animate-spin`;
+  const spinnerClass = `spinner ${getSizeClass()} rounded-full`;
+  
+  const containerClass = fullScreen 
+    ? "fixed inset-0 flex flex-col items-center justify-center bg-black z-50" 
+    : "flex flex-col items-center justify-center py-8";
 
-  if (fullScreen) {
-    return (
-      <div className="fixed inset-0 bg-black/90 flex flex-col items-center justify-center z-50">
-        <div className={spinnerClass}></div>
-        <p className="mt-4 text-zinc-300">{message}</p>
-      </div>
-    );
-  }
+  const spinTransition = {
+    loop: Infinity,
+    ease: "linear",
+    duration: 1
+  };
 
   return (
-    <div className="flex flex-col items-center justify-center py-10">
-      <div className={spinnerClass}></div>
-      <p className="mt-4 text-zinc-300">{message}</p>
+    <div className={containerClass}>
+      <div className="relative">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={spinTransition}
+          className={spinnerClass}
+        />
+        <motion.div
+          animate={{ scale: [1, 1.1, 1] }}
+          transition={{
+            repeat: Infinity,
+            duration: 1.5
+          }}
+          className="absolute inset-0 rounded-full border-2 border-primary/30"
+        />
+      </div>
+      {message && (
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          className="mt-4 text-zinc-400 text-center"
+        >
+          {message}
+        </motion.p>
+      )}
     </div>
   );
 };

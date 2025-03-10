@@ -1,3 +1,4 @@
+
 import React, { createContext, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
@@ -9,7 +10,7 @@ import Bookmarks from './pages/Bookmarks';
 import Donate from './pages/Donate';
 import Header from './components/Header';
 
-// Create context for theme (still available but not used for toggle)
+// Create context for theme
 export const ThemeContext = createContext();
 
 function App() {
@@ -19,18 +20,25 @@ function App() {
     <ThemeContext.Provider value={{ theme }}>
       <Router>
         <div className={`app-bg ${theme}`}>
-          <Header />
-          <main>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/search" element={<SearchResults />} />
-              <Route path="/comic/:id" element={<ComicInfo />} />
-              <Route path="/info/:slug" element={<ComicInfo />} />
-              <Route path="/read/:slug" element={<ReadingPage />} />
-              <Route path="/bookmarks" element={<Bookmarks />} />
-              <Route path="/donate" element={<Donate />} />
-            </Routes>
-          </main>
+          {/* Don't render header on reading page */}
+          <Routes>
+            <Route path="/read/:slug" element={<ReadingPage />} />
+            <Route path="*" element={
+              <>
+                <Header />
+                <main className="pt-16"> {/* Add padding to account for fixed header */}
+                  <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/search" element={<SearchResults />} />
+                    <Route path="/comic/:id" element={<ComicInfo />} />
+                    <Route path="/info/:slug" element={<ComicInfo />} />
+                    <Route path="/bookmarks" element={<Bookmarks />} />
+                    <Route path="/donate" element={<Donate />} />
+                  </Routes>
+                </main>
+              </>
+            } />
+          </Routes>
         </div>
       </Router>
     </ThemeContext.Provider>
