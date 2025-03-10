@@ -1,3 +1,4 @@
+
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
@@ -29,4 +30,12 @@ export default {
     },
   },
   plugins: [],
+  safelist: [
+    {
+      pattern: /bg-(primary|secondary)(-light|-dark)?\/\d+/,
+    },
+    {
+      pattern: /hover:bg-(primary|secondary)(-light|-dark)?\/\d+/,
+    }
+  ]
 }

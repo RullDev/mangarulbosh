@@ -1,7 +1,3 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 /* Dark mode colors - always enabled */
 :root {
   --color-bg-dark: #000000;
@@ -178,10 +174,6 @@ html {
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 /* Custom container with padding */
 .container-custom {
   @apply container mx-auto px-4;
@@ -199,6 +191,14 @@ html {
   --background-dark: #000000;
   --text-light: #1f2937;
   --text-dark: #f9fafb;
+  
+  /* RGB values for opacity support */
+  --primary-rgb: 59, 130, 246;
+  --primary-light-rgb: 96, 165, 250;
+  --primary-dark-rgb: 37, 99, 235;
+  --secondary-rgb: 139, 92, 246;
+  --secondary-light-rgb: 167, 139, 250;
+  --secondary-dark-rgb: 124, 58, 237;
 }
 
 /* Better fonts */
