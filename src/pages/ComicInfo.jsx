@@ -1,119 +1,91 @@
 
-import React, { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { 
-  FaArrowLeft, FaBookmark, FaRegBookmark, FaStar, FaPlay, 
-  FaList, FaShare, FaBook, FaClock, FaRegCalendarAlt, 
-  FaInfoCircle, FaTags, FaChevronDown, FaChevronUp, FaRunning,
-  FaToggleOn, FaToggleOff
-} from 'react-icons/fa';
-import { motion, AnimatePresence } from 'framer-motion';
-import * as Tabs from '@radix-ui/react-tabs';
-import * as Separator from '@radix-ui/react-separator';
-import * as AspectRatio from '@radix-ui/react-aspect-ratio';
-import axios from 'axios';
+import React, { useState, useEffect } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { FaStar, FaBookOpen, FaArrowLeft, FaClock, FaTag, FaInfoCircle, FaBookmark, FaExternalLinkAlt } from 'react-icons/fa';
 import Comic from '../api/comicApi';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const ComicInfo = () => {
-  const { slug } = useParams();
-  const navigate = useNavigate();
+  const { id } = useParams();
   const [comic, setComic] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const [activeTab, setActiveTab] = useState('chapters');
   const [selectedImage, setSelectedImage] = useState(null);
-  const [marathonMode, setMarathonMode] = useState(localStorage.getItem('marathonMode') === 'true');
-  const [showFullSynopsis, setShowFullSynopsis] = useState(false);
-  const chaptersRef = useRef(null);
-  const [chaptersExpanded, setChaptersExpanded] = useState(true);
-  const [activeTab, setActiveTab] = useState('info');
 
   useEffect(() => {
-    window.scrollTo(0, 0);
-    fetchComic();
-    checkIfBookmarked();
-  }, [slug]);
-
-  const fetchComic = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      // Use the Comic API implementation
-      const comicInstance = new Comic(slug);
-      const result = await comicInstance.info();
-      
-      if (result && Object.keys(result).length > 0) {
-        setComic(result);
-      } else {
-        setError('Comic not found or unable to fetch data.');
+    const checkIfFavorite = () => {
+      try {
+        const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+        setIsFavorite(favorites.some(fav => fav.slug === id));
+      } catch (err) {
+        console.error("Error checking favorites:", err);
+        setIsFavorite(false);
       }
+    };
+
+    const fetchComicInfo = async () => {
+      setIsLoading(true);
+      setError(null);
+      
+      try {
+        const comicInstance = new Comic(id);
+        const results = await comicInstance.info();
+        
+        if (results && Object.keys(results).length > 0) {
+          setComic(results);
+        } else {
+          throw new Error("Comic information not found");
+        }
+      } catch (err) {
+        console.error("Error fetching comic info:", err);
+        setError("Failed to load comic information. Please try again later.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkIfFavorite();
+    fetchComicInfo();
+  }, [id, retryCount]);
+
+  const handleToggleFavorite = () => {
+    try {
+      const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+      
+      if (isFavorite) {
+        // Remove from favorites
+        const updatedFavorites = favorites.filter(fav => fav.slug !== id);
+        localStorage.setItem('favorites', JSON.stringify(updatedFavorites));
+      } else {
+        // Add to favorites
+        const comicToAdd = {
+          title: comic.title,
+          slug: id,
+          cover: comic.cover,
+          score: comic.score,
+          type: comic.type,
+          status: comic.status
+        };
+        localStorage.setItem('favorites', JSON.stringify([...favorites, comicToAdd]));
+      }
+      
+      setIsFavorite(!isFavorite);
     } catch (err) {
-      console.error('Error fetching comic:', err);
-      setError('Failed to load comic information. Please try again later.');
-    } finally {
-      setIsLoading(false);
+      console.error("Error updating favorites:", err);
     }
   };
 
   const handleRetry = () => {
-    fetchComic();
-  };
-
-  const checkIfBookmarked = () => {
-    const bookmarks = JSON.parse(localStorage.getItem('bookmarks') || '[]');
-    setIsBookmarked(bookmarks.some(bookmark => bookmark.slug === slug));
-  };
-
-  const toggleBookmark = () => {
-    const bookmarks = JSON.parse(localStorage.getItem('bookmarks') || '[]');
-    if (isBookmarked) {
-      const updatedBookmarks = bookmarks.filter(bookmark => bookmark.slug !== slug);
-      localStorage.setItem('bookmarks', JSON.stringify(updatedBookmarks));
-      setIsBookmarked(false);
-    } else if (comic) {
-      const { title, cover, type, status, score } = comic;
-      const newBookmark = { slug, title, cover, type, status, score, addedAt: new Date().toISOString() };
-      localStorage.setItem('bookmarks', JSON.stringify([...bookmarks, newBookmark]));
-      setIsBookmarked(true);
-    }
-  };
-
-  const scrollToChapters = () => {
-    if (chaptersRef.current) {
-      chaptersRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
-  const toggleMarathonMode = () => {
-    const newState = !marathonMode;
-    setMarathonMode(newState);
-    localStorage.setItem('marathonMode', newState ? 'true' : 'false');
-  };
-
-  const startReading = (chapterIndex = 0) => {
-    if (comic && comic.chapters && comic.chapters.length > 0) {
-      navigate(`/read/${comic.chapters[chapterIndex].slug}`);
-    }
-  };
-
-  const showImagePreview = (imgSrc) => {
-    setSelectedImage(imgSrc);
-  };
-
-  const closeImagePreview = () => {
-    setSelectedImage(null);
-  };
-
-  const truncateSynopsis = (text, maxLength = 300) => {
-    if (!text) return '';
-    if (text.length <= maxLength) return text;
-    return text.substr(0, maxLength) + '...';
+    setRetryCount(prevCount => prevCount + 1);
   };
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-black pt-16 flex items-center justify-center">
+      <div className="min-h-screen bg-black flex items-center justify-center pt-16">
         <LoadingSpinner size="lg" message="Loading comic information..." />
       </div>
     );
@@ -121,397 +93,316 @@ const ComicInfo = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-black pt-16">
-        <div className="container-custom py-8">
-          <div className="bg-red-900/20 border border-red-900/50 rounded-xl p-6 max-w-2xl mx-auto text-center">
-            <div className="text-red-500 text-5xl mb-4">⚠️</div>
-            <h2 className="text-2xl font-bold text-white mb-4">Error</h2>
-            <p className="text-zinc-300 mb-6">{error}</p>
-            <button 
-              onClick={handleRetry}
-              className="bg-red-700 hover:bg-red-600 text-white py-2 px-6 rounded-lg font-medium transition-colors"
-            >
-              Try Again
-            </button>
-          </div>
+      <div className="min-h-screen bg-black py-10 px-4 pt-20">
+        <div className="max-w-2xl mx-auto">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="bg-red-900/20 border border-red-900/50 text-red-200 p-6 rounded-xl flex flex-col items-center gap-4"
+          >
+            <FaInfoCircle className="text-red-400 text-4xl" />
+            <h2 className="text-xl font-semibold text-center">Error Loading Comic</h2>
+            <p className="text-center">{error}</p>
+            <div className="flex gap-4">
+              <button 
+                onClick={handleRetry}
+                className="px-4 py-2 rounded-lg bg-red-700 hover:bg-red-600 text-white transition-colors"
+              >
+                Try Again
+              </button>
+              <Link 
+                to="/"
+                className="px-4 py-2 rounded-lg bg-zinc-700 hover:bg-zinc-600 text-white transition-colors"
+              >
+                Back to Home
+              </Link>
+            </div>
+          </motion.div>
         </div>
       </div>
     );
   }
 
   if (!comic) {
-    return null;
+    return (
+      <div className="min-h-screen bg-black py-10 px-4 pt-20">
+        <div className="max-w-2xl mx-auto">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="bg-zinc-800/30 border border-zinc-700/30 p-6 rounded-xl flex flex-col items-center gap-4"
+          >
+            <FaInfoCircle className="text-zinc-400 text-4xl" />
+            <h2 className="text-xl font-semibold text-center text-white">Comic Not Found</h2>
+            <p className="text-center text-zinc-400">The comic you are looking for does not exist or has been removed.</p>
+            <Link 
+              to="/"
+              className="px-4 py-2 rounded-lg bg-primary hover:bg-primary-dark text-white transition-colors"
+            >
+              Back to Home
+            </Link>
+          </motion.div>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="min-h-screen bg-black pt-16">
-      {/* Back button with improved styling */}
-      <div className="container-custom pt-4">
-        <button 
-          onClick={() => navigate(-1)}
-          className="group flex items-center gap-2 py-2.5 px-4 rounded-lg bg-zinc-800/80 hover:bg-zinc-700/80 transition-all duration-300 backdrop-blur-sm border border-zinc-700/50 shadow-md mb-4"
-        >
-          <FaArrowLeft className="text-primary group-hover:translate-x-[-3px] transition-transform" />
-          <span className="text-zinc-300 font-medium group-hover:text-white transition-colors">Back</span>
-        </button>
-      </div>
-      
-      <div className="container-custom pb-16">
-        <motion.div
+      <div className="container-custom py-8">
+        {/* Comic header background effect */}
+        <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
-          className="mb-8"
+          className="relative"
         >
-          {/* Hero section with cover image and blur effect */}
-          <div className="relative w-full rounded-xl overflow-hidden mb-6 shadow-2xl">
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent z-0"></div>
-            {comic.cover && (
-              <img 
-                src={comic.cover}
-                alt={comic.title}
-                className="w-full h-64 md:h-80 object-cover object-center blur-sm opacity-50"
-                onError={(e) => {
-                  e.target.onerror = null; 
-                  e.target.src = 'https://via.placeholder.com/1200x400?text=No+Cover+Image';
-                }}
-              />
-            )}
-            
-            <div className="absolute inset-0 z-10 p-6 flex flex-col justify-end">
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-3 text-shadow">
-                {comic.title}
-              </h1>
-              {comic.status && (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                    comic.status.toLowerCase() === 'ongoing' 
-                      ? 'bg-green-600/30 text-green-400 border border-green-500/30' 
-                      : 'bg-blue-600/30 text-blue-400 border border-blue-500/30'
-                  }`}>
-                    {comic.status}
-                  </span>
-                  
-                  {comic.chapters && comic.chapters.length > 0 && (
-                    <span className="bg-purple-600/30 text-purple-400 border border-purple-500/30 px-3 py-1 rounded-full text-sm font-medium">
-                      {comic.chapters.length} Chapters
-                    </span>
-                  )}
-                  
-                  {comic.score && (
-                    <span className="bg-yellow-600/30 text-yellow-400 border border-yellow-500/30 px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1">
-                      <FaStar size={12} />
-                      {comic.score}
-                    </span>
-                  )}
-                </div>
-              )}
-            </div>
+          {/* Translucent header background with cover image */}
+          <div className="absolute inset-0 w-full h-80 overflow-hidden -z-10">
+            <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/90 to-black"></div>
+            <img 
+              src={comic.cover} 
+              alt="" 
+              className="w-full h-full object-cover object-center opacity-20 blur-xl"
+              onError={(e) => {
+                e.target.onerror = null; 
+                e.target.style.display = 'none';
+              }}
+            />
           </div>
-          
-          {/* Content grid - Info card and details */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Left column - Cover image card */}
-            <div className="md:col-span-1">
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.2 }}
-                className="relative rounded-xl overflow-hidden shadow-2xl border border-zinc-700/50 bg-gradient-to-b from-zinc-800 to-zinc-900 min-w-[200px] max-w-[280px] mx-auto md:mx-0"
-                onClick={() => showImagePreview(comic.cover)}
-              >
-                <AspectRatio.Root ratio={2/3}>
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                  <img 
-                    src={comic.cover} 
-                    alt={comic.title}
-                    className="w-full h-full object-cover object-center hover:scale-105 transition-transform duration-500"
-                    onError={(e) => {
-                      e.target.onerror = null; 
-                      e.target.src = 'https://via.placeholder.com/300x450?text=No+Image';
-                    }}
-                  />
-                  <div className="absolute bottom-3 left-3 right-3 flex justify-between items-center">
-                    <div className="bg-black/70 backdrop-blur-sm text-white text-xs px-3 py-1 rounded-full">
-                      {comic.type || 'Unknown'}
-                    </div>
-                    {comic.score && (
-                      <div className="flex gap-1 text-yellow-500">
-                        <FaStar />
-                        <span className="text-white text-xs">{comic.score}</span>
+
+          <div className="pt-4">
+            {/* Back button */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.3, delay: 0.1 }}
+            >
+              <Link to="/" className="inline-flex items-center gap-2 text-zinc-400 hover:text-primary mb-6 transition-colors">
+                <FaArrowLeft />
+                <span>Back to Home</span>
+              </Link>
+            </motion.div>
+            
+            {/* Comic info header */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="relative overflow-hidden rounded-xl bg-zinc-900/70 border border-zinc-800/50 mb-8 backdrop-blur-sm shadow-2xl"
+            >              
+              {/* Decorative element */}
+              <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/20 rounded-full blur-2xl"></div>
+              <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-purple-800/20 rounded-full blur-2xl"></div>
+              
+              <div className="relative z-10 p-6 md:p-8 flex flex-col md:flex-row gap-8">
+                {/* Comic cover */}
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                  className="w-48 md:w-56 flex-shrink-0 mx-auto md:mx-0"
+                >
+                  <div className="relative group" onClick={() => setSelectedImage(comic.cover)}>
+                    <div className="bg-gradient-to-br from-zinc-800 to-zinc-900 p-2 rounded-lg shadow-2xl transform transition-transform group-hover:scale-[1.02] cursor-pointer">
+                      <img 
+                        src={comic.cover} 
+                        alt={comic.title} 
+                        className="w-full aspect-[2/3] object-cover object-center rounded"
+                        onError={(e) => {
+                          e.target.onerror = null; 
+                          e.target.src = 'https://via.placeholder.com/300x450?text=No+Image';
+                        }}
+                      />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 rounded-lg flex items-center justify-center transition-all opacity-0 group-hover:opacity-100">
+                        <span className="text-white font-medium">View Larger</span>
                       </div>
+                    </div>
+                  </div>
+                  
+                  {/* Action buttons */}
+                  <div className="flex flex-col gap-3 mt-6">
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={handleToggleFavorite}
+                      className={`px-4 py-3 rounded-lg flex items-center justify-center gap-2 transition-all font-medium ${
+                        isFavorite 
+                          ? 'bg-gradient-to-r from-yellow-500 to-amber-600 text-black hover:shadow-lg hover:shadow-yellow-500/20' 
+                          : 'bg-gradient-to-r from-zinc-700 to-zinc-800 text-white hover:from-zinc-600 hover:to-zinc-700 hover:shadow-lg hover:shadow-zinc-700/20'
+                      }`}
+                    >
+                      {isFavorite ? <FaBookmark /> : <FaStar />}
+                      <span>{isFavorite ? 'Bookmarked' : 'Bookmark'}</span>
+                    </motion.button>
+                    
+                    {comic.chapters && comic.chapters.length > 0 && (
+                      <motion.div
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        <Link
+                          to={`/read/${comic.chapters[0].slug}`}
+                          className="px-4 py-3 rounded-lg bg-gradient-to-r from-primary to-primary-dark hover:shadow-lg hover:shadow-primary/20 text-white flex items-center justify-center gap-2 transition-all font-medium"
+                        >
+                          <FaBookOpen />
+                          <span>Read First Chapter</span>
+                        </Link>
+                      </motion.div>
                     )}
                   </div>
-                </AspectRatio.Root>
-              </motion.div>
+                </motion.div>
                 
-              {/* Actions under cover */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.4, delay: 0.4 }}
-                className="flex flex-col gap-3 mt-4 max-w-[280px] mx-auto md:mx-0"
-              >
-                {/* Bookmark button */}
-                <button
-                  onClick={toggleBookmark}
-                  className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-medium w-full transition-all duration-300 ${
-                    isBookmarked ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700 border border-zinc-700'
-                  }`}
+                {/* Comic details */}
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.3 }}
+                  className="flex-1"
                 >
-                  {isBookmarked ? <FaBookmark className="text-yellow-400" /> : <FaRegBookmark />}
-                  {isBookmarked ? 'Bookmarked' : 'Add to Bookmarks'}
-                </button>
-                
-                {/* Marathon Mode Toggle */}
-                <button
-                  onClick={toggleMarathonMode}
-                  className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-medium w-full transition-all duration-300 ${
-                    marathonMode 
-                      ? 'bg-secondary/20 text-secondary border border-secondary/30' 
-                      : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700 border border-zinc-700'
-                  }`}
-                >
-                  {marathonMode ? <FaToggleOn className="text-lg" /> : <FaToggleOff className="text-lg" />}
-                  Marathon Mode {marathonMode ? 'On' : 'Off'}
-                </button>
-                
-                {/* Share button */}
-                <button
-                  className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-medium bg-zinc-800 text-zinc-300 hover:bg-zinc-700 transition-all duration-300 border border-zinc-700 w-full"
-                >
-                  <FaShare />
-                  Share
-                </button>
-              </motion.div>
-            </div>
-            
-            {/* Right column - Comic details */}
-            <div className="md:col-span-2">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.3 }}
-              >
-                <Tabs.Root
-                  defaultValue="info"
-                  value={activeTab}
-                  onValueChange={setActiveTab}
-                  className="glass-card rounded-xl comic-info-border overflow-hidden"
-                >
-                  <Tabs.List className="flex bg-zinc-800/50 border-b border-zinc-700/50">
-                    <Tabs.Trigger
-                      value="info"
-                      className={`px-6 py-4 transition-colors flex items-center gap-2 ${
-                        activeTab === 'info' 
-                          ? 'text-white border-b-2 border-primary font-medium' 
-                          : 'text-zinc-400 hover:text-zinc-300'
-                      }`}
-                    >
-                      <FaInfoCircle />
-                      Info
-                    </Tabs.Trigger>
-                    <Tabs.Trigger
-                      value="chapters"
-                      className={`px-6 py-4 transition-colors flex items-center gap-2 ${
-                        activeTab === 'chapters' 
-                          ? 'text-white border-b-2 border-primary font-medium' 
-                          : 'text-zinc-400 hover:text-zinc-300'
-                      }`}
-                    >
-                      <FaList />
-                      Chapters
-                    </Tabs.Trigger>
-                  </Tabs.List>
+                  <h1 className="text-2xl md:text-3xl font-bold text-white mb-3 leading-tight">{comic.title}</h1>
                   
-                  <Tabs.Content value="info" className="p-6">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
-                      <div className="mb-4 md:mb-0">
-                        <h2 className="text-2xl md:text-3xl font-bold text-white">{comic.title}</h2>
-                      </div>
-                    </div>
-                    
-                    {/* Comic metadata in grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 mb-6">
+                  {/* Meta info */}
+                  <div className="flex flex-wrap gap-3 mb-6">
+                    {comic.type && (
+                      <span className="px-3 py-1.5 text-sm rounded-full bg-blue-900/60 text-blue-100 flex items-center border border-blue-800/50 shadow-md shadow-blue-900/10">
+                        {comic.type}
+                      </span>
+                    )}
+                    {comic.status && (
+                      <span className="px-3 py-1.5 text-sm rounded-full bg-green-900/60 text-green-100 flex items-center border border-green-800/50 shadow-md shadow-green-900/10">
+                        {comic.status}
+                      </span>
+                    )}
+                    {comic.score && (
+                      <span className="px-3 py-1.5 text-sm rounded-full bg-yellow-900/60 text-yellow-100 flex items-center gap-1 border border-yellow-800/50 shadow-md shadow-yellow-900/10">
+                        <FaStar className="inline" />
+                        {comic.score}
+                      </span>
+                    )}
+                  </div>
+                  
+                  {/* Details grid */}
+                  <div className="bg-zinc-800/30 rounded-xl p-4 border border-zinc-700/30 mb-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-6">
                       {comic.author && (
-                        <div className="flex items-center gap-2 text-zinc-400">
-                          <FaBook className="text-primary" />
-                          <span className="text-zinc-500">Author:</span>
-                          <span className="text-zinc-300">{comic.author}</span>
+                        <div className="flex items-start gap-2">
+                          <span className="text-zinc-400 min-w-[80px]">Author:</span>
+                          <span className="text-white font-medium">{comic.author}</span>
                         </div>
                       )}
-                      
-                      {comic.status && (
-                        <div className="flex items-center gap-2 text-zinc-400">
-                          <FaClock className="text-primary" />
-                          <span className="text-zinc-500">Status:</span>
-                          <span className="text-zinc-300">{comic.status}</span>
-                        </div>
-                      )}
-                      
                       {comic.released && (
-                        <div className="flex items-center gap-2 text-zinc-400">
-                          <FaRegCalendarAlt className="text-primary" />
-                          <span className="text-zinc-500">Released:</span>
-                          <span className="text-zinc-300">{comic.released}</span>
+                        <div className="flex items-start gap-2">
+                          <span className="text-zinc-400 min-w-[80px]">Released:</span>
+                          <span className="text-white font-medium">{comic.released}</span>
                         </div>
                       )}
-                      
-                      {comic.type && (
-                        <div className="flex items-center gap-2 text-zinc-400">
-                          <FaInfoCircle className="text-primary" />
-                          <span className="text-zinc-500">Type:</span>
-                          <span className="text-zinc-300">{comic.type}</span>
-                        </div>
-                      )}
-                      
                       {comic.updated && (
-                        <div className="flex items-center gap-2 text-zinc-400">
-                          <FaRegCalendarAlt className="text-primary" />
-                          <span className="text-zinc-500">Updated:</span>
-                          <span className="text-zinc-300">{comic.updated}</span>
+                        <div className="flex items-start gap-2">
+                          <span className="text-zinc-400 min-w-[80px]">Updated:</span>
+                          <span className="text-white font-medium">{comic.updated}</span>
                         </div>
                       )}
-                      
                       {comic.total_chapter && (
-                        <div className="flex items-center gap-2 text-zinc-400">
-                          <FaList className="text-primary" />
-                          <span className="text-zinc-500">Total:</span>
-                          <span className="text-zinc-300">{comic.total_chapter} Chapters</span>
+                        <div className="flex items-start gap-2">
+                          <span className="text-zinc-400 min-w-[80px]">Chapters:</span>
+                          <span className="text-white font-medium">{comic.total_chapter}</span>
                         </div>
                       )}
                     </div>
-                    
-                    {/* Synopsis with Read More functionality */}
-                    {comic.synopsis && (
-                      <div className="mb-6">
-                        <h3 className="text-lg font-bold text-white mb-3 flex items-center">
-                          <FaInfoCircle className="mr-2 text-primary" />
-                          Synopsis
-                        </h3>
-                        <div className="space-y-4">
-                          <p className="text-zinc-300 leading-relaxed whitespace-pre-line">
-                            {showFullSynopsis ? comic.synopsis : truncateSynopsis(comic.synopsis)}
-                          </p>
-                          {comic.synopsis.length > 300 && (
-                            <button
-                              onClick={() => setShowFullSynopsis(!showFullSynopsis)}
-                              className="text-primary hover:text-primary-light transition-colors flex items-center gap-1"
-                            >
-                              {showFullSynopsis ? (
-                                <>
-                                  Show Less <FaChevronUp className="text-xs" />
-                                </>
-                              ) : (
-                                <>
-                                  Read More <FaChevronDown className="text-xs" />
-                                </>
-                              )}
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                    
-                    {/* Genres */}
-                    {comic.genre && comic.genre.length > 0 && (
-                      <div className="mb-6">
-                        <h3 className="text-lg font-bold text-white mb-3 flex items-center">
-                          <FaTags className="mr-2 text-primary" />
-                          Genres
-                        </h3>
-                        <div className="flex flex-wrap gap-2">
-                          {comic.genre.map((genre, index) => (
-                            <div 
-                              key={index}
-                              className="px-4 py-2 bg-zinc-800/70 hover:bg-zinc-700/70 text-zinc-300 rounded-full text-sm font-medium transition-colors cursor-pointer"
-                            >
-                              {genre.name}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    
-                    <Separator.Root className="h-px bg-zinc-800 my-6" />
-                    
-                    {/* Action buttons */}
-                    <div className="flex flex-wrap gap-3">
-                      {comic.chapters && comic.chapters.length > 0 && (
-                        <button
-                          onClick={() => startReading(0)}
-                          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-primary-dark rounded-xl text-white font-medium shadow-lg hover:shadow-primary/40 transform hover:-translate-y-1 transition-all duration-300"
-                        >
-                          <FaPlay />
-                          Start Reading
-                        </button>
-                      )}
-                      
-                      <button
-                        onClick={() => setActiveTab('chapters')}
-                        className="flex items-center gap-2 px-6 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-xl text-white font-medium transform hover:-translate-y-1 transition-all duration-300"
-                      >
-                        <FaList />
-                        View Chapters
-                      </button>
-                      
-                      {/* Marathon status indicator */}
-                      {marathonMode && (
-                        <div className="flex items-center gap-2 px-6 py-3 bg-secondary/20 border border-secondary/30 rounded-xl text-secondary-light font-medium">
-                          <FaRunning />
-                          Marathon Mode Active
-                        </div>
-                      )}
-                    </div>
-                  </Tabs.Content>
+                  </div>
                   
-                  <Tabs.Content value="chapters" className="p-4">
-                    {comic.chapters && comic.chapters.length > 0 ? (
-                      <div className="overflow-y-auto max-h-[600px] custom-scrollbar">
-                        <div className="divide-y divide-zinc-800/50">
-                          {comic.chapters.map((chapter, index) => (
-                            <div 
-                              key={index}
-                              className="chapter-hover-effect p-4 hover:bg-zinc-800/30 transition-all duration-300"
-                            >
-                              <div className="flex items-center justify-between">
-                                <div className="flex-1">
-                                  <button
-                                    onClick={() => navigate(`/read/${chapter.slug}`)}
-                                    className="text-zinc-200 hover:text-white font-medium text-left transition-colors"
-                                  >
-                                    {chapter.title}
-                                  </button>
-                                  <div className="text-xs text-zinc-500 mt-1">
-                                    Released: {chapter.released}
-                                  </div>
-                                </div>
-                                
-                                <button
-                                  onClick={() => navigate(`/read/${chapter.slug}`)}
-                                  className="p-2 rounded-lg bg-zinc-800 hover:bg-primary-dark text-zinc-400 hover:text-white transition-colors"
-                                  title="Read chapter"
-                                >
-                                  <FaPlay />
-                                </button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
+                  {/* Synopsis */}
+                  {comic.synopsis && (
+                    <div className="mb-6">
+                      <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                        <span className="h-5 w-1 bg-primary rounded-full"></span>
+                        Synopsis
+                      </h3>
+                      <p className="text-zinc-300 leading-relaxed bg-zinc-800/30 rounded-xl p-4 border border-zinc-700/30">{comic.synopsis}</p>
+                    </div>
+                  )}
+                  
+                  {/* Genres */}
+                  {comic.genre && comic.genre.length > 0 && (
+                    <div className="mb-4">
+                      <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                        <span className="h-5 w-1 bg-primary rounded-full"></span>
+                        Genres
+                      </h3>
+                      <div className="flex flex-wrap gap-2">
+                        {comic.genre.map((genre, index) => (
+                          <span 
+                            key={index}
+                            className="px-3 py-1.5 rounded-full text-sm bg-zinc-800/80 text-zinc-200 hover:bg-zinc-700/80 transition-colors border border-zinc-700/50"
+                          >
+                            {genre.name}
+                          </span>
+                        ))}
                       </div>
-                    ) : (
-                      <div className="py-8 text-center text-zinc-400">
-                        No chapters available
-                      </div>
-                    )}
-                  </Tabs.Content>
-                </Tabs.Root>
-              </motion.div>
-            </div>
+                    </div>
+                  )}
+                </motion.div>
+              </div>
+            </motion.div>
           </div>
         </motion.div>
+        
+        {/* Content tabs */}
+        {comic.chapters && comic.chapters.length > 0 && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.6 }}
+            className="mb-8"
+          >
+            <div className="flex border-b border-zinc-800 mb-6">
+              <button 
+                className={`py-3 px-5 font-medium text-base relative ${activeTab === 'chapters' ? 'text-primary' : 'text-zinc-400 hover:text-white'}`}
+                onClick={() => setActiveTab('chapters')}
+              >
+                <span className="flex items-center gap-2">
+                  <FaClock />
+                  Chapters
+                </span>
+                {activeTab === 'chapters' && (
+                  <motion.div 
+                    layoutId="activeTabIndicator"
+                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" 
+                  />
+                )}
+              </button>
+            </div>
+            
+            <div className="bg-zinc-900/50 border border-zinc-800/50 rounded-xl p-5 shadow-xl backdrop-blur-sm">
+              <div className="max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {comic.chapters.map((chapter, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, delay: 0.1 + index * 0.03 }}
+                      whileHover={{ y: -2, transition: { duration: 0.2 } }}
+                    >
+                      <Link
+                        to={`/read/${chapter.slug}`}
+                        className="flex justify-between items-center p-3 rounded-lg bg-zinc-800/70 hover:bg-zinc-700/80 border border-zinc-700/30 hover:border-zinc-600/50 transition-all"
+                      >
+                        <span className="text-white font-medium truncate">{chapter.title}</span>
+                        <span className="text-xs text-zinc-400 shrink-0 ml-2 bg-zinc-900/60 py-1 px-2 rounded-full">{chapter.released}</span>
+                      </Link>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
       </div>
-      
+
       {/* Image preview modal */}
       <AnimatePresence>
         {selectedImage && (
@@ -519,24 +410,30 @@ const ComicInfo = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4" 
-            onClick={closeImagePreview}
+            className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
+            onClick={() => setSelectedImage(null)}
           >
-            <button 
-              className="absolute top-4 right-4 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-colors"
-              onClick={closeImagePreview}
-            >
-              <FaArrowLeft />
-            </button>
-            <motion.img 
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ type: 'spring', damping: 15 }}
-              src={selectedImage} 
-              alt="Preview" 
-              className="max-w-full max-h-[90vh] object-contain rounded-lg" 
+            <motion.div
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.9 }}
+              className="relative max-w-3xl w-full max-h-[80vh] rounded-xl overflow-hidden"
               onClick={(e) => e.stopPropagation()}
-            />
+            >
+              <img 
+                src={selectedImage} 
+                alt="Preview" 
+                className="w-full h-full object-contain"
+              />
+              <button 
+                onClick={() => setSelectedImage(null)}
+                className="absolute top-4 right-4 bg-black/60 text-white p-2 rounded-full hover:bg-black/80 transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
