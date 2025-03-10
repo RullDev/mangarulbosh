@@ -86,7 +86,7 @@ const Header = () => {
 
   return (
     <header className={`fixed w-full top-0 z-50 ${isScrolled ? 'bg-black/90 backdrop-blur shadow-lg shadow-black/20' : 'bg-black/50 backdrop-blur-sm'} transition-all duration-300`}>
-      <div className="container-custom py-3">
+      <div className="container-custom bg-black py-3">
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link to="/" className="text-white font-bold text-2xl">
@@ -157,7 +157,7 @@ const Header = () => {
                     </div>
                     <div>
                       <h3 className="text-white font-medium">Guest</h3>
-                      <p className="text-zinc-500 text-sm">Welcome to MangaRull</p>
+                      <p className="text-zinc-500 text-sm">Welcome to MangaRul</p>
                     </div>
                   </div>
                   <button 
@@ -181,18 +181,7 @@ const Header = () => {
                 </motion.div>
               ))}
               
-              <motion.div 
-                variants={itemVariants}
-                className="mt-3 pt-4 border-t border-zinc-800/50"
-              >
-                <button className="flex items-center w-full py-3.5 px-3 rounded-lg text-zinc-300 hover:bg-zinc-800/50 transition-all">
-                  <span className="mr-3 text-lg"><FaMoon /></span>
-                  <span className="font-medium">Dark Mode</span>
-                  <div className="ml-auto relative w-10 h-5 bg-zinc-700 rounded-full flex items-center px-0.5">
-                    <div className="w-4 h-4 rounded-full bg-primary absolute right-0.5 transition-all"></div>
-                  </div>
-                </button>
-              </motion.div>
+              
             </motion.nav>
           </motion.div>
         )}
