@@ -1,71 +1,62 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { FaStar, FaBookmark } from 'react-icons/fa';
+import * as AspectRatio from '@radix-ui/react-aspect-ratio';
 
 const ComicCard = ({ comic }) => {
+  const getTypeClassName = (type) => {
+    const types = {
+      manga: 'bg-blue-900/60 text-blue-100',
+      manhwa: 'bg-purple-900/60 text-purple-100',
+      manhua: 'bg-green-900/60 text-green-100',
+    };
+    return types[type.toLowerCase()] || 'bg-gray-900/60 text-gray-100';
+  };
+
+  const getStatusClassName = (status) => {
+    const statuses = {
+      ongoing: 'bg-green-900/60 text-green-100',
+      completed: 'bg-blue-900/60 text-blue-100',
+    };
+    return statuses[status.toLowerCase()] || 'bg-gray-900/60 text-gray-100';
+  };
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      whileHover={{ y: -5 }}
-      className="comic-card bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden group"
-    >
-      <Link to={`/info/${comic.slug}`} className="block h-full">
-        <div className="relative aspect-[2/3] overflow-hidden">
-          <motion.img 
-            whileHover={{ scale: 1.05 }}
-            transition={{ duration: 0.3 }}
-            src={comic.cover} 
-            alt={comic.title} 
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              e.target.onerror = null;
-              e.target.src = 'https://via.placeholder.com/400x600?text=No+Image';
-            }}
-          />
-          
-          <div className="absolute top-2 left-2 px-2 py-1 bg-primary/80 backdrop-blur-sm text-white text-xs font-bold rounded-md">
-            {comic.type}
-          </div>
-          
-          {comic.score && (
-            <div className="absolute top-2 right-2 bg-yellow-500/80 backdrop-blur-sm text-white px-2 py-1 text-xs font-bold rounded-md flex items-center">
-              <FaStar className="mr-1" /> {comic.score}
-            </div>
-          )}
-          
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-          
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            whileHover={{ opacity: 1, y: 0 }}
-            className="absolute bottom-0 left-0 right-0 p-4 text-white bg-gradient-to-t from-black/80 to-transparent"
-          >
-            <h3 className="font-bold truncate text-white text-sm md:text-base">{comic.title}</h3>
-            <div className="flex items-center justify-between mt-1">
-              <span className="text-gray-300 text-xs">{comic.status}</span>
-              {comic.latest_chapter && (
-                <span className="text-xs bg-primary/80 px-2 py-0.5 rounded-full">
-                  Ch. {comic.latest_chapter}
+    <Link to={`/comic/${comic.id}`} className="group animate-fade-in">
+      <div className="overflow-hidden rounded-lg bg-zinc-900 border border-zinc-800 hover:border-zinc-700 transition-all duration-300 group-hover:translate-y-[-5px]">
+        <div className="relative">
+          <AspectRatio.Root ratio={2/3}>
+            <img 
+              src={comic.coverImage} 
+              alt={comic.title} 
+              className="w-full h-full object-cover object-center"
+              loading="lazy"
+            />
+          </AspectRatio.Root>
+          <div className="absolute bottom-0 left-0 w-full p-2 bg-gradient-to-t from-black to-transparent">
+            <div className="flex flex-wrap gap-1">
+              <span className={`px-2 py-0.5 text-xs rounded-full ${getTypeClassName(comic.type)}`}>
+                {comic.type}
+              </span>
+              {comic.status && (
+                <span className={`px-2 py-0.5 text-xs rounded-full ${getStatusClassName(comic.status)}`}>
+                  {comic.status}
                 </span>
               )}
             </div>
-          </motion.div>
-          
-          <motion.div 
-            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity"
-            whileHover={{ scale: 1.1 }}
-          >
-            <div className="bg-primary/80 text-white p-3 rounded-full backdrop-blur-md shadow-lg">
-              <FaBookmark />
-            </div>
-          </motion.div>
+          </div>
         </div>
-      </Link>
-    </motion.div>
+        <div className="p-3">
+          <h3 className="text-white font-semibold line-clamp-1 mb-1 group-hover:text-primary transition-colors">
+            {comic.title}
+          </h3>
+          <div className="flex justify-between items-center text-xs text-zinc-400">
+            <span>Ch. {comic.latestChapter || 'N/A'}</span>
+            {comic.score && <span className="flex items-center gap-1">★ {comic.score}</span>}
+          </div>
+        </div>
+      </div>
+    </Link>
   );
 };
 

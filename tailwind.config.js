@@ -1,35 +1,29 @@
-
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
-  darkMode: "class",
   theme: {
     extend: {
       colors: {
         primary: {
-          light: "#9f7aea",
-          DEFAULT: "#7c3aed",
-          dark: "#6d28d9",
+          DEFAULT: 'var(--primary)',
+          light: 'var(--primary-light)',
+          dark: 'var(--primary-dark)',
         },
         secondary: {
-          light: "#6366f1",
-          DEFAULT: "#4f46e5",
-          dark: "#4338ca",
+          DEFAULT: 'var(--secondary)',
+          light: 'var(--secondary-light)',
+          dark: 'var(--secondary-dark)',
         },
         background: {
-          light: "#f8fafc",
-          dark: "#171923",
+          light: 'var(--background-light)',
+          dark: 'var(--background-dark)',
         },
         text: {
-          light: "#1e293b",
-          dark: "#e2e8f0",
-        },
-        accent: {
-          light: "#f59e0b",
-          dark: "#d97706",
+          light: 'var(--text-light)',
+          dark: 'var(--text-dark)',
         }
       }
     },
