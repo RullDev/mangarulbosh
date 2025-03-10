@@ -166,10 +166,10 @@ const Home = () => {
       <div className="bg-black py-8">
         <div className="container-custom">
           <h1 className="text-2xl md:text-3xl font-bold text-white mb-4">
-            Welcome To MangaSur
+            Welcome To MangaRul
           </h1>
           <p className="text-zinc-400 max-w-3xl mb-8">
-            Dive into the world of manga with MangaSur, your ultimate destination for the latest and greatest in comic reading. Enjoy high-quality mirror scans of your favorite manga, and discover new manga to read.
+            Dive into the world of manga with MangaRul, your ultimate destination for the latest and greatest in comic reading. Enjoy high-quality mirror scans of your favorite manga, and discover new manga to read.
           </p>
           <div className="w-full h-0.5 bg-zinc-800 mb-8"></div>
         </div>
@@ -202,7 +202,7 @@ const Home = () => {
             Latest Release
           </h2>
           <p className="text-zinc-500 text-sm mb-4">
-            Discover the latest manga releases on MangaSur
+            Discover the latest manga releases on MangaRul
           </p>
           {latestComics.length > 0 ? (
             <ComicGrid comics={latestComics} onToggleFavorite={handleToggleFavorite} />
@@ -230,7 +230,7 @@ const Home = () => {
             Popular Manga
           </h2>
           <p className="text-zinc-500 text-sm mb-4">
-            Most read manga on MangaSur this week
+            Most read manga on MangaRul this week
           </p>
           {popularComics.length > 0 ? (
             <ComicGrid comics={popularComics} onToggleFavorite={handleToggleFavorite} />
