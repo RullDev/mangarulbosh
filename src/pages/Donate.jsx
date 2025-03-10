@@ -31,11 +31,11 @@ const Donate = () => {
               </div>
 
               <h1 className="text-2xl md:text-3xl font-bold text-center text-white mb-4">
-                Support MangaSur
+                Support MangaRul
               </h1>
 
               <p className="text-zinc-400 text-center mb-8">
-                Your donations help us maintain and improve MangaSur so we can continue providing 
+                Your donations help us maintain and improve MangaRul so we can continue providing 
                 high-quality manga content to our readers. Thank you for your support!
               </p>
 
@@ -71,7 +71,7 @@ const Donate = () => {
                   <Dialog.Overlay className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 animate-fade-in" />
                   <Dialog.Content className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 max-w-md w-[90vw] bg-zinc-900 rounded-2xl p-6 shadow-xl z-50 border border-zinc-800/50">
                     <Dialog.Title className="text-xl font-bold text-white mb-2">
-                      Support MangaSur
+                      Support MangaRul
                     </Dialog.Title>
                     <Dialog.Description className="text-zinc-400 text-sm mb-6">
                       Your donation will help us maintain and improve the MangaSur platform.
@@ -104,16 +104,11 @@ const Donate = () => {
 
               <div className="mt-8 text-center text-sm text-zinc-500">
                 <p>100% of your donation goes directly toward server costs and development.</p>
-                <p className="mt-2">MangaSur is a non-profit project made with ❤️ for manga fans.</p>
+                <p className="mt-2">MangaRul is a non-profit project made with ❤️ for manga fans.</p>
               </div>
             </div>
           </div>
           
-          <div className="mt-6 text-center">
-            <Link to="/" className="inline-flex items-center text-zinc-400 hover:text-white transition-colors">
-              <FaArrowLeft className="mr-2" /> Back to Home
-            </Link>
-          </div>
         </motion.div>
       </div>
     </div>

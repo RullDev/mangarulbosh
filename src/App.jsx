@@ -8,7 +8,7 @@ import SearchResults from './pages/SearchResults';
 import Bookmarks from './pages/Bookmarks';
 import Donate from './pages/Donate';
 import Header from './components/Header';
-import SearchPage from './pages/SearchPage'; // Added import for SearchPage
+ // Added import for SearchPage
 
 // Create context for theme
 export const ThemeContext = createContext();
@@ -34,7 +34,7 @@ function App() {
                     <Route path="/info/:slug" element={<ComicInfo />} />
                     <Route path="/bookmarks" element={<Bookmarks />} />
                     <Route path="/donate" element={<Donate />} />
-                    <Route path="/search" element={<SearchPage />} /> {/* Added SearchPage route */}
+                    <Route path="/search" element={<SearchResults />} /> {/* Added SearchPage route */}
                   </Routes>
                 </main>
               </>

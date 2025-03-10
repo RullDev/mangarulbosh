@@ -187,7 +187,7 @@ html {
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-gray-100 dark:bg-gray-800;
+  @apply bg-gray-600 dark:bg-gray-800;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -242,19 +242,6 @@ html {
 }
 
 /* Theme variables */
-:root {
-  --primary: #3b82f6;
-  --primary-light: #60a5fa;
-  --primary-dark: #2563eb;
-  --secondary: #8b5cf6;
-  --secondary-light: #a78bfa;
-  --secondary-dark: #7c3aed;
-  --background-light: #f9fafb;
-  --background-dark: #000000;
-  --text-light: #1f2937;
-  --text-dark: #f9fafb;
-}
-
 /* Better fonts */
 @import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800&display=swap');
 

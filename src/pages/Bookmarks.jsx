@@ -43,8 +43,8 @@ const Bookmarks = () => {
 
   return (
     <ScrollArea.Root className="h-screen overflow-hidden">
-      <ScrollArea.Viewport className="w-full h-full pt-20 pb-12">
-        <div className="container-custom py-8">
+      <ScrollArea.Viewport className="w-full h-full pt-20 pb-12 bg-black">
+        <div className="container-custom bg-black py-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
             <div className="flex items-center">
               <div className="flex justify-center items-center w-12 h-12 bg-primary/10 rounded-full mr-4">
