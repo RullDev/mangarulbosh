@@ -1,0 +1,9 @@
+{
+  "version": 2,
+  "routes": [
+    { "src": "/search", "dest": "/index.html" },
+    { "src": "/donate", "dest": "/index.html" },
+    { "src": "/bookmarks", "dest": "/index.html" },
+    { "src": "/comic/(.*)", "dest": "/index.html" }
+  ]
+}
