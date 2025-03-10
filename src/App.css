@@ -16,8 +16,8 @@
   --background-dark: #000000;
   --text-light: #1f2937;
   --text-dark: #f9fafb;
-  
-  /* RGB values for opacity modifiers */
+
+  /* RGB values for opacity support */
   --primary-rgb: 59, 130, 246;
   --primary-light-rgb: 96, 165, 250;
   --primary-dark-rgb: 37, 99, 235;
@@ -535,16 +535,16 @@ html {
 
 /* Animated hamburger menu */
 .hamburger-line {
-  width: 100%;
+  width: 24px;
   height: 2px;
-  background-color: currentColor;
+  background-color: white;
   border-radius: 2px;
   transition: all 0.3s ease;
   transform-origin: center;
 }
 
 .hamburger-open .hamburger-line:nth-child(1) {
-  transform: translateY(8px) rotate(45deg);
+  transform: translateY(7px) rotate(45deg);
 }
 
 .hamburger-open .hamburger-line:nth-child(2) {
@@ -552,8 +552,9 @@ html {
 }
 
 .hamburger-open .hamburger-line:nth-child(3) {
-  transform: translateY(-8px) rotate(-45deg);
+  transform: translateY(-7px) rotate(-45deg);
 }
+
 
 /* Gradient text */
 .gradient-text {
@@ -1007,7 +1008,7 @@ body {
 
 .comic-card:hover {
   @apply shadow-lg transform translate-y-[-5px];
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 10px 25px -5px rgba(0,0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
 .dark .comic-card:hover {
@@ -1156,4 +1157,45 @@ body {
   .single-page-reader img {
     max-height: 80vh;
   }
+}
+
+/* Hamburger Menu Styles */
+.hamburger-line {
+  width: 24px;
+  height: 2px;
+  background-color: white;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+  transform-origin: center;
+}
+
+.hamburger-open .hamburger-line:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.hamburger-open .hamburger-line:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger-open .hamburger-line:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+/* Custom scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #1f1f1f;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #3f3f46;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #52525b;
 }

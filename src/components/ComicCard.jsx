@@ -1,77 +1,108 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import * as AspectRatio from '@radix-ui/react-aspect-ratio';
-import { FaStar } from 'react-icons/fa';
+import { motion } from 'framer-motion';
+import { FaStar, FaBookmark, FaRegBookmark } from 'react-icons/fa';
 
-const ComicCard = ({ comic }) => {
-  const getTypeClassName = (type) => {
-    const types = {
-      manga: 'bg-blue-900/60 text-blue-100',
-      manhwa: 'bg-purple-900/60 text-purple-100',
-      manhua: 'bg-green-900/60 text-green-100',
-    };
-    return types[type?.toLowerCase()] || 'bg-gray-900/60 text-gray-100';
-  };
+const ComicCard = ({ comic, isFavorite, onToggleFavorite }) => {
+  // Ensure all required properties exist
+  const {
+    slug = '',
+    title = 'Unknown Title',
+    cover = 'https://via.placeholder.com/300x450?text=No+Image',
+    type = '',
+    status = '',
+    score = '',
+    chapter = ''
+  } = comic || {};
 
-  const getStatusClassName = (status) => {
-    const statuses = {
-      ongoing: 'bg-green-900/60 text-green-100',
-      completed: 'bg-blue-900/60 text-blue-100',
-    };
-    return statuses[status?.toLowerCase()] || 'bg-gray-900/60 text-gray-100';
-  };
-
-  if (!comic) return null;
+  const isValidCover = cover && !cover.includes('undefined') && !cover.includes('null');
+  const imageUrl = isValidCover ? cover : 'https://via.placeholder.com/300x450?text=No+Image';
 
   return (
-    <Link to={`/comic/${comic.id}`} className="group">
-      <div className="overflow-hidden rounded-lg bg-zinc-900/90 border border-zinc-800 hover:border-zinc-700 transition-all duration-300 group-hover:translate-y-[-5px] group-hover:shadow-xl group-hover:shadow-primary/10">
-        <div className="relative">
-          <AspectRatio.Root ratio={2/3}>
-            <img 
-              src={comic.coverImage} 
-              alt={comic.title} 
-              className="w-full h-full object-cover object-center transform transition-transform duration-500 group-hover:scale-105"
-              loading="lazy"
+    <motion.div
+      className="comic-card bg-zinc-900/60 border border-zinc-800/80 overflow-hidden rounded-xl"
+      whileHover={{ y: -5, boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)' }}
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.3 }}
+    >
+      <div className="relative overflow-hidden group">
+        <Link to={`/comic/${slug}`} className="block">
+          <div className="w-full aspect-[2/3] overflow-hidden">
+            <motion.img
+              src={imageUrl}
+              alt={title}
+              className="w-full h-full object-cover object-center transform group-hover:scale-110 transition-transform duration-500"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               onError={(e) => {
-                e.target.onerror = null; 
+                e.target.onerror = null;
                 e.target.src = 'https://via.placeholder.com/300x450?text=No+Image';
               }}
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-          </AspectRatio.Root>
-          <div className="absolute bottom-0 left-0 w-full p-2 bg-gradient-to-t from-black to-transparent">
-            <div className="flex flex-wrap gap-1">
-              {comic.type && (
-                <span className={`px-2 py-0.5 text-xs rounded-full ${getTypeClassName(comic.type)}`}>
-                  {comic.type}
-                </span>
-              )}
-              {comic.status && (
-                <span className={`px-2 py-0.5 text-xs rounded-full ${getStatusClassName(comic.status)}`}>
-                  {comic.status}
-                </span>
-              )}
-            </div>
           </div>
-        </div>
-        <div className="p-3">
-          <h3 className="text-white font-semibold line-clamp-1 mb-1 group-hover:text-primary transition-colors">
-            {comic.title}
-          </h3>
-          <div className="flex justify-between items-center text-xs text-zinc-400">
-            <span>Ch. {comic.latestChapter || 'N/A'}</span>
-            {comic.score && (
-              <span className="flex items-center gap-1 text-yellow-500">
-                <FaStar className="inline" />
-                {comic.score}
+          
+          <div className="absolute top-0 left-0 right-0 p-2 flex justify-between items-start">
+            {type && (
+              <span className="px-2 py-1 text-xs bg-primary/90 text-white rounded-md font-medium">
+                {type}
+              </span>
+            )}
+            
+            {score && (
+              <span className="px-2 py-1 text-xs bg-yellow-600/90 text-white rounded-md font-medium flex items-center gap-1">
+                <FaStar className="text-yellow-300" /> {score}
               </span>
             )}
           </div>
-        </div>
+          
+          {status && (
+            <div className="absolute bottom-0 left-0 right-0 p-2">
+              <span className={`px-2 py-1 text-xs rounded-md font-medium ${
+                status.toLowerCase().includes('ongoing') 
+                  ? 'bg-green-600/90 text-green-50' 
+                  : 'bg-blue-600/90 text-blue-50'
+              }`}>
+                {status}
+              </span>
+            </div>
+          )}
+          
+          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        </Link>
+        
+        {onToggleFavorite && (
+          <motion.button
+            className="absolute top-2 right-2 z-10 text-white p-1.5 rounded-full bg-black/40 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity"
+            whileHover={{ scale: 1.2 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={() => onToggleFavorite(comic)}
+          >
+            {isFavorite ? (
+              <FaBookmark className="text-primary" size={16} />
+            ) : (
+              <FaRegBookmark size={16} />
+            )}
+          </motion.button>
+        )}
       </div>
-    </Link>
+      
+      <div className="p-3">
+        <Link to={`/comic/${slug}`} className="block">
+          <h3 className="font-semibold text-white truncate hover:text-primary transition-colors">
+            {title}
+          </h3>
+          
+          {chapter && (
+            <p className="text-sm text-zinc-400 mt-1 truncate">
+              {chapter}
+            </p>
+          )}
+        </Link>
+      </div>
+    </motion.div>
   );
 };
 

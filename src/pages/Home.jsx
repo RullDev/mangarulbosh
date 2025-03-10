@@ -20,8 +20,13 @@ const Home = () => {
 
   useEffect(() => {
     const loadFavorites = () => {
-      const savedFavorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-      setFavorites(savedFavorites);
+      try {
+        const savedFavorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+        setFavorites(savedFavorites);
+      } catch (err) {
+        console.error("Error loading favorites:", err);
+        setFavorites([]);
+      }
     };
 
     loadFavorites();
@@ -31,27 +36,41 @@ const Home = () => {
       setError(null);
       
       try {
-        // Fetch latest and popular comics in parallel
-        const [latest, popular] = await Promise.all([
-          Comic.latest(),
-          Comic.popular()
-        ]);
+        // Create instances for latest and popular comics
+        const latestComicInstance = new Comic("1");
+        const popularComicInstance = new Comic("1");
         
-        setLatestComics(latest || []);
-        setPopularComics(popular || []);
+        // Fetch data
+        const latestResults = await latestComicInstance.latest();
+        const popularResults = await popularComicInstance.popular();
         
-        // Set random comic from combined results if available
-        const allComics = [...(latest || []), ...(popular || [])];
+        // Normalize comic data
+        const processComicData = (comics) => {
+          if (!comics || !Array.isArray(comics)) return [];
+          
+          return comics.map(comic => ({
+            ...comic,
+            id: comic.slug,
+            coverImage: comic.cover,
+            description: comic.description || "Start reading this amazing comic now!"
+          }));
+        };
+        
+        const processedLatest = processComicData(latestResults);
+        const processedPopular = processComicData(popularResults);
+        
+        setLatestComics(processedLatest);
+        setPopularComics(processedPopular);
+        
+        // Set random comic
+        const allComics = [...processedLatest, ...processedPopular];
         if (allComics.length > 0) {
           const randomIndex = Math.floor(Math.random() * allComics.length);
           setRandomComic(allComics[randomIndex]);
         }
       } catch (err) {
         console.error("Error fetching comics:", err);
-        const errorMessage = err.response?.status === 403 
-          ? "Access denied. The server blocked this request. Please try again later."
-          : "Failed to load comics. Please try again later.";
-        setError(errorMessage);
+        setError("Failed to load comics. Please try again later.");
       } finally {
         setIsLoading(false);
       }
@@ -66,13 +85,42 @@ const Home = () => {
     
     setIsSearching(true);
     try {
-      const results = await Comic.search(searchQuery);
-      setSearchResults(results || []);
+      const searchInstance = new Comic(searchQuery);
+      const results = await searchInstance.search();
+      
+      // Process search results
+      const processedResults = results.map(comic => ({
+        ...comic,
+        id: comic.slug,
+        coverImage: comic.cover
+      }));
+      
+      setSearchResults(processedResults);
     } catch (err) {
       console.error("Error searching:", err);
       setSearchResults([]);
     } finally {
       setIsSearching(false);
+    }
+  };
+
+  const handleToggleFavorite = (comic) => {
+    try {
+      const currentFavorites = [...favorites];
+      const existingIndex = currentFavorites.findIndex(fav => fav.slug === comic.slug);
+      
+      if (existingIndex >= 0) {
+        // Remove from favorites
+        currentFavorites.splice(existingIndex, 1);
+      } else {
+        // Add to favorites
+        currentFavorites.push(comic);
+      }
+      
+      setFavorites(currentFavorites);
+      localStorage.setItem('favorites', JSON.stringify(currentFavorites));
+    } catch (err) {
+      console.error("Error updating favorites:", err);
     }
   };
 
@@ -151,7 +199,7 @@ const Home = () => {
             {isSearching ? (
               <LoadingSpinner message="Searching..." />
             ) : searchResults.length > 0 ? (
-              <ComicGrid comics={searchResults} />
+              <ComicGrid comics={searchResults} onToggleFavorite={handleToggleFavorite} />
             ) : (
               <div className="bg-yellow-900/20 border border-yellow-900/50 text-yellow-200 p-4 rounded-lg">
                 No results found for "{searchQuery}"
@@ -174,6 +222,10 @@ const Home = () => {
                   src={randomComic.coverImage} 
                   alt={randomComic.title} 
                   className="w-full h-full object-cover object-center blur-md scale-110"
+                  onError={(e) => {
+                    e.target.onerror = null; 
+                    e.target.src = 'https://via.placeholder.com/300x450?text=No+Image';
+                  }}
                 />
               </div>
               <div className="relative z-10 p-6 flex flex-col md:flex-row gap-6 items-center">
@@ -235,7 +287,7 @@ const Home = () => {
               <FaStar className="text-yellow-500" />
               Your Favorites
             </h2>
-            <ComicGrid comics={favorites} />
+            <ComicGrid comics={favorites} onToggleFavorite={handleToggleFavorite} />
           </div>
         )}
 
@@ -246,7 +298,7 @@ const Home = () => {
             Latest Updates
           </h2>
           {latestComics.length > 0 ? (
-            <ComicGrid comics={latestComics} />
+            <ComicGrid comics={latestComics} onToggleFavorite={handleToggleFavorite} />
           ) : (
             <div className="bg-yellow-900/20 border border-yellow-900/50 text-yellow-200 p-4 rounded-lg">
               No latest comics available
@@ -261,7 +313,7 @@ const Home = () => {
             Popular Comics
           </h2>
           {popularComics.length > 0 ? (
-            <ComicGrid comics={popularComics} />
+            <ComicGrid comics={popularComics} onToggleFavorite={handleToggleFavorite} />
           ) : (
             <div className="bg-yellow-900/20 border border-yellow-900/50 text-yellow-200 p-4 rounded-lg">
               No popular comics available

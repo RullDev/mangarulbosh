@@ -1,37 +1,45 @@
 
 import React from 'react';
+import { motion } from 'framer-motion';
 
-const LoadingSpinner = ({ size = 'md', color = 'primary', fullScreen = false, message = 'Loading...' }) => {
-  const sizeClasses = {
-    sm: 'w-5 h-5 border-2',
-    md: 'w-8 h-8 border-3',
-    lg: 'w-12 h-12 border-4',
-    xl: 'w-16 h-16 border-4'
-  };
-  
-  const colorClasses = {
-    primary: 'border-t-primary',
-    secondary: 'border-t-secondary',
-    white: 'border-t-white'
+const LoadingSpinner = ({ size = 'md', message = 'Loading...', fullScreen = false }) => {
+  const getSize = () => {
+    switch(size) {
+      case 'sm': return 'w-6 h-6 border-2';
+      case 'lg': return 'w-12 h-12 border-3';
+      case 'xl': return 'w-16 h-16 border-4';
+      default: return 'w-8 h-8 border-3'; // md
+    }
   };
 
-  const Container = fullScreen ? 
-    ({ children }) => (
-      <div className="fixed inset-0 flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm z-50">
-        {children}
-      </div>
-    ) : 
-    ({ children }) => (
-      <div className="flex flex-col items-center justify-center py-10">
-        {children}
-      </div>
-    );
+  const spinnerSize = getSize();
+  const containerClass = fullScreen 
+    ? 'fixed inset-0 flex items-center justify-center z-50 bg-black/80 backdrop-blur-sm' 
+    : 'flex flex-col items-center justify-center py-10';
 
   return (
-    <Container>
-      <div className={`${sizeClasses[size]} rounded-full border-gray-600 ${colorClasses[color]} animate-spin`}></div>
-      {message && <p className="mt-4 text-zinc-300">{message}</p>}
-    </Container>
+    <div className={containerClass}>
+      <div className="flex flex-col items-center">
+        <div className="relative">
+          <motion.div 
+            className={`${spinnerSize} rounded-full border-primary/30 border-t-primary spinner loading-ring`}
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+          />
+        </div>
+        
+        {message && (
+          <motion.p 
+            className="mt-4 text-zinc-300 font-medium"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+          >
+            {message}
+          </motion.p>
+        )}
+      </div>
+    </div>
   );
 };
 
