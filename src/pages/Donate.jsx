@@ -1,116 +1,200 @@
 
-import React from 'react';
-import { motion } from 'framer-motion';
-import { FaHeart, FaUserCircle, FaArrowLeft } from 'react-icons/fa';
-import { Link } from 'react-router-dom';
-import * as Dialog from '@radix-ui/react-dialog';
+import React, { useState } from 'react';
+import { FaHeart, FaDollarSign, FaPaypal, FaCcVisa, FaCcMastercard, FaBitcoin, FaQrcode, FaHandHoldingHeart, FaTimes } from 'react-icons/fa';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Donate = () => {
+  const [isQRVisible, setIsQRVisible] = useState(false);
+
+  const toggleQRCode = () => {
+    setIsQRVisible(!isQRVisible);
+  };
+
   return (
-    <div className="min-h-screen bg-black pt-20">
-      <div className="container-custom py-8">
-        <motion.div 
+    <div className="min-h-screen bg-black pt-16">
+      <div className="container-custom py-12">
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="max-w-2xl mx-auto rounded-2xl overflow-hidden"
+          className="relative overflow-hidden"
         >
-          <div className="bg-zinc-900/70 backdrop-blur border border-zinc-800/50 rounded-2xl overflow-hidden shadow-xl">
-            <div className="p-6 md:p-8">
-              <div className="flex items-center justify-center mb-8">
-                <motion.div 
-                  animate={{ scale: [1, 1.1, 1] }}
-                  transition={{ 
-                    repeat: Infinity,
-                    duration: 2
-                  }}
-                  className="h-20 w-20 flex items-center justify-center rounded-full bg-gradient-to-br from-red-500/20 to-primary/20 text-red-400"
-                >
-                  <FaHeart className="h-10 w-10" />
-                </motion.div>
-              </div>
-
-              <h1 className="text-2xl md:text-3xl font-bold text-center text-white mb-4">
-                Support MangaRul
-              </h1>
-
-              <p className="text-zinc-400 text-center mb-8">
-                Your donations help us maintain and improve MangaRul so we can continue providing 
-                high-quality manga content to our readers. Thank you for your support!
-              </p>
-
-              <div className="space-y-6 mb-8">
-                <div className="bg-zinc-800/50 rounded-xl p-4 border border-zinc-700/30">
-                  <div className="flex items-center mb-3">
-                    <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center text-primary">
-                      <FaUserCircle className="h-5 w-5" />
-                    </div>
-                    <div className="ml-3">
-                      <h3 className="text-white font-medium">Server Costs</h3>
-                      <p className="text-zinc-400 text-sm">Help us keep the servers running</p>
-                    </div>
-                  </div>
-                  <div className="w-full bg-zinc-700/30 rounded-full h-1.5">
-                    <div className="bg-primary h-1.5 rounded-full" style={{ width: '65%' }}></div>
-                  </div>
-                  <div className="text-right text-xs text-zinc-400 mt-1">65% of monthly goal</div>
+          {/* Background decorative elements */}
+          <div className="absolute top-0 left-10 w-32 h-32 bg-primary/10 rounded-full blur-3xl -z-10"></div>
+          <div className="absolute bottom-20 right-10 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl -z-10"></div>
+          
+          <div className="max-w-4xl mx-auto">
+            {/* Header */}
+            <div className="text-center mb-16">
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="inline-block"
+              >
+                <div className="bg-gradient-to-r from-pink-600 to-primary p-4 rounded-full inline-block mb-6">
+                  <FaHandHoldingHeart className="text-white text-5xl" />
                 </div>
-              </div>
-
-              <Dialog.Root>
-                <Dialog.Trigger asChild>
+              </motion.div>
+              <motion.h1 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                className="text-4xl font-bold text-white mb-4"
+              >
+                Support MangaSur
+              </motion.h1>
+              <motion.p 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.4 }}
+                className="text-zinc-400 text-lg max-w-2xl mx-auto"
+              >
+                Your donations help us maintain and improve MangaSur, ensuring we can continue to provide high-quality manga content for free.
+              </motion.p>
+            </div>
+            
+            {/* Donation Options */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.5 }}
+              className="bg-zinc-900/70 border border-zinc-800/50 rounded-xl p-8 backdrop-blur-sm shadow-xl mb-12"
+            >
+              <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
+                <FaDollarSign className="mr-3 text-primary" />
+                Donation Options
+              </h2>
+              
+              <div className="grid md:grid-cols-2 gap-6">
+                {/* One-time donation */}
+                <div className="bg-zinc-800/50 rounded-xl p-6 border border-zinc-700/30 hover:border-zinc-600/50 hover:shadow-lg transition-all hover:shadow-primary/5 hover:-translate-y-1">
+                  <h3 className="text-xl font-semibold text-white mb-4">One-time Donation</h3>
+                  <p className="text-zinc-400 mb-6">Support us with a one-time donation of any amount. Every contribution helps!</p>
                   <motion.button
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.97 }}
-                    className="w-full py-4 rounded-lg bg-gradient-to-r from-primary to-purple-600 text-white font-bold text-center text-lg shadow-lg hover:shadow-xl transition-all duration-300"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={toggleQRCode}
+                    className="w-full bg-gradient-to-r from-primary to-primary-dark py-3 px-6 rounded-lg text-white font-medium flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-primary/20 transition-all"
                   >
+                    <FaHeart />
                     Donate Now
                   </motion.button>
-                </Dialog.Trigger>
-                <Dialog.Portal>
-                  <Dialog.Overlay className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 animate-fade-in" />
-                  <Dialog.Content className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 max-w-md w-[90vw] bg-zinc-900 rounded-2xl p-6 shadow-xl z-50 border border-zinc-800/50">
-                    <Dialog.Title className="text-xl font-bold text-white mb-2">
-                      Support MangaRul
-                    </Dialog.Title>
-                    <Dialog.Description className="text-zinc-400 text-sm mb-6">
-                      Your donation will help us maintain and improve the MangaSur platform.
-                    </Dialog.Description>
-                    
-                    <div className="text-center">
-                      <a
-                        href="https://saweria.co/RullZY"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-block w-full py-3 rounded-lg bg-gradient-to-r from-primary to-purple-600 text-white font-medium text-center hover:shadow-lg transition-all duration-300"
-                      >
-                        Continue to Donation Page
-                      </a>
-                      <p className="mt-4 text-zinc-500 text-sm">
-                        100% of donations go to server costs and development
-                      </p>
-                    </div>
-                    
-                    <Dialog.Close asChild>
-                      <button className="absolute top-4 right-4 p-1 rounded-full text-zinc-400 hover:text-white hover:bg-zinc-800/50">
-                        <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M11.7816 4.03157C12.0062 3.80702 12.0062 3.44295 11.7816 3.2184C11.5571 2.99385 11.193 2.99385 10.9685 3.2184L7.50005 6.68682L4.03164 3.2184C3.80708 2.99385 3.44301 2.99385 3.21846 3.2184C2.99391 3.44295 2.99391 3.80702 3.21846 4.03157L6.68688 7.49999L3.21846 10.9684C2.99391 11.193 2.99391 11.557 3.21846 11.7816C3.44301 12.0061 3.80708 12.0061 4.03164 11.7816L7.50005 8.31316L10.9685 11.7816C11.193 12.0061 11.5571 12.0061 11.7816 11.7816C12.0062 11.557 12.0062 11.193 11.7816 10.9684L8.31322 7.49999L11.7816 4.03157Z" fill="currentColor" fillRule="evenodd" clipRule="evenodd"></path>
-                        </svg>
-                      </button>
-                    </Dialog.Close>
-                  </Dialog.Content>
-                </Dialog.Portal>
-              </Dialog.Root>
-
-              <div className="mt-8 text-center text-sm text-zinc-500">
-                <p>100% of your donation goes directly toward server costs and development.</p>
-                <p className="mt-2">MangaRul is a non-profit project made with ❤️ for manga fans.</p>
+                </div>
+                
+                {/* Monthly support */}
+                <div className="bg-zinc-800/50 rounded-xl p-6 border border-zinc-700/30 hover:border-zinc-600/50 hover:shadow-lg transition-all hover:shadow-primary/5 hover:-translate-y-1">
+                  <h3 className="text-xl font-semibold text-white mb-4">Monthly Support</h3>
+                  <p className="text-zinc-400 mb-6">Become a regular supporter with a monthly donation to help us plan for the future.</p>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={toggleQRCode}
+                    className="w-full bg-gradient-to-r from-secondary to-secondary-dark py-3 px-6 rounded-lg text-white font-medium flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-secondary/20 transition-all"
+                  >
+                    <FaHeart />
+                    Become a Supporter
+                  </motion.button>
+                </div>
               </div>
-            </div>
+            </motion.div>
+            
+            {/* Payment Methods */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.6 }}
+              className="bg-zinc-900/70 border border-zinc-800/50 rounded-xl p-8 backdrop-blur-sm shadow-xl"
+            >
+              <h2 className="text-2xl font-bold text-white mb-6">Accepted Payment Methods</h2>
+              
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-zinc-800/50 rounded-xl p-6 flex flex-col items-center justify-center text-center border border-zinc-700/30 hover:border-zinc-600/50 hover:shadow-lg transition-all">
+                  <FaPaypal className="text-4xl text-blue-400 mb-3" />
+                  <span className="text-white font-medium">PayPal</span>
+                </div>
+                <div className="bg-zinc-800/50 rounded-xl p-6 flex flex-col items-center justify-center text-center border border-zinc-700/30 hover:border-zinc-600/50 hover:shadow-lg transition-all">
+                  <FaCcVisa className="text-4xl text-blue-600 mb-3" />
+                  <span className="text-white font-medium">Visa</span>
+                </div>
+                <div className="bg-zinc-800/50 rounded-xl p-6 flex flex-col items-center justify-center text-center border border-zinc-700/30 hover:border-zinc-600/50 hover:shadow-lg transition-all">
+                  <FaCcMastercard className="text-4xl text-orange-500 mb-3" />
+                  <span className="text-white font-medium">Mastercard</span>
+                </div>
+                <div className="bg-zinc-800/50 rounded-xl p-6 flex flex-col items-center justify-center text-center border border-zinc-700/30 hover:border-zinc-600/50 hover:shadow-lg transition-all">
+                  <FaBitcoin className="text-4xl text-yellow-500 mb-3" />
+                  <span className="text-white font-medium">Bitcoin</span>
+                </div>
+              </div>
+            </motion.div>
           </div>
-          
         </motion.div>
       </div>
+      
+      {/* QR Code Popup */}
+      <AnimatePresence>
+        {isQRVisible && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={toggleQRCode}
+          >
+            <motion.div 
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              transition={{ type: "spring", damping: 25, stiffness: 500 }}
+              onClick={e => e.stopPropagation()}
+              className="bg-zinc-900 border border-zinc-700/50 rounded-2xl overflow-hidden max-w-md w-full shadow-2xl relative"
+            >
+              <div className="p-6 text-center relative">
+                <button 
+                  onClick={toggleQRCode}
+                  className="absolute right-4 top-4 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white p-2 rounded-full transition-colors"
+                >
+                  <FaTimes />
+                </button>
+                
+                <div className="mb-4">
+                  <div className="bg-gradient-to-r from-primary to-secondary p-3 rounded-full inline-block mb-2">
+                    <FaQrcode className="text-white text-3xl" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-white">Scan to Donate</h3>
+                  <p className="text-zinc-400 mt-2">Use your mobile wallet app to scan this QR code</p>
+                </div>
+                
+                <div className="bg-white p-6 rounded-xl mb-6 relative">
+                  {/* Animated QR corners */}
+                  <div className="absolute top-0 left-0 w-4 h-4 border-l-2 border-t-2 border-primary"></div>
+                  <div className="absolute top-0 right-0 w-4 h-4 border-r-2 border-t-2 border-primary"></div>
+                  <div className="absolute bottom-0 left-0 w-4 h-4 border-l-2 border-b-2 border-primary"></div>
+                  <div className="absolute bottom-0 right-0 w-4 h-4 border-r-2 border-b-2 border-primary"></div>
+                  
+                  {/* QR Code - replace with actual QR code image */}
+                  <img 
+                    src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://example.com/donate" 
+                    alt="Donation QR Code" 
+                    className="mx-auto w-full max-w-[200px] h-auto"
+                  />
+                </div>
+                
+                <div className="flex flex-col items-center">
+                  <span className="text-zinc-400 text-sm mb-1">You can also send to this address:</span>
+                  <code className="bg-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-300 break-all">
+                    example_wallet_address_123456789abcdefg
+                  </code>
+                </div>
+              </div>
+              
+              <div className="p-4 bg-zinc-800/50 border-t border-zinc-700/30 text-center">
+                <p className="text-zinc-300 text-sm">Thank you for supporting MangaSur! ❤️</p>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
