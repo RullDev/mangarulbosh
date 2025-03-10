@@ -5,37 +5,34 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  darkMode: "class",
   theme: {
     extend: {
       colors: {
         primary: {
-          DEFAULT: 'var(--primary)',
-          light: 'var(--primary-light)',
-          dark: 'var(--primary-dark)',
+          light: "#9f7aea",
+          DEFAULT: "#7c3aed",
+          dark: "#6d28d9",
         },
         secondary: {
-          DEFAULT: 'var(--secondary)',
-          light: 'var(--secondary-light)',
-          dark: 'var(--secondary-dark)',
+          light: "#6366f1",
+          DEFAULT: "#4f46e5",
+          dark: "#4338ca",
         },
         background: {
-          light: 'var(--background-light)',
-          dark: 'var(--background-dark)',
+          light: "#f8fafc",
+          dark: "#171923",
         },
         text: {
-          light: 'var(--text-light)',
-          dark: 'var(--text-dark)',
+          light: "#1e293b",
+          dark: "#e2e8f0",
+        },
+        accent: {
+          light: "#f59e0b",
+          dark: "#d97706",
         }
       }
     },
   },
   plugins: [],
-  safelist: [
-    {
-      pattern: /bg-(primary|secondary)(-light|-dark)?\/\d+/,
-    },
-    {
-      pattern: /hover:bg-(primary|secondary)(-light|-dark)?\/\d+/,
-    }
-  ]
 }
